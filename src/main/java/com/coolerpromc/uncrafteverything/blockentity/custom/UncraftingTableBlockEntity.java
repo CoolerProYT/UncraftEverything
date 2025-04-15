@@ -2,7 +2,10 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
+import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
@@ -24,45 +27,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
-    private ItemStack currentInput = ItemStack.EMPTY;
+    private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
+    private UncraftingTableRecipe currentRecipe = null;
     private boolean isCrafting = false;
 
-    private final ItemStackHandler input = new ItemStackHandler(1){
+    private final ItemStackHandler inputHandler = new ItemStackHandler(1){
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            if (this.getStackInSlot(slot).isEmpty() && !isCrafting){
-                for (int i = 0; i < output.getSlots(); i++){
-                    output.setStackInSlot(i, ItemStack.EMPTY);
-                }
-            }
-            else{
-                getOutputStacks();
-            }
+            getOutputStacks();
         }
     };
 
-    private final ItemStackHandler output = new ItemStackHandler(9){
+    private final ItemStackHandler outputHandler = new ItemStackHandler(9){
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-
-            System.out.println("isCrafting: " + isCrafting);
-            if (this.getStackInSlot(slot).isEmpty()){
-                if (!isCrafting){
-                    input.extractItem(0, currentInput.getCount(), false);
-                    isCrafting = true;
-                }
-                else{
-                    isCrafting = false;
-                    for (int i = 0; i < output.getSlots(); i++){
-                        if (!output.getStackInSlot(i).isEmpty()){
-                            isCrafting = true;
-                            break;
-                        }
-                    }
-                }
-            }
         }
 
         @Override
@@ -86,18 +66,35 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return new UncraftingTableMenu(containerId, playerInventory, this);
     }
 
-    public ItemStackHandler getInput() {
-        return input;
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putBoolean("isCrafting", isCrafting);
+        tag.put("input", inputHandler.serializeNBT(registries));
     }
 
-    public ItemStackHandler getOutput() {
-        return output;
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+
+        isCrafting = tag.getBoolean("isCrafting");
+        if (tag.contains("input")) {
+            inputHandler.deserializeNBT(registries, tag.getCompound("input"));
+        }
+    }
+
+    public ItemStackHandler getInputHandler() {
+        return inputHandler;
+    }
+
+    public ItemStackHandler getOutputHandler() {
+        return outputHandler;
     }
 
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        ItemStack inputStack = this.input.getStackInSlot(0);
+        ItemStack inputStack = this.inputHandler.getStackInSlot(0);
 
         List<Item> materialItems = List.of(
                 Items.IRON_NUGGET,
@@ -123,60 +120,138 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return false;
         }).toList();
 
-        Map<Item, Integer> outputs = new HashMap<>();
+        List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
         for (RecipeHolder<?> r : recipes){
             if (r.value() instanceof ShapedRecipe shapedRecipe){
-                currentInput = shapedRecipe.result;
+                UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
                 for(Optional<Ingredient> i : shapedRecipe.getIngredients()){
                     if (i.isPresent()){
                         Item item = i.get().getValues().get(0).value();
-                        if (outputs.containsKey(item)){
-                            outputs.replace(item, outputs.get(item) + 1);
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())){
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
                         }
                         else{
-                            outputs.put(item, 1);
+                            outputStack.addOutput(new ItemStack(item, 1));
+                        }
+                    }
+                    else{
+                        Item item = Items.AIR;
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())){
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
+                        }
+                        else{
+                            outputStack.addOutput(new ItemStack(item, 1));
                         }
                     }
                 }
+                outputs.add(outputStack);
             }
 
             if (r.value() instanceof ShapelessRecipe shapelessRecipe){
-                currentInput = shapelessRecipe.result;
+                UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
                 for(Ingredient i : shapelessRecipe.ingredients){
                     Item item = i.getValues().get(0).value();
-                    if (outputs.containsKey(item)){
-                        outputs.replace(item, outputs.get(item) + 1);
+                    if (outputStack.getOutputs().contains(item.getDefaultInstance())){
+                        ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                        outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
                     }
                     else{
-                        outputs.put(item, 1);
+                        outputStack.addOutput(new ItemStack(item, 1));
                     }
                 }
+                outputs.add(outputStack);
             }
         }
 
-        //ensure all output slot are empty
-        boolean empty = true;
+        this.currentRecipes = outputs;
 
-        for (int j = 0; j < output.getSlots(); j++){
-            if (!output.getStackInSlot(j).isEmpty()){
-                empty = false;
-                break;
-            }
+        if (!currentRecipes.isEmpty()) {
+            this.currentRecipe = outputs.getFirst();
         }
+    }
 
-        if (empty){
+    public void handleButtonClick(String data){
+        if (hasRecipe()){
             int i = 0;
-            for (Map.Entry<Item, Integer> entry : outputs.entrySet()){
-                Item item = entry.getKey();
-                int count = entry.getValue();
-
-                if (i < output.getSlots()){
-                    output.setStackInSlot(i, new ItemStack(item, count));
+            for (ItemStack stack : currentRecipe.getOutputs()){
+                if (i < outputHandler.getSlots()){
                     i++;
+                    if (!canInsertItemIntoOutputSlot(stack.getItem())) continue;
+                    outputHandler.setStackInSlot(i, new ItemStack(stack.getItem(), stack.getCount() + outputHandler.getStackInSlot(i).getCount()));
                 }
             }
+            inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
             setChanged();
         }
+    }
+
+    private boolean hasRecipe() {
+        if (currentRecipes.isEmpty()) {
+            return false;
+        }
+
+        List<ItemStack> results = currentRecipe.getOutputs();
+
+        for (ItemStack stack : results) {
+            if (!canInsertAmountIntoOutputSlot(stack) || !canInsertItemIntoOutputSlot(stack.getItem())) {
+                return false;
+            }
+        }
+
+        return checkSlot(results);
+    }
+
+    private boolean checkSlot(List<ItemStack> results) {
+        int count = 0;
+        int emptyCount = 0;
+        for (ItemStack result : results) {
+            count++;
+        }
+        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
+            if (!stackInSlot.isEmpty()) {
+                for (ItemStack result : results) {
+                    if (stackInSlot.getItem() == result.getItem()) {
+                        if (stackInSlot.getCount() + result.getCount() <= 64) {
+                            emptyCount++;
+                        }
+                    }
+                }
+            } else {
+                emptyCount++;
+            }
+        }
+        return emptyCount >= count;
+    }
+
+    private boolean canInsertAmountIntoOutputSlot(ItemStack result) {
+        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
+            if (stackInSlot.isEmpty() || (stackInSlot.getItem() == result.getItem() && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxStackSize())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean canInsertItemIntoOutputSlot(Item item) {
+        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
+            if (stackInSlot.isEmpty() || stackInSlot.getItem() == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<UncraftingTableRecipe> getCurrentRecipes() {
+        return currentRecipes;
+    }
+
+    public UncraftingTableRecipe getCurrentRecipe() {
+        return currentRecipe;
     }
 }

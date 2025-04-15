@@ -29,12 +29,12 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
         addPlayerInventory(inventory);
         addPlayerHotbar(inventory);
 
-        IItemHandler inputHandler = this.blockEntity.getInput();
+        IItemHandler inputHandler = this.blockEntity.getInputHandler();
         this.addSlot(new SlotItemHandler(inputHandler, 0, 0, 0));
 
-        IItemHandler outputHandler = this.blockEntity.getOutput();
-        for (int i = 0;i < this.blockEntity.getOutput().getSlots();i ++){
-            this.addSlot(new SlotItemHandler(outputHandler, i, 16, i * 16));
+        IItemHandler outputHandler = this.blockEntity.getOutputHandler();
+        for (int i = 0; i < this.blockEntity.getOutputHandler().getSlots(); i ++){
+            this.addSlot(new SlotItemHandler(outputHandler, i, 32 + 16 * (i % 3), (i / 3) * 16));
         }
     }
 
