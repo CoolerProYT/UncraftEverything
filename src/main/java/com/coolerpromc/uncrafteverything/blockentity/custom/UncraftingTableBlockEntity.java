@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -220,13 +222,45 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+    private List<Item> getItemsFromIngredient(Ingredient ingredient) {
+        List<Item> items = new ArrayList<>();
+
+        // Handle tag ingredients
+        if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().items().toList().isEmpty()) {
+            for (var holder : ingredient.getCustomIngredient().items().toList()) {
+                items.add(holder.value());
+            }
+        }
+        // Handle regular item ingredients
+        else {
+            try {
+                items = ingredient.getValues().stream()
+                        .map(Holder::value)
+                        .distinct()
+                        .toList();
+            } catch (IllegalStateException e) {
+                // Log error for debugging
+                LogUtils.getLogger().warn("Skipping unsupported ingredient type: {}", ingredient);
+                return Collections.emptyList();
+            }
+        }
+
+        return items.stream()
+                .sorted(Comparator.comparing(Item::getDescriptionId))
+                .toList();
+    }
+
     // Helper method to get all possible combinations of ingredients for shaped recipes
     private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
         Map<String, Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {
             Optional<Ingredient> optIngredient = ingredients.get(i);
-            List<Item> items;
+            List<Item> items = optIngredient.map(ingredient -> {
+                        List<Item> ingredientItems = getItemsFromIngredient(ingredient);
+                        return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
+                    })
+                    .orElse(List.of(Items.AIR));
 
             if (optIngredient.isEmpty()) {
                 items = List.of(Items.AIR);
@@ -243,7 +277,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
@@ -282,17 +317,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
-            List<Item> items = ingredient.getValues().stream()
-                    .map(Holder::value)
-                    .sorted(Comparator.comparing(Item::getDescriptionId))
-                    .toList();
+            List<Item> items = getItemsFromIngredient(ingredient);
+            if (items.isEmpty()) items = List.of(Items.AIR);
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
