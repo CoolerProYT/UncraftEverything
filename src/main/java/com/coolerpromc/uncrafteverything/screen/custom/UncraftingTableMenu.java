@@ -100,4 +100,23 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 160));
         }
     }
+
+    @Override
+    public void removed(Player player) {
+        ItemStack stack = blockEntity.getInputHandler().getStackInSlot(0);
+        if (!stack.isEmpty()) {
+            player.getInventory().placeItemBackInInventory(stack);
+            blockEntity.getInputHandler().setStackInSlot(0, ItemStack.EMPTY);
+            blockEntity.setChanged();
+        }
+
+        for (int i = 0; i < blockEntity.getOutputHandler().getSlots(); i++) {
+            ItemStack outputStack = blockEntity.getOutputHandler().getStackInSlot(i);
+            if (!outputStack.isEmpty()) {
+                player.getInventory().placeItemBackInInventory(outputStack);
+                blockEntity.getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
+                blockEntity.setChanged();
+            }
+        }
+    }
 }

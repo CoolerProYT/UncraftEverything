@@ -50,14 +50,16 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
 
-        int buttonX = x + (imageWidth - 64) - 20;
-        int buttonY = y + 72;
+        super.init();
+
+        this.leftPos = Math.max(x, (16 * 9) + SCROLLBAR_PADDING + SCROLLBAR_WIDTH);
+
+        int buttonX = leftPos + (imageWidth - 64) - 20;
+        int buttonY = topPos + 72;
 
         this.addRenderableWidget(Button
                 .builder(Component.literal("UnCraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
                 .build());
-
-        super.init();
     }
 
     private void onPressed(Button button) {
@@ -69,8 +71,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
+        int x = this.leftPos;
+        int y = this.topPos;
 
         pGuiGraphics.blit(RenderType::guiTextured, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
     }
@@ -82,11 +84,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         recipeBounds.clear();
 
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
+        int x = this.leftPos;
+        int y = this.topPos;
 
         // Calculate maximum number of visible recipes
-        maxVisibleRecipes = (height - y - 40) / 16;  // Adjust based on your UI layout
+        maxVisibleRecipes = (imageHeight) / 16;  // Adjust based on your UI layout
 
         // Ensure scrolling offset is valid
         if (scrollOffset < 0) scrollOffset = 0;
@@ -238,8 +240,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (isScrolling && recipes.size() > maxVisibleRecipes) {
-            int x = (width - imageWidth) / 2;
-            int y = (height - imageHeight) / 2;
+            int x = this.leftPos;
+            int y = this.topPos;
 
             // Calculate scroll position based on mouse Y position relative to scrollable area
             int scrollAreaHeight = maxVisibleRecipes * 16;
@@ -254,6 +256,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollDelta) {
         if (recipes.size() > maxVisibleRecipes) {
             // Adjust scroll offset based on mouse wheel
