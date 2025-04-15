@@ -30,10 +30,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
@@ -61,7 +63,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             return false;
         }
     };
@@ -71,19 +73,19 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public Component getDisplayName() {
+    public @NotNull Component getDisplayName() {
         return Component.translatable("block.uncrafteverything.uncrafting_table");
     }
 
     @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+    public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
         this.player = player;
         return new UncraftingTableMenu(containerId, playerInventory, this);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
 
         tag.put("input", inputHandler.serializeNBT(registries));
@@ -101,7 +103,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
 
         inputHandler.deserializeNBT(registries, tag.getCompound("input"));
@@ -119,7 +121,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
         return saveWithoutMetadata(registries);
     }
 
@@ -175,14 +177,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
 
                     for (Item item : ingredientCombination) {
-                        if (item != Items.AIR) {
-                            if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
-                                ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
-                                outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()),
-                                        new ItemStack(stack.getItem(), stack.getCount() + 1));
-                            } else {
-                                outputStack.addOutput(new ItemStack(item, 1));
-                            }
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()),
+                                    new ItemStack(stack.getItem(), stack.getCount() + 1));
+                        } else {
+                            outputStack.addOutput(new ItemStack(item, 1));
                         }
                     }
                     outputs.add(outputStack);
@@ -357,55 +357,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return true;
     }
 
-
-    private boolean checkSlot(List<ItemStack> results) {
-        int count = 0;
-        int emptyCount = 0;
-        for (ItemStack result : results) {
-            count++;
-        }
-        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
-            if (!stackInSlot.isEmpty()) {
-                for (ItemStack result : results) {
-                    if (stackInSlot.getItem() == result.getItem()) {
-                        if (stackInSlot.getCount() + result.getCount() <= 64) {
-                            emptyCount++;
-                        }
-                    }
-                }
-            } else {
-                emptyCount++;
-            }
-        }
-        return emptyCount >= count;
-    }
-
-    private boolean canInsertAmountIntoOutputSlot(ItemStack result) {
-        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
-            if (stackInSlot.isEmpty() || (stackInSlot.getItem() == result.getItem() && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxStackSize())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean canInsertItemIntoOutputSlot(Item item) {
-        for (int i = 0; i < this.outputHandler.getSlots(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStackInSlot(i);
-            if (stackInSlot.isEmpty() || stackInSlot.getItem() == item) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public List<UncraftingTableRecipe> getCurrentRecipes() {
         return currentRecipes;
-    }
-
-    public UncraftingTableRecipe getCurrentRecipe() {
-        return currentRecipe;
     }
 }
