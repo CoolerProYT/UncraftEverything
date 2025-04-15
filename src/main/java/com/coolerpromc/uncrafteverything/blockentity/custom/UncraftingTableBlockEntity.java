@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
@@ -215,83 +216,149 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         this.currentRecipes = outputs;
 
         if (!currentRecipes.isEmpty()) {
-            this.currentRecipe = outputs.getFirst();
+            this.currentRecipe = outputs.get(0);
         }
     }
 
     // Helper method to get all possible combinations of ingredients for shaped recipes
     private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
-        List<List<Item>> result = new ArrayList<>();
-        result.add(new ArrayList<>()); // Start with an empty combination
+        Map<String, Group> groupKeyToGroup = new HashMap<>();
 
-        for (Optional<Ingredient> optIngredient : ingredients) {
-            List<List<Item>> newCombinations = new ArrayList<>();
+        for (int i = 0; i < ingredients.size(); i++) {
+            Optional<Ingredient> optIngredient = ingredients.get(i);
+            List<Item> items;
 
-            // If ingredient is not present, add AIR to all existing combinations
             if (optIngredient.isEmpty()) {
-                for (List<Item> combination : result) {
-                    List<Item> newCombination = new ArrayList<>(combination);
-                    newCombination.add(Items.AIR);
-                    newCombinations.add(newCombination);
-                }
+                items = List.of(Items.AIR);
             } else {
                 Ingredient ingredient = optIngredient.get();
-                List<Item> possibleItems = ingredient.getValues().stream().map(Holder::value).toList();
+                items = ingredient.getValues().stream()
+                        .map(Holder::value)
+                        .sorted(Comparator.comparing(Item::getDescriptionId))
+                        .toList();
+            }
 
-                // For each existing combination, create new combinations with each possible item
-                for (List<Item> combination : result) {
-                    if (possibleItems.isEmpty()) {
-                        // If no possible items, add AIR
-                        List<Item> newCombination = new ArrayList<>(combination);
-                        newCombination.add(Items.AIR);
-                        newCombinations.add(newCombination);
-                    } else {
-                        // Add each possible item to create new combinations
-                        for (Item itemStack : possibleItems) {
-                            List<Item> newCombination = new ArrayList<>(combination);
-                            newCombination.add(itemStack);
-                            newCombinations.add(newCombination);
-                        }
+            String key = items.stream()
+                    .map(Item::getDescriptionId)
+                    .sorted()
+                    .collect(Collectors.joining(","));
+
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            group.positions.add(i);
+        }
+
+        List<Group> groups = new ArrayList<>(groupKeyToGroup.values());
+        List<List<Item>> groupChoices = groups.stream()
+                .map(group -> group.items)
+                .collect(Collectors.toList());
+
+        List<List<Item>> product = cartesianProduct(groupChoices);
+
+        List<List<Item>> combinations = new ArrayList<>();
+
+        for (List<Item> choiceList : product) {
+            Item[] itemsArray = new Item[ingredients.size()];
+            Arrays.fill(itemsArray, Items.AIR);
+
+            for (int groupIdx = 0; groupIdx < groups.size(); groupIdx++) {
+                Group group = groups.get(groupIdx);
+                Item chosenItem = choiceList.get(groupIdx);
+                for (int pos : group.positions) {
+                    if (pos >= 0 && pos < itemsArray.length) {
+                        itemsArray[pos] = chosenItem;
                     }
                 }
             }
 
-            result = newCombinations;
+            combinations.add(Arrays.asList(itemsArray));
+        }
+
+        return combinations;
+    }
+
+    // Helper method to get all possible combinations of ingredients for shapeless recipes
+    private List<List<Item>> getAllShapelessIngredientCombinations(List<Ingredient> ingredients) {
+        Map<String, Group> groupKeyToGroup = new HashMap<>();
+
+        for (int i = 0; i < ingredients.size(); i++) {
+            Ingredient ingredient = ingredients.get(i);
+            List<Item> items = ingredient.getValues().stream()
+                    .map(Holder::value)
+                    .sorted(Comparator.comparing(Item::getDescriptionId))
+                    .toList();
+
+            String key = items.stream()
+                    .map(Item::getDescriptionId)
+                    .sorted()
+                    .collect(Collectors.joining(","));
+
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            group.positions.add(i);
+        }
+
+        List<Group> groups = new ArrayList<>(groupKeyToGroup.values());
+        List<List<Item>> groupChoices = groups.stream()
+                .map(group -> group.items)
+                .collect(Collectors.toList());
+
+        List<List<Item>> product = cartesianProduct(groupChoices);
+
+        List<List<Item>> combinations = new ArrayList<>();
+
+        for (List<Item> choiceList : product) {
+            Item[] itemsArray = new Item[ingredients.size()];
+            Arrays.fill(itemsArray, Items.AIR);
+
+            for (int groupIdx = 0; groupIdx < groups.size(); groupIdx++) {
+                Group group = groups.get(groupIdx);
+                Item chosenItem = choiceList.get(groupIdx);
+                for (int pos : group.positions) {
+                    if (pos >= 0 && pos < itemsArray.length) {
+                        itemsArray[pos] = chosenItem;
+                    }
+                }
+            }
+
+            combinations.add(Arrays.asList(itemsArray));
+        }
+
+        return combinations;
+    }
+
+    private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
+        List<List<T>> result = new ArrayList<>();
+        if (lists.isEmpty()) {
+            result.add(new ArrayList<>());
+            return result;
+        }
+
+        List<T> firstList = lists.get(0);
+        List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
+
+        for (T item : firstList) {
+            for (List<T> remaining : remainingLists) {
+                List<T> combination = new ArrayList<>();
+                combination.add(item);
+                combination.addAll(remaining);
+                result.add(combination);
+            }
         }
 
         return result;
     }
 
-    // Helper method to get all possible combinations of ingredients for shapeless recipes
-    private List<List<Item>> getAllShapelessIngredientCombinations(List<Ingredient> ingredients) {
-        List<List<Item>> result = new ArrayList<>();
-        result.add(new ArrayList<>()); // Start with an empty combination
-
-        for (Ingredient ingredient : ingredients) {
-            List<List<Item>> newCombinations = new ArrayList<>();
-            List<Item> possibleItems = ingredient.getValues().stream().map(Holder::value).toList();
-
-            // For each existing combination, create new combinations with each possible item
-            for (List<Item> combination : result) {
-                if (possibleItems.isEmpty()) {
-                    // If no possible items, add AIR
-                    List<Item> newCombination = new ArrayList<>(combination);
-                    newCombination.add(Items.AIR);
-                    newCombinations.add(newCombination);
-                } else {
-                    // Add each possible item to create new combinations
-                    for (Item itemStack : possibleItems) {
-                        List<Item> newCombination = new ArrayList<>(combination);
-                        newCombination.add(itemStack);
-                        newCombinations.add(newCombination);
-                    }
+    private boolean isSameItemCombination(List<Item> combination) {
+        Item firstItem = null;
+        for (Item item : combination) {
+            if (item != Items.AIR) {
+                if (firstItem == null) {
+                    firstItem = item;
+                } else if (item != firstItem) {
+                    return false;
                 }
             }
-
-            result = newCombinations;
         }
-
-        return result;
+        return true;
     }
 
     public void handleButtonClick(String data){
@@ -359,5 +426,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public List<UncraftingTableRecipe> getCurrentRecipes() {
         return currentRecipes;
+    }
+
+    private static class Group {
+        List<Integer> positions;
+        List<Item> items;
+
+        Group(List<Integer> positions, List<Item> items) {
+            this.positions = positions;
+            this.items = items;
+        }
     }
 }

@@ -77,7 +77,7 @@ accessTransformers {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
-
+    implementation "curse.maven:storage-drawers-223852:6085628"
     /*implementation "dev.architectury:architectury-neoforge:${architectury_version}"
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"

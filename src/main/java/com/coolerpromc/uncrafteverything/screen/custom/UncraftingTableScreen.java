@@ -13,12 +13,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
@@ -158,11 +161,21 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
 
             int i = 0;
+            Map<Item, Integer> inputs = new HashMap<>();
+
             for (ItemStack itemStack : recipe.getOutputs()) {
-                pGuiGraphics.renderFakeItem(
-                        itemStack,
-                        x - recipeWidth + (i * 16),
-                        y + (displayIndex * 16) + 5);
+                if (inputs.containsKey(itemStack.getItem())){
+                    inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
+                }
+                else{
+                    inputs.put(itemStack.getItem(), itemStack.getCount());
+                }
+            }
+
+            for (Map.Entry<Item, Integer> entry : inputs.entrySet()) {
+                ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
+                pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
             }
 
