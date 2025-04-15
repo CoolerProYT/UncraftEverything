@@ -1,12 +1,18 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,6 +28,7 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -29,13 +36,17 @@ import java.util.*;
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
-    private boolean isCrafting = false;
+    private Player player;
 
     private final ItemStackHandler inputHandler = new ItemStackHandler(1){
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
             getOutputStacks();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+                PacketDistributor.sendToPlayersNear((ServerLevel) level, null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 10, new UncraftingTableDataPayload(getBlockPos(), currentRecipes));
+            }
         }
     };
 
@@ -43,6 +54,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            }
         }
 
         @Override
@@ -57,30 +71,60 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("block.uncrafting_table");
+        return Component.translatable("block.uncrafteverything.uncrafting_table");
     }
 
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        this.player = player;
         return new UncraftingTableMenu(containerId, playerInventory, this);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putBoolean("isCrafting", isCrafting);
+
         tag.put("input", inputHandler.serializeNBT(registries));
+        tag.put("output", outputHandler.serializeNBT(registries));
+        ListTag listTag = new ListTag();
+        for (UncraftingTableRecipe recipe : currentRecipes) {
+            CompoundTag recipeTag = new CompoundTag();
+            recipeTag.put("recipe", recipe.serializeNbt(registries));
+            listTag.add(recipeTag);
+        }
+        tag.put("current_recipes", listTag);
+        if (currentRecipe != null) {
+            tag.put("current_recipe", currentRecipe.serializeNbt(registries));
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
 
-        isCrafting = tag.getBoolean("isCrafting");
-        if (tag.contains("input")) {
-            inputHandler.deserializeNBT(registries, tag.getCompound("input"));
+        inputHandler.deserializeNBT(registries, tag.getCompound("input"));
+        outputHandler.deserializeNBT(registries, tag.getCompound("output"));
+        if (tag.contains("current_recipes", ListTag.TAG_LIST)){
+            ListTag listTag = tag.getList("current_recipes", CompoundTag.TAG_COMPOUND);
+            for (int i = 0; i < listTag.size(); i++) {
+                CompoundTag recipeTag = listTag.getCompound(i);
+                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe"), registries));
+            }
         }
+        if (tag.contains("current_recipe", Tag.TAG_COMPOUND)){
+            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompound("current_recipe"), registries);
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public ItemStackHandler getInputHandler() {
@@ -94,19 +138,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
+        if (inputHandler.getStackInSlot(0).isEmpty()) {
+            currentRecipes.clear();
+            currentRecipe = null;
+            setChanged();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            }
+            return;
+        }
+
         ItemStack inputStack = this.inputHandler.getStackInSlot(0);
-
-        List<Item> materialItems = List.of(
-                Items.IRON_NUGGET,
-                Items.IRON_INGOT,
-                Items.IRON_BLOCK,
-
-                Items.GOLD_NUGGET,
-                Items.GOLD_INGOT,
-                Items.GOLD_BLOCK
-        );
-
-        if (materialItems.contains(inputStack.getItem())) return;
 
         List<RecipeHolder<?>> recipes = serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
@@ -175,34 +217,67 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public void handleButtonClick(String data){
         if (hasRecipe()){
-            int i = 0;
-            for (ItemStack stack : currentRecipe.getOutputs()){
-                if (i < outputHandler.getSlots()){
-                    i++;
-                    if (!canInsertItemIntoOutputSlot(stack.getItem())) continue;
-                    outputHandler.setStackInSlot(i, new ItemStack(stack.getItem(), stack.getCount() + outputHandler.getStackInSlot(i).getCount()));
+            List<ItemStack> outputs = currentRecipe.getOutputs();
+
+            for (int i = 0; i < outputs.size(); i++) {
+                ItemStack output = outputs.get(i);
+                if (i < outputHandler.getSlots()) {
+                    ItemStack slotStack = outputHandler.getStackInSlot(i);
+
+                    if (slotStack.isEmpty()) {
+                        outputHandler.setStackInSlot(i, output.copy());
+                    } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
+                        slotStack.grow(output.getCount());
+                        outputHandler.setStackInSlot(i, slotStack);
+                    }
                 }
             }
+
             inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
             setChanged();
+
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            }
+        }
+        else{
+            this.player.displayClientMessage(Component.literal("No recipe or output slot found!"), true);
         }
     }
 
+    public void handleRecipeSelection(UncraftingTableRecipe recipe){
+        this.currentRecipe = recipe;
+    }
+
     private boolean hasRecipe() {
-        if (currentRecipes.isEmpty()) {
+        if (currentRecipes.isEmpty() || currentRecipe == null) {
             return false;
         }
 
         List<ItemStack> results = currentRecipe.getOutputs();
 
-        for (ItemStack stack : results) {
-            if (!canInsertAmountIntoOutputSlot(stack) || !canInsertItemIntoOutputSlot(stack.getItem())) {
+        for (int i = 0; i < results.size(); i++) {
+            ItemStack result = results.get(i);
+            if (i >= outputHandler.getSlots()) return false;
+
+            ItemStack slotStack = outputHandler.getStackInSlot(i);
+
+            if (slotStack.isEmpty()) {
+                continue;
+            }
+
+            if (!ItemStack.isSameItemSameComponents(slotStack, result)) {
+                return false;
+            }
+
+            if (slotStack.getCount() + result.getCount() > slotStack.getMaxStackSize()) {
                 return false;
             }
         }
 
-        return checkSlot(results);
+        return true;
     }
+
 
     private boolean checkSlot(List<ItemStack> results) {
         int count = 0;

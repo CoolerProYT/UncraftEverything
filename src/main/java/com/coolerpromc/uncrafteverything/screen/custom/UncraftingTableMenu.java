@@ -30,11 +30,11 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
         addPlayerHotbar(inventory);
 
         IItemHandler inputHandler = this.blockEntity.getInputHandler();
-        this.addSlot(new SlotItemHandler(inputHandler, 0, 0, 0));
+        this.addSlot(new SlotItemHandler(inputHandler, 0, 26, 35));
 
         IItemHandler outputHandler = this.blockEntity.getOutputHandler();
         for (int i = 0; i < this.blockEntity.getOutputHandler().getSlots(); i ++){
-            this.addSlot(new SlotItemHandler(outputHandler, i, 32 + 16 * (i % 3), (i / 3) * 16));
+            this.addSlot(new SlotItemHandler(outputHandler, i, 98 + 18 * (i % 3), 17 + (i / 3) * 18));
         }
     }
 
@@ -90,14 +90,14 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
     private void addPlayerInventory(Inventory playerInventory) {
         for (int i = 0; i < 3; ++i) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 8 + l * 18, 84 + i * 18));
+                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 8 + l * 18, 102 + i * 18));
             }
         }
     }
 
     private void addPlayerHotbar(Inventory playerInventory) {
         for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 142));
+            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 160));
         }
     }
 }

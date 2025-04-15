@@ -30,4 +30,26 @@ public class ServerPayloadHandler {
             return null;
         });
     }
+
+    public static void handleRecipeSelection(UncraftingRecipeSelectionPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.blockPos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    // Process the recipe selection in the block entity
+                    uncraftingTableBlockEntity.handleRecipeSelection(payload.recipe());
+
+                    blockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            // Handle any exceptions
+            context.disconnect(Component.translatable("mymod.networking.failed", e.getMessage()));
+            return null;
+        });
+    }
 }
