@@ -5,6 +5,7 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -164,47 +165,50 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
-        for (RecipeHolder<?> r : recipes){
-            if (r.value() instanceof ShapedRecipe shapedRecipe){
-                UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
-                for(Optional<Ingredient> i : shapedRecipe.getIngredients()){
-                    if (i.isPresent()){
-                        Item item = i.get().getValues().get(0).value();
-                        if (outputStack.getOutputs().contains(item.getDefaultInstance())){
-                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
-                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
-                        }
-                        else{
-                            outputStack.addOutput(new ItemStack(item, 1));
-                        }
-                    }
-                    else{
-                        Item item = Items.AIR;
-                        if (outputStack.getOutputs().contains(item.getDefaultInstance())){
-                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
-                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
-                        }
-                        else{
-                            outputStack.addOutput(new ItemStack(item, 1));
+        for (RecipeHolder<?> r : recipes) {
+            if (r.value() instanceof ShapedRecipe shapedRecipe) {
+                // Get all possible combinations of ingredients
+                List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(shapedRecipe.getIngredients());
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
+
+                    for (Item item : ingredientCombination) {
+                        if (item != Items.AIR) {
+                            if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                                ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                                outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()),
+                                        new ItemStack(stack.getItem(), stack.getCount() + 1));
+                            } else {
+                                outputStack.addOutput(new ItemStack(item, 1));
+                            }
                         }
                     }
+                    outputs.add(outputStack);
                 }
-                outputs.add(outputStack);
             }
 
-            if (r.value() instanceof ShapelessRecipe shapelessRecipe){
-                UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
-                for(Ingredient i : shapelessRecipe.ingredients){
-                    Item item = i.getValues().get(0).value();
-                    if (outputStack.getOutputs().contains(item.getDefaultInstance())){
-                        ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
-                        outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), new ItemStack(stack.getItem(), stack.getCount() + 1));
+            if (r.value() instanceof ShapelessRecipe shapelessRecipe) {
+                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(shapelessRecipe.ingredients);
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
+
+                    for (Item item : ingredientCombination) {
+                        if (item != Items.AIR) {
+                            if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                                ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                                outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()),
+                                        new ItemStack(stack.getItem(), stack.getCount() + 1));
+                            } else {
+                                outputStack.addOutput(new ItemStack(item, 1));
+                            }
+                        }
                     }
-                    else{
-                        outputStack.addOutput(new ItemStack(item, 1));
-                    }
+                    outputs.add(outputStack);
                 }
-                outputs.add(outputStack);
             }
         }
 
@@ -213,6 +217,81 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (!currentRecipes.isEmpty()) {
             this.currentRecipe = outputs.getFirst();
         }
+    }
+
+    // Helper method to get all possible combinations of ingredients for shaped recipes
+    private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
+        List<List<Item>> result = new ArrayList<>();
+        result.add(new ArrayList<>()); // Start with an empty combination
+
+        for (Optional<Ingredient> optIngredient : ingredients) {
+            List<List<Item>> newCombinations = new ArrayList<>();
+
+            // If ingredient is not present, add AIR to all existing combinations
+            if (optIngredient.isEmpty()) {
+                for (List<Item> combination : result) {
+                    List<Item> newCombination = new ArrayList<>(combination);
+                    newCombination.add(Items.AIR);
+                    newCombinations.add(newCombination);
+                }
+            } else {
+                Ingredient ingredient = optIngredient.get();
+                List<Item> possibleItems = ingredient.getValues().stream().map(Holder::value).toList();
+
+                // For each existing combination, create new combinations with each possible item
+                for (List<Item> combination : result) {
+                    if (possibleItems.isEmpty()) {
+                        // If no possible items, add AIR
+                        List<Item> newCombination = new ArrayList<>(combination);
+                        newCombination.add(Items.AIR);
+                        newCombinations.add(newCombination);
+                    } else {
+                        // Add each possible item to create new combinations
+                        for (Item itemStack : possibleItems) {
+                            List<Item> newCombination = new ArrayList<>(combination);
+                            newCombination.add(itemStack);
+                            newCombinations.add(newCombination);
+                        }
+                    }
+                }
+            }
+
+            result = newCombinations;
+        }
+
+        return result;
+    }
+
+    // Helper method to get all possible combinations of ingredients for shapeless recipes
+    private List<List<Item>> getAllShapelessIngredientCombinations(List<Ingredient> ingredients) {
+        List<List<Item>> result = new ArrayList<>();
+        result.add(new ArrayList<>()); // Start with an empty combination
+
+        for (Ingredient ingredient : ingredients) {
+            List<List<Item>> newCombinations = new ArrayList<>();
+            List<Item> possibleItems = ingredient.getValues().stream().map(Holder::value).toList();
+
+            // For each existing combination, create new combinations with each possible item
+            for (List<Item> combination : result) {
+                if (possibleItems.isEmpty()) {
+                    // If no possible items, add AIR
+                    List<Item> newCombination = new ArrayList<>(combination);
+                    newCombination.add(Items.AIR);
+                    newCombinations.add(newCombination);
+                } else {
+                    // Add each possible item to create new combinations
+                    for (Item itemStack : possibleItems) {
+                        List<Item> newCombination = new ArrayList<>(combination);
+                        newCombination.add(itemStack);
+                        newCombinations.add(newCombination);
+                    }
+                }
+            }
+
+            result = newCombinations;
+        }
+
+        return result;
     }
 
     public void handleButtonClick(String data){
