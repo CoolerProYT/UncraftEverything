@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.awt.geom.Rectangle2D;
@@ -173,6 +174,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
 
             for (Map.Entry<Item, Integer> entry : inputs.entrySet()) {
+                if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
                 pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
