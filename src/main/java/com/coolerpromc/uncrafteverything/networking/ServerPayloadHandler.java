@@ -17,15 +17,12 @@ public class ServerPayloadHandler {
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                    // Process the click in the block entity
                     uncraftingTableBlockEntity.handleButtonClick(payload.data());
-
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
         }).exceptionally(e -> {
-            // Handle any exceptions
             context.disconnect(Component.translatable("mymod.networking.failed", e.getMessage()));
             return null;
         });
@@ -39,7 +36,6 @@ public class ServerPayloadHandler {
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                    // Process the recipe selection in the block entity
                     uncraftingTableBlockEntity.handleRecipeSelection(payload.recipe());
 
                     blockEntity.setChanged();
@@ -47,7 +43,6 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            // Handle any exceptions
             context.disconnect(Component.translatable("mymod.networking.failed", e.getMessage()));
             return null;
         });

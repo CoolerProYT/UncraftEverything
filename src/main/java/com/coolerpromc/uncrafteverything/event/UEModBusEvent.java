@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.*;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -22,7 +23,8 @@ public class UEModBusEvent {
         registrar.playToClient(
                 UncraftingTableDataPayload.TYPE,
                 UncraftingTableDataPayload.STREAM_CODEC,
-                ClientPayloadHandler::handleBlockEntityData
+                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {
+                }
         );
 
         registrar.playToServer(

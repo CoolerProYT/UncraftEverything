@@ -10,7 +10,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class ClientPayloadHandler {
     public static void handleBlockEntityData(UncraftingTableDataPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // Get the client level and screen
             Minecraft minecraft = Minecraft.getInstance();
             Level level = minecraft.level;
             Screen screen = minecraft.screen;
