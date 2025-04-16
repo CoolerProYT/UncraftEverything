@@ -1,8 +1,8 @@
 package com.coolerpromc.uncrafteverything.util;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -50,11 +50,12 @@ public class UncraftingTableRecipe {
 
     public NbtCompound serializeNbt(RegistryWrapper.WrapperLookup provider) {
         NbtCompound tag = new NbtCompound();
-        tag.put("input", input.toNbtAllowEmpty(provider));
+        tag.put("input", input.toNbt(provider));
         NbtList listTag = new NbtList();
         for (ItemStack itemStack : outputs) {
+            itemStack = itemStack.isEmpty() ? new ItemStack(Items.STRUCTURE_VOID) : itemStack.copy();
             NbtCompound itemTag = new NbtCompound();
-            itemTag.put("output", itemStack.toNbtAllowEmpty(provider));
+            itemTag.put("output", itemStack.toNbt(provider));
             listTag.add(itemTag);
         }
         tag.put("outputs", listTag);
@@ -62,14 +63,14 @@ public class UncraftingTableRecipe {
     }
 
     public static UncraftingTableRecipe deserializeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup provider) {
-        ItemStack input = ItemStack.fromNbtOrEmpty(provider, tag.getCompound("input"));
+        ItemStack input = ItemStack.fromNbt(provider, tag.getCompoundOrEmpty("input")).orElse(ItemStack.EMPTY);
         List<ItemStack> outputs = new ArrayList<>();
 
-        if (tag.contains("outputs", NbtElement.LIST_TYPE)) {
-            NbtList listTag = tag.getList("outputs", NbtElement.COMPOUND_TYPE);
+        if (tag.contains("outputs")) {
+            NbtList listTag = tag.getListOrEmpty("outputs");
             for (int i = 0; i < listTag.size(); i++) {
-                NbtCompound itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.fromNbtOrEmpty(provider, itemTag.getCompound("output")));
+                NbtCompound itemTag = listTag.getCompoundOrEmpty(i);
+                outputs.add(ItemStack.fromNbt(provider, itemTag.getCompoundOrEmpty("output")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY));
             }
         }
 

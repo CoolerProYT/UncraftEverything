@@ -120,15 +120,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         super.readNbt(nbt, registries);
 
         Inventories.readNbt(nbt, inventory, registries);
-        if (nbt.contains("current_recipes", NbtList.LIST_TYPE)){
-            NbtList listTag = nbt.getList("current_recipes", NbtElement.COMPOUND_TYPE);
+        if (nbt.contains("current_recipes")){
+            NbtList listTag = nbt.getListOrEmpty("current_recipes");
             for (int i = 0; i < listTag.size(); i++) {
-                NbtCompound recipeTag = listTag.getCompound(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe"), registries));
+                NbtCompound recipeTag = listTag.getCompoundOrEmpty(i);
+                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompoundOrEmpty("recipe"), registries));
             }
         }
-        if (nbt.contains("current_recipe", NbtElement.COMPOUND_TYPE)){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(nbt.getCompound("current_recipe"), registries);
+        if (nbt.contains("current_recipe")){
+            currentRecipe = UncraftingTableRecipe.deserializeNbt(nbt.getCompoundOrEmpty("current_recipe"), registries);
         }
     }
 
