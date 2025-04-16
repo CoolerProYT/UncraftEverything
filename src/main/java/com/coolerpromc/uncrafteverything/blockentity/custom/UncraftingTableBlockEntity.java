@@ -109,17 +109,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
 
-        inputHandler.deserializeNBT(registries, tag.getCompound("input"));
-        outputHandler.deserializeNBT(registries, tag.getCompound("output"));
-        if (tag.contains("current_recipes", ListTag.TAG_LIST)){
-            ListTag listTag = tag.getList("current_recipes", CompoundTag.TAG_COMPOUND);
+        inputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("input"));
+        outputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("output"));
+        if (tag.contains("current_recipes")){
+            ListTag listTag = tag.getListOrEmpty("current_recipes");
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag recipeTag = listTag.getCompound(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe"), registries));
+                CompoundTag recipeTag = listTag.getCompoundOrEmpty(i);
+                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompoundOrEmpty("recipe"), registries));
             }
         }
-        if (tag.contains("current_recipe", Tag.TAG_COMPOUND)){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompound("current_recipe"), registries);
+        if (tag.contains("current_recipe")){
+            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompoundOrEmpty("current_recipe"), registries);
         }
     }
 

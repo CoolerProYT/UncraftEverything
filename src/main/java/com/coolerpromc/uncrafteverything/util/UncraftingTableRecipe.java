@@ -8,6 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +51,12 @@ public class UncraftingTableRecipe {
 
     public CompoundTag serializeNbt(HolderLookup.Provider provider) {
         CompoundTag tag = new CompoundTag();
-        tag.put("input", input.saveOptional(provider));
+        tag.put("input", input.save(provider));
         ListTag listTag = new ListTag();
         for (ItemStack itemStack : outputs) {
+            itemStack = itemStack.isEmpty() ? new ItemStack(Items.STRUCTURE_VOID) : itemStack.copy();
             CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.saveOptional(provider));
+            itemTag.put("output", itemStack.save(provider));
             listTag.add(itemTag);
         }
         tag.put("outputs", listTag);
@@ -62,14 +64,14 @@ public class UncraftingTableRecipe {
     }
 
     public static UncraftingTableRecipe deserializeNbt(CompoundTag tag, HolderLookup.Provider provider) {
-        ItemStack input = ItemStack.parseOptional(provider, tag.getCompound("input"));
+        ItemStack input = ItemStack.parse(provider, tag.getCompoundOrEmpty("input")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY);
         List<ItemStack> outputs = new ArrayList<>();
 
-        if (tag.contains("outputs", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
+        if (tag.contains("outputs")) {
+            ListTag listTag = tag.getListOrEmpty("outputs");
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.parseOptional(provider, itemTag.getCompound("output")));
+                CompoundTag itemTag = listTag.getCompoundOrEmpty(i);
+                outputs.add(ItemStack.parse(provider, itemTag.getCompoundOrEmpty("output")).orElse(ItemStack.EMPTY));
             }
         }
 
