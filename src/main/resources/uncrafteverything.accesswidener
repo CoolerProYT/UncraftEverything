@@ -1,0 +1,4 @@
+accessWidener v2 named
+accessible field net/minecraft/recipe/ShapedRecipe result Lnet/minecraft/item/ItemStack;
+accessible field net/minecraft/recipe/ShapelessRecipe result Lnet/minecraft/item/ItemStack;
+accessible field net/minecraft/recipe/ShapelessRecipe ingredients Ljava/util/List;

@@ -1,24 +1,61 @@
 package com.coolerpromc.uncrafteverything;
 
+import com.coolerpromc.uncrafteverything.block.UEBlocks;
+import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.item.UECreativeTab;
+import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
+import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 public class UncraftEverything implements ModInitializer {
-	public static final String MOD_ID = "uncrafteverything";
-
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final String MODID = "uncrafteverything";
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
+		UEBlocks.register();
+		UEBlockEntities.register();
+		UEMenuTypes.register();
+		UECreativeTab.register();
 
-		LOGGER.info("Hello Fabric world!");
+		PayloadTypeRegistry.playC2S().register(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playS2C().register(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionPayload.TYPE, UncraftingRecipeSelectionPayload.STREAM_CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player){
+				ServerWorld level = player.getServerWorld();
+				BlockPos pos = uncraftingTableCraftButtonClickPayload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
+					uncraftingTableBlockEntity.handleButtonClick(uncraftingTableCraftButtonClickPayload.data());
+					blockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionPayload.TYPE, (uncraftingRecipeSelectionPayload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player){
+				ServerWorld level = player.getServerWorld();
+				BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
+					uncraftingTableBlockEntity.handleRecipeSelection(uncraftingRecipeSelectionPayload.recipe());
+					blockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
 	}
 }
