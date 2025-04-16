@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.neoforged.api.distmarker.Dist;
@@ -23,6 +24,7 @@ public class UncraftEverything
     {
         UEBlocks.register(modEventBus);
         UEItems.register(modEventBus);
+        UECreativeTab.register(modEventBus);
         UEBlockEntities.register(modEventBus);
         UEMenuTypes.register(modEventBus);
 
