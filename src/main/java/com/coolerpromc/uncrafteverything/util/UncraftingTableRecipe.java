@@ -71,7 +71,7 @@ public class UncraftingTableRecipe {
             ListTag listTag = tag.getListOrEmpty("outputs");
             for (int i = 0; i < listTag.size(); i++) {
                 CompoundTag itemTag = listTag.getCompoundOrEmpty(i);
-                outputs.add(ItemStack.parse(provider, itemTag.getCompoundOrEmpty("output")).orElse(ItemStack.EMPTY));
+                outputs.add(ItemStack.parse(provider, itemTag.getCompoundOrEmpty("output")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY));
             }
         }
 
