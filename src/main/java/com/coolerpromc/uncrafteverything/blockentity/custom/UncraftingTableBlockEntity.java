@@ -262,7 +262,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     })
                     .orElse(List.of(Items.AIR));
 
-            if (optIngredient.isEmpty()) {
+            /*if (optIngredient.isEmpty()) {
                 items = List.of(Items.AIR);
             } else {
                 Ingredient ingredient = optIngredient.get();
@@ -270,7 +270,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         .map(Holder::value)
                         .sorted(Comparator.comparing(Item::getDescriptionId))
                         .toList();
-            }
+            }*/
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
