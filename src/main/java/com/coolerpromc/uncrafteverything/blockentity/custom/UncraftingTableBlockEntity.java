@@ -144,7 +144,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        if (inputHandler.getStackInSlot(0).isEmpty()) {
+        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0) {
             currentRecipes.clear();
             currentRecipe = null;
             setChanged();
