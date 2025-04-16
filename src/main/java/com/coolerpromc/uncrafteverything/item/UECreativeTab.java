@@ -12,8 +12,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class UECreativeTab {
-    public static final ItemGroup PRODUCTIVE_SLIME_TAB = Registry.register(Registries.ITEM_GROUP,
-            Identifier.of(UncraftEverything.MODID, "productive_slimes"),
+    public static final ItemGroup UNCRAFTEVERYTHING_TAB = Registry.register(Registries.ITEM_GROUP,
+            Identifier.of(UncraftEverything.MODID, "uncrafteverything"),
             FabricItemGroup.builder().icon(() -> new ItemStack(Items.SLIME_BLOCK))
                     .displayName(Text.translatable("creativetab.uncrafteverything"))
                     .entries((displayContext, entries) -> {
