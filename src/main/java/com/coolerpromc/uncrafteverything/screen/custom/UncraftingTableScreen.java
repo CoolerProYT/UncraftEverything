@@ -10,6 +10,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -157,19 +158,25 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
+            Map<Item, ComponentMap> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
+                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
+                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
                 }
             }
 
             for (Map.Entry<Item, Integer> entry : inputs.entrySet()) {
                 if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
+                if (inputComponents.containsKey(entry.getKey())){
+                    itemStack.applyComponentsFrom(inputComponents.get(entry.getKey()));
+                }
                 context.drawItemWithoutEntity(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 context.drawStackOverlay(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
