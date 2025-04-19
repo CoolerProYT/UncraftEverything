@@ -177,11 +177,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         if (inputStack.is(Items.TIPPED_ARROW)){
             PotionContents potionContents = inputStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
-            float duration = inputStack.getOrDefault(DataComponents.POTION_DURATION_SCALE, 0.125F);
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8));
             ItemStack potion = new ItemStack(Items.LINGERING_POTION);
             potion.set(DataComponents.POTION_CONTENTS, potionContents);
-            potion.set(DataComponents.POTION_DURATION_SCALE, duration);
 
             outputStack.addOutput(new ItemStack(Items.ARROW, 1));
             outputStack.addOutput(new ItemStack(Items.ARROW, 1));
