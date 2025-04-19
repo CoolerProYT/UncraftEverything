@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -163,19 +164,25 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
+            Map<Item, DataComponentMap> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
+                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
+                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
                 }
             }
 
             for (Map.Entry<Item, Integer> entry : inputs.entrySet()) {
                 if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
+                if (inputComponents.containsKey(entry.getKey())){
+                    itemStack.applyComponents(inputComponents.get(entry.getKey()));
+                }
                 pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
