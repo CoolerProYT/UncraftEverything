@@ -8,6 +8,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -23,6 +24,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.FireworkExplosion;
+import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -170,6 +175,27 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
+        if (inputStack.is(Items.TIPPED_ARROW)){
+            PotionContents potionContents = inputStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+            float duration = inputStack.getOrDefault(DataComponents.POTION_DURATION_SCALE, 0.125F);
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8));
+            ItemStack potion = new ItemStack(Items.LINGERING_POTION);
+            potion.set(DataComponents.POTION_CONTENTS, potionContents);
+            potion.set(DataComponents.POTION_DURATION_SCALE, duration);
+
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(potion);
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+
+            outputs.add(outputStack);
+        }
+
         for (RecipeHolder<?> r : recipes) {
             if (r.value() instanceof ShapedRecipe shapedRecipe) {
                 // Get all possible combinations of ingredients
@@ -193,7 +219,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if (r.value() instanceof ShapelessRecipe shapelessRecipe) {
-                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(shapelessRecipe.ingredients);
+                List<Ingredient> ingredients = new ArrayList<>(shapelessRecipe.ingredients);
+
+                if (inputStack.has(DataComponents.FIREWORKS)){
+                    Fireworks fireworks = inputStack.get(DataComponents.FIREWORKS);
+                    for(int i = 1;i < fireworks.flightDuration();i++){
+                        ingredients.add(Ingredient.of(Items.GUNPOWDER));
+                    }
+                }
+                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
@@ -218,7 +252,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         this.currentRecipes = outputs;
 
         if (!currentRecipes.isEmpty()) {
-            this.currentRecipe = outputs.get(0);
+            this.currentRecipe = outputs.getFirst();
         }
     }
 
@@ -261,16 +295,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
-
-            /*if (optIngredient.isEmpty()) {
-                items = List.of(Items.AIR);
-            } else {
-                Ingredient ingredient = optIngredient.get();
-                items = ingredient.getValues().stream()
-                        .map(Holder::value)
-                        .sorted(Comparator.comparing(Item::getDescriptionId))
-                        .toList();
-            }*/
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
