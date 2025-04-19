@@ -11,6 +11,9 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.FireworksComponent;
+import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -180,6 +183,25 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
+        if (inputStack.isOf(Items.TIPPED_ARROW)){
+            PotionContentsComponent potionContents = inputStack.getOrDefault(DataComponentTypes.POTION_CONTENTS, PotionContentsComponent.DEFAULT);
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8));
+            ItemStack potion = new ItemStack(Items.LINGERING_POTION);
+            potion.set(DataComponentTypes.POTION_CONTENTS, potionContents);
+
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(potion);
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+
+            outputs.add(outputStack);
+        }
+
         for (RecipeEntry<?> r : recipes) {
             if (r.value() instanceof ShapedRecipe shapedRecipe) {
                 // Get all possible combinations of ingredients
@@ -203,7 +225,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
 
             if (r.value() instanceof ShapelessRecipe shapelessRecipe) {
-                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(shapelessRecipe.ingredients);
+                List<Ingredient> ingredients = new ArrayList<>(shapelessRecipe.ingredients);
+
+                if (inputStack.contains(DataComponentTypes.FIREWORKS)){
+                    FireworksComponent fireworks = inputStack.get(DataComponentTypes.FIREWORKS);
+                    for(int i = 1;i < fireworks.flightDuration();i++){
+                        ingredients.add(Ingredient.ofItem(Items.GUNPOWDER));
+                    }
+                }
+
+                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
