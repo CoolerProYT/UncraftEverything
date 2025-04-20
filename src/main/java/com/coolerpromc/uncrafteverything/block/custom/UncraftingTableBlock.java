@@ -15,6 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -42,7 +43,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
     }
 
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient){
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
@@ -57,6 +58,6 @@ public class UncraftingTableBlock extends BlockWithEntity {
             }
         }
 
-        return ActionResult.SUCCESS;
+        return ItemActionResult.SUCCESS;
     }
 }

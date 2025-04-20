@@ -76,7 +76,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
+        context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                     itemStack.applyComponentsFrom(inputComponents.get(entry.getKey()));
                 }
                 context.drawItemWithoutEntity(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
-                context.drawStackOverlay(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                context.drawItemInSlot(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
             }
 

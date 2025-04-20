@@ -9,7 +9,9 @@ import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
@@ -18,9 +20,7 @@ import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -179,8 +179,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
-            if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
-                return transmuteRecipe.result.value() == inputStack.getItem();
+            if(recipeHolder.value() instanceof ShulkerBoxColoringRecipe transmuteRecipe){
+                return true;
             }
 
             return false;
@@ -208,13 +208,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         }
 
         for (RecipeEntry<?> r : recipes) {
-            if (r.value() instanceof TransmuteRecipe transmuteRecipe){
-                List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
+            if (r.value() instanceof ShulkerBoxColoringRecipe transmuteRecipe&& inputStack.isIn(ConventionalItemTags.SHULKER_BOXES) && !inputStack.isOf(Items.SHULKER_BOX)){
+                List<Ingredient> ingredients = new ArrayList<>();
+
+                Ingredient shulkerBoxIngredient = Ingredient.fromTag(ConventionalItemTags.SHULKER_BOXES);
+                ingredients.add(shulkerBoxIngredient);
+
+                Ingredient dyeIngredient = Ingredient.ofItems(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) inputStack.getItem()).getBlock()).getColor())));
+                ingredients.add(dyeIngredient);
+
                 List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
                 ContainerComponent itemContainerContents = inputStack.get(DataComponentTypes.CONTAINER);
 
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultStack())) {
@@ -263,7 +270,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (inputStack.contains(DataComponentTypes.FIREWORKS)){
                     FireworksComponent fireworks = inputStack.get(DataComponentTypes.FIREWORKS);
                     for(int i = 1;i < fireworks.flightDuration();i++){
-                        ingredients.add(Ingredient.ofItem(Items.GUNPOWDER));
+                        ingredients.add(Ingredient.ofItems(Items.GUNPOWDER));
                     }
                 }
 
@@ -300,16 +307,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         List<Item> items = new ArrayList<>();
 
         // Handle tag ingredients
-        if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().getMatchingItems().toList().isEmpty()) {
-            for (var holder : ingredient.getCustomIngredient().getMatchingItems().toList()) {
-                items.add(holder.value());
+        if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().getMatchingStacks().isEmpty()) {
+            for (var holder : ingredient.getCustomIngredient().getMatchingStacks()) {
+                items.add(holder.getItem());
             }
         }
         // Handle regular item ingredients
         else {
             try {
-                items = ingredient.getMatchingItems().toList().stream()
-                        .map(RegistryEntry::value)
+                items = Arrays.stream(ingredient.getMatchingStacks())
+                        .map(ItemStack::getItem)
                         .distinct()
                         .toList();
             } catch (IllegalStateException e) {
@@ -331,11 +338,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     }
 
     // Helper method to get all possible combinations of ingredients for shaped recipes
-    private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
+    private List<List<Item>> getAllIngredientCombinations(DefaultedList<Ingredient> ingredients) {
         Map<String, Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {
-            Optional<Ingredient> optIngredient = ingredients.get(i);
+            Optional<Ingredient> optIngredient = Optional.of(ingredients.get(i));
             List<Item> items = optIngredient.map(ingredient -> {
                         List<Item> ingredientItems = getItemsFromIngredient(ingredient);
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;

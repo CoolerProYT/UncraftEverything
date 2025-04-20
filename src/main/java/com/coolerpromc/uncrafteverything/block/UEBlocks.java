@@ -14,13 +14,11 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 public class UEBlocks {
-    public static final Block UNCRAFTING_TABLE = registerBlock("uncrafting_table", new UncraftingTableBlock(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).registryKey(
-            RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(UncraftEverything.MODID, "uncrafting_table"))
-    )));
+    public static final Block UNCRAFTING_TABLE = registerBlock("uncrafting_table", new UncraftingTableBlock(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE)));
 
     public static <T extends Block> T registerBlock(String name, T block){
         Identifier id = Identifier.of(UncraftEverything.MODID, name);
-        registerItem(name, new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(RegistryKey.of(RegistryKeys.ITEM, id))));
+        registerItem(name, new BlockItem(block, new Item.Settings()));
         return Registry.register(Registries.BLOCK, id, block);
     }
 

@@ -50,11 +50,11 @@ public class UncraftingTableRecipe {
 
     public NbtCompound serializeNbt(RegistryWrapper.WrapperLookup provider) {
         NbtCompound tag = new NbtCompound();
-        tag.put("input", input.toNbtAllowEmpty(provider));
+        tag.put("input", input.encodeAllowEmpty(provider));
         NbtList listTag = new NbtList();
         for (ItemStack itemStack : outputs) {
             NbtCompound itemTag = new NbtCompound();
-            itemTag.put("output", itemStack.toNbtAllowEmpty(provider));
+            itemTag.put("output", itemStack.encodeAllowEmpty(provider));
             listTag.add(itemTag);
         }
         tag.put("outputs", listTag);
