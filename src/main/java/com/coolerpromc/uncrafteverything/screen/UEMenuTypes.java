@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 public class UEMenuTypes {
     public static final ScreenHandlerType<UncraftingTableMenu> UNCRAFTING_TABLE_MENU =
             Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "uncrafting_table_menu"),
-                    new ExtendedScreenHandlerType<>(UncraftingTableMenu::new, BlockPos.PACKET_CODEC));
+                    new ExtendedScreenHandlerType<>(UncraftingTableMenu::new));
 
     public static void register() {
 

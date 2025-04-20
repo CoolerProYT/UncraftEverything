@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
@@ -18,8 +19,8 @@ public class UncraftingTableMenu extends ScreenHandler {
     public final UncraftingTableBlockEntity blockEntity;
     private final World world;
 
-    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockPos blockPos) {
-        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(blockPos));
+    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, PacketByteBuf packetByteBuf) {
+        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(packetByteBuf.readBlockPos()));
     }
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity) {

@@ -6,15 +6,16 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonCl
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -68,8 +69,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     }
 
     private void onPressed(ButtonWidget button) {
-        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.handler.blockEntity.getPos(), "Craft");
-        ClientPlayNetworking.send(payload);
+        PacketByteBuf packetByteBuf = PacketByteBufs.create();
+        packetByteBuf.encodeAsJson(UncraftingTableCraftButtonClickPayload.CODEC, new UncraftingTableCraftButtonClickPayload(this.handler.blockEntity.getPos()));
+        ClientPlayNetworking.send(UncraftingTableCraftButtonClickPayload.ID, packetByteBuf);
     }
 
     @Override
@@ -81,7 +83,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
+        renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
 
         recipeBounds.clear();
@@ -158,16 +160,16 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
-            Map<Item, ComponentMap> inputComponents = new HashMap<>();
+            Map<Item, NbtCompound> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
+                    inputComponents.put(itemStack.getItem(), itemStack.getNbt());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
+                    inputComponents.put(itemStack.getItem(), itemStack.getNbt());
                 }
             }
 
@@ -175,7 +177,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
                 if (inputComponents.containsKey(entry.getKey())){
-                    itemStack.applyComponentsFrom(inputComponents.get(entry.getKey()));
+                    itemStack.setNbt(inputComponents.get(entry.getKey()));
                 }
                 context.drawItemWithoutEntity(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 context.drawItemInSlot(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
@@ -192,7 +194,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
         // Show selected recipe outputs
         if (!recipes.isEmpty()) {
-            ClientPlayNetworking.send(new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), this.recipes.get(selectedRecipe)));
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            packetByteBuf.encodeAsJson(UncraftingRecipeSelectionPayload.CODEC, new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), this.recipes.get(selectedRecipe)));
+            ClientPlayNetworking.send(UncraftingRecipeSelectionPayload.ID, packetByteBuf);
 
             List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
             for (int i = 0; i < outputs.size(); i++) {
@@ -267,13 +271,13 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollDelta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (recipes.size() > maxVisibleRecipes) {
             // Adjust scroll offset based on mouse wheel
-            scrollOffset = MathHelper.clamp(scrollOffset - (int) scrollDelta, 0, recipes.size() - maxVisibleRecipes);
+            scrollOffset = MathHelper.clamp(scrollOffset - (int) amount, 0, recipes.size() - maxVisibleRecipes);
             return true;
         }
 
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 }

@@ -1,4 +1,4 @@
 accessWidener v2 named
-accessible field net/minecraft/recipe/ShapedRecipe result Lnet/minecraft/item/ItemStack;
-accessible field net/minecraft/recipe/ShapelessRecipe result Lnet/minecraft/item/ItemStack;
-accessible field net/minecraft/recipe/ShapelessRecipe ingredients Lnet/minecraft/util/collection/DefaultedList;
+accessible field net/minecraft/recipe/ShapedRecipe output Lnet/minecraft/item/ItemStack;
+accessible field net/minecraft/recipe/ShapelessRecipe output Lnet/minecraft/item/ItemStack;
+accessible field net/minecraft/recipe/ShapelessRecipe input Lnet/minecraft/util/collection/DefaultedList;

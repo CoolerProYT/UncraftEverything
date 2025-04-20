@@ -16,12 +16,13 @@ public class UncraftEverythingClient implements ClientModInitializer {
     public void onInitializeClient() {
         HandledScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
 
-        ClientPlayNetworking.registerGlobalReceiver(UncraftingTableDataPayload.TYPE, (uncraftingTableDataPayload, context) -> {
+        ClientPlayNetworking.registerGlobalReceiver(UncraftingTableDataPayload.ID, (minecraftClient, clientPlayNetworkHandler, packetByteBuf, packetSender) -> {
             MinecraftClient minecraft = MinecraftClient.getInstance();
             World world = minecraft.world;
             Screen screen = minecraft.currentScreen;
 
             if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
+                UncraftingTableDataPayload uncraftingTableDataPayload = packetByteBuf.decodeAsJson(UncraftingTableDataPayload.CODEC);
                 if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity blockEntity){
                     uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
                 }

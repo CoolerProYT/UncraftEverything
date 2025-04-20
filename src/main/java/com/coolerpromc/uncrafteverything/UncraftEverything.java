@@ -1,18 +1,17 @@
 package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
+import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -26,36 +25,35 @@ public class UncraftEverything implements ModInitializer {
 		UEMenuTypes.register();
 		UECreativeTab.register();
 
-		PayloadTypeRegistry.playC2S().register(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC);
-		PayloadTypeRegistry.playS2C().register(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC);
-		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionPayload.TYPE, UncraftingRecipeSelectionPayload.STREAM_CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.ID, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			ServerWorld level = serverPlayerEntity.getServerWorld();
+			UncraftingTableCraftButtonClickPayload uncraftingTableCraftButtonClickPayload = packetByteBuf.decodeAsJson(UncraftingTableCraftButtonClickPayload.CODEC);
+			BlockPos pos = uncraftingTableCraftButtonClickPayload.blockPos();
 
-		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
-			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getServerWorld();
-				BlockPos pos = uncraftingTableCraftButtonClickPayload.blockPos();
+			minecraftServer.execute(() -> {
+				BlockEntity blockEntity = level.getBlockEntity(pos, UEBlockEntities.UNCRAFTING_TABLE_BE).orElse(null);
 
-				BlockEntity blockEntity = level.getBlockEntity(pos);
 				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
-					uncraftingTableBlockEntity.handleButtonClick(uncraftingTableCraftButtonClickPayload.data());
+					uncraftingTableBlockEntity.handleButtonClick();
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}
-			}
+			});
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionPayload.TYPE, (uncraftingRecipeSelectionPayload, context) -> {
-			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getServerWorld();
-				BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionPayload.ID, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			ServerWorld level = serverPlayerEntity.getServerWorld();
+			UncraftingRecipeSelectionPayload uncraftingRecipeSelectionPayload = packetByteBuf.decodeAsJson(UncraftingRecipeSelectionPayload.CODEC);
+			BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
 
+			minecraftServer.execute(() -> {
 				BlockEntity blockEntity = level.getBlockEntity(pos);
 				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
 					uncraftingTableBlockEntity.handleRecipeSelection(uncraftingRecipeSelectionPayload.recipe());
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}
-			}
+			});
 		});
 	}
 }
