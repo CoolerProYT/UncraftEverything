@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -25,7 +26,7 @@ public class UEBlocks {
     }
 
     private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block){
-        UEItems.ITEMS.registerItem(name, properties -> new BlockItem(block.get(), properties.useBlockDescriptionPrefix()));
+        UEItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
     public static void register(IEventBus eventBus){

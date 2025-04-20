@@ -6,8 +6,8 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -21,16 +21,16 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -157,7 +157,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         ItemStack inputStack = this.inputHandler.getStackInSlot(0);
 
-        List<RecipeHolder<?>> recipes = serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
+        List<RecipeHolder<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (shapedRecipe.result.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY){
                     return false;
@@ -169,8 +169,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
-            if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
-                return transmuteRecipe.result.value() == inputStack.getItem();
+            if(recipeHolder.value() instanceof ShulkerBoxColoring transmuteRecipe){
+                return true;
             }
 
             return false;
@@ -198,13 +198,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (RecipeHolder<?> r : recipes) {
-            if (r.value() instanceof TransmuteRecipe transmuteRecipe){
-                List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
+            if (r.value() instanceof ShulkerBoxColoring transmuteRecipe && inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX)) {
+                List<Ingredient> ingredients = new ArrayList<>();
+
+                Ingredient shulkerBoxIngredient = Ingredient.of(Tags.Items.SHULKER_BOXES);
+                ingredients.add(shulkerBoxIngredient);
+
+                Ingredient dyeIngredient = Ingredient.of(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) inputStack.getItem()).getBlock()).getColor())));
+                ingredients.add(dyeIngredient);
+
                 List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
                 ItemContainerContents itemContainerContents = inputStack.get(DataComponents.CONTAINER);
 
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
@@ -289,16 +296,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         List<Item> items = new ArrayList<>();
 
         // Handle tag ingredients
-        if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().items().toList().isEmpty()) {
-            for (var holder : ingredient.getCustomIngredient().items().toList()) {
-                items.add(holder.value());
+        if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().getItems().toList().isEmpty()) {
+            for (var holder : ingredient.getCustomIngredient().getItems().toList()) {
+                items.add(holder.getItem());
             }
         }
         // Handle regular item ingredients
         else {
             try {
-                items = ingredient.getValues().stream()
-                        .map(Holder::value)
+                items = Arrays.stream(ingredient.getItems())
+                        .map(ItemStack::getItem)
                         .distinct()
                         .toList();
             } catch (IllegalStateException e) {
@@ -320,26 +327,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     // Helper method to get all possible combinations of ingredients for shaped recipes
-    private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
+    private List<List<Item>> getAllIngredientCombinations(NonNullList<Ingredient> ingredients) {
         Map<String, Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {
-            Optional<Ingredient> optIngredient = ingredients.get(i);
+            Optional<Ingredient> optIngredient = Optional.of(ingredients.get(i));
             List<Item> items = optIngredient.map(ingredient -> {
                         List<Item> ingredientItems = getItemsFromIngredient(ingredient);
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
-
-            /*if (optIngredient.isEmpty()) {
-                items = List.of(Items.AIR);
-            } else {
-                Ingredient ingredient = optIngredient.get();
-                items = ingredient.getValues().stream()
-                        .map(Holder::value)
-                        .sorted(Comparator.comparing(Item::getDescriptionId))
-                        .toList();
-            }*/
 
             String key = items.stream()
                     .map(Item::getDescriptionId)

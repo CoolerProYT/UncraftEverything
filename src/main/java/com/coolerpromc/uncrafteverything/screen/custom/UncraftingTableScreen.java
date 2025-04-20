@@ -8,7 +8,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -79,7 +78,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int x = this.leftPos;
         int y = this.topPos;
 
-        pGuiGraphics.blit(RenderType::guiTextured, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
+        pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
