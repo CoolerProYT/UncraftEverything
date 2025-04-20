@@ -18,8 +18,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -29,13 +27,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.Fireworks;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.ShapedRecipe;
-import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.crafting.ICustomIngredient;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -164,11 +159,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         List<RecipeHolder<?>> recipes = serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
+                if (shapedRecipe.result.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY){
+                    return false;
+                }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
+            }
+
+            if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
+                return transmuteRecipe.result.value() == inputStack.getItem();
             }
 
             return false;
@@ -196,6 +198,34 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (RecipeHolder<?> r : recipes) {
+            if (r.value() instanceof TransmuteRecipe transmuteRecipe){
+                List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
+                List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
+                ItemContainerContents itemContainerContents = inputStack.get(DataComponents.CONTAINER);
+
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.value(), 1));
+
+                    for (Item item : ingredientCombination) {
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            if (stack.has(DataComponents.CONTAINER)){
+                                stack.set(DataComponents.CONTAINER, itemContainerContents);
+                            }
+                            stack.setCount(stack.getCount() + 1);
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), stack);
+                        } else {
+                            ItemStack itemStack = new ItemStack(item, 1);
+                            if (itemStack.has(DataComponents.CONTAINER)){
+                                itemStack.set(DataComponents.CONTAINER, itemContainerContents);
+                            }
+                            outputStack.addOutput(itemStack);
+                        }
+                    }
+                    outputs.add(outputStack);
+                }
+            }
+
             if (r.value() instanceof ShapedRecipe shapedRecipe) {
                 // Get all possible combinations of ingredients
                 List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(shapedRecipe.getIngredients());
@@ -279,6 +309,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         return items.stream()
+                .filter(item -> {
+                    if (item.getDescriptionId().contains("shulker_box")){
+                        return item == Items.SHULKER_BOX;
+                    }
+                    return true;
+                })
                 .sorted(Comparator.comparing(Item::getDescriptionId))
                 .toList();
     }

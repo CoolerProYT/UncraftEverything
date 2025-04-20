@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/cube",
   "textures": {
-    "down": "uncrafteverything:block/oak_planks",
+    "down": "minecraft:block/oak_planks",
     "east": "uncrafteverything:block/uncrafting_table_side",
     "north": "uncrafteverything:block/uncrafting_table_front",
     "particle": "uncrafteverything:block/uncrafting_table_front",
