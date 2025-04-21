@@ -475,6 +475,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+            player.giveExperiencePoints(-UncraftEverythingConfig.CONFIG.getExperiencePoints());
             setChanged();
 
             if (level != null && !level.isClientSide()) {
