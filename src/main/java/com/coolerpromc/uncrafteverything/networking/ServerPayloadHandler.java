@@ -26,7 +26,7 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.translatable("mymod.networking.failed", e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
             return null;
         });
     }
@@ -47,7 +47,7 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.translatable("mymod.networking.failed", e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
             return null;
         });
         context.get().setPacketHandled(true);
