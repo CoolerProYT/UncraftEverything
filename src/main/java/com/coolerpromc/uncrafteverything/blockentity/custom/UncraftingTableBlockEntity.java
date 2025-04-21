@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ImplementedInventory;
@@ -28,6 +29,7 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.recipe.*;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
@@ -154,7 +156,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     public void getOutputStacks() {
         if (!(world instanceof ServerWorld serverLevel)) return;
 
-        if (this.getStack(inputSlots[0]).isEmpty() || this.getStack(inputSlots[0]).getDamage() > 0) {
+        if (this.getStack(inputSlots[0]).isEmpty() || this.getStack(inputSlots[0]).getDamage() > 0 || UncraftEverythingConfig.blacklist.contains(Registries.ITEM.getId(this.getStack(inputSlots[0]).getItem()).toString())) {
             System.out.println("Empty or damaged item in input slot");
             currentRecipes.clear();
             currentRecipe = null;
@@ -466,7 +468,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     }
 
     public void handleButtonClick(String data){
-        if (hasRecipe()){
+        if (hasRecipe() && hasEnoughExperience()){
             List<ItemStack> outputs = currentRecipe.getOutputs();
 
             for (int i = 0; i < outputs.size(); i++) {
@@ -484,6 +486,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
 
             this.removeStack(0, this.currentRecipe.getInput().getCount());
+            player.addExperience(-UncraftEverythingConfig.experiencePoints);
             markDirty();
 
             getOutputStacks();
@@ -494,13 +497,21 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 }
             }
         }
-        else{
-            this.player.sendMessage(Text.literal("No recipe or output slot found!"), true);
+        else if (!hasRecipe()){
+            player.sendMessage(Text.literal("No recipe or suitable output slot found."), false);
         }
     }
 
     public void handleRecipeSelection(UncraftingTableRecipe recipe){
         this.currentRecipe = recipe;
+    }
+
+    private boolean hasEnoughExperience(){
+        if (player.totalExperience < UncraftEverythingConfig.experiencePoints && !player.isCreative()) {
+            player.sendMessage(Text.literal("You don't have enough experience points to uncraft this item!"), false);
+            return false;
+        }
+        return true;
     }
 
     private boolean hasRecipe() {
