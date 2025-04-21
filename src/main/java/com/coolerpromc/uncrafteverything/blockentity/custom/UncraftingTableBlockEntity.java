@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.UncraftingEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
@@ -9,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -143,7 +145,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0) {
+        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0 || UncraftingEverythingConfig.CONFIG.blacklist.get().contains(BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem()).toString())) {
             currentRecipes.clear();
             currentRecipe = null;
             setChanged();
@@ -452,7 +454,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void handleButtonClick(String data){
-        if (hasRecipe()){
+        if (hasRecipe() && hasEnoughExperience()) {
             List<ItemStack> outputs = currentRecipe.getOutputs();
 
             for (int i = 0; i < outputs.size(); i++) {
@@ -470,19 +472,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+            player.giveExperiencePoints(-UncraftingEverythingConfig.CONFIG.getExperiencePoints());
             setChanged();
 
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
         }
-        else{
-            this.player.displayClientMessage(Component.literal("No recipe or output slot found!"), true);
+        else if (!hasRecipe()){
+            player.displayClientMessage(Component.literal("No recipe or suitable output slot found."), false);
         }
     }
 
     public void handleRecipeSelection(UncraftingTableRecipe recipe){
         this.currentRecipe = recipe;
+    }
+
+    private boolean hasEnoughExperience(){
+        if (player.totalExperience < UncraftingEverythingConfig.CONFIG.getExperiencePoints() && !player.isCreative()) {
+            player.displayClientMessage(Component.literal("You don't have enough experience points to uncraft this item!"), false);
+            return false;
+        }
+        return true;
     }
 
     private boolean hasRecipe() {
