@@ -8,7 +8,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -16,7 +16,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
     private List<UncraftingTableRecipe> recipes = List.of();
     private int selectedRecipe = 0;
     private int hoveredRecipe = -1;
@@ -67,8 +66,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     private void onPressed(Button button) {
-        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), "Craft");
-        PacketDistributor.sendToServer(payload);
+        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos());
+        UncraftingTableCraftButtonClickPayload.INSTANCE.sendToServer(payload);
     }
 
     @Override
@@ -83,7 +82,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     @Override
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        renderBackground(pGuiGraphics);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         recipeBounds.clear();
@@ -163,16 +162,16 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
-            Map<Item, DataComponentMap> inputComponents = new HashMap<>();
+            Map<Item, CompoundTag> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
             }
 
@@ -180,7 +179,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
                 if (inputComponents.containsKey(entry.getKey())){
-                    itemStack.applyComponents(inputComponents.get(entry.getKey()));
+                    itemStack.setTag(inputComponents.get(entry.getKey()));
                 }
                 pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
@@ -197,9 +196,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         // Show selected recipe outputs
         if (!recipes.isEmpty()) {
-            PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(
-                    this.menu.blockEntity.getBlockPos(),
-                    this.recipes.get(selectedRecipe)));
+            UncraftingRecipeSelectionPayload.INSTANCE.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
 
             List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
             for (int i = 0; i < outputs.size(); i++) {
@@ -278,13 +275,13 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollDelta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
         if (recipes.size() > maxVisibleRecipes) {
             // Adjust scroll offset based on mouse wheel
             scrollOffset = Mth.clamp(scrollOffset - (int) scrollDelta, 0, recipes.size() - maxVisibleRecipes);
             return true;
         }
 
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
+        return super.mouseScrolled(mouseX, mouseY, scrollDelta);
     }
 }

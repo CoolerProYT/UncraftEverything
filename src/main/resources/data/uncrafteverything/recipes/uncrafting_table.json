@@ -12,8 +12,7 @@
     "   "
   ],
   "result": {
-    "count": 1,
-    "id": "uncrafteverything:uncrafting_table"
+    "item": "uncrafteverything:uncrafting_table"
   },
   "show_notification": false
 }

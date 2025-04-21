@@ -1,12 +1,11 @@
 package com.coolerpromc.uncrafteverything.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -15,13 +14,10 @@ import java.util.List;
 public class UncraftingTableRecipe {
     private final ItemStack input;
     private final List<ItemStack> outputs = new ArrayList<>();
-    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableRecipe> STREAM_CODEC = StreamCodec.composite(
-            ItemStack.OPTIONAL_STREAM_CODEC,
-            UncraftingTableRecipe::getInput,
-            ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()),
-            UncraftingTableRecipe::getOutputs,
-            UncraftingTableRecipe::new
-    );
+    public static final Codec<UncraftingTableRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ItemStack.CODEC.fieldOf("input").forGetter(UncraftingTableRecipe::getInput),
+            Codec.list(ItemStack.CODEC).fieldOf("outputs").forGetter(UncraftingTableRecipe::getOutputs)
+    ).apply(instance, UncraftingTableRecipe::new));
 
     public UncraftingTableRecipe(ItemStack input) {
         this.input = input;
@@ -48,28 +44,28 @@ public class UncraftingTableRecipe {
         return outputs;
     }
 
-    public CompoundTag serializeNbt(HolderLookup.Provider provider) {
+    public CompoundTag serializeNbt() {
         CompoundTag tag = new CompoundTag();
-        tag.put("input", input.saveOptional(provider));
+        tag.put("input", input.save(new CompoundTag()));
         ListTag listTag = new ListTag();
         for (ItemStack itemStack : outputs) {
             CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.saveOptional(provider));
+            itemTag.put("output", itemStack.save(new CompoundTag()));
             listTag.add(itemTag);
         }
         tag.put("outputs", listTag);
         return tag;
     }
 
-    public static UncraftingTableRecipe deserializeNbt(CompoundTag tag, HolderLookup.Provider provider) {
-        ItemStack input = ItemStack.parseOptional(provider, tag.getCompound("input"));
+    public static UncraftingTableRecipe deserializeNbt(CompoundTag tag) {
+        ItemStack input = ItemStack.of(tag.getCompound("input"));
         List<ItemStack> outputs = new ArrayList<>();
 
         if (tag.contains("outputs", Tag.TAG_LIST)) {
             ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
             for (int i = 0; i < listTag.size(); i++) {
                 CompoundTag itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.parseOptional(provider, itemTag.getCompound("output")));
+                outputs.add(ItemStack.of(itemTag.getCompound("output")));
             }
         }
 

@@ -2,26 +2,48 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
-public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<UncraftingRecipeSelectionPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection"));
+public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) {
+    private static final String PROTOCOL_VERSION = "1";
+    public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_recipe_selection");
+    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionPayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    BlockPos.STREAM_CODEC,
-                    UncraftingRecipeSelectionPayload::blockPos,
-                    UncraftingTableRecipe.STREAM_CODEC,
-                    UncraftingRecipeSelectionPayload::recipe,
-                    UncraftingRecipeSelectionPayload::new
-            );
+    public static final Codec<UncraftingRecipeSelectionPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingRecipeSelectionPayload::blockPos),
+            UncraftingTableRecipe.CODEC.fieldOf("recipe").forGetter(UncraftingRecipeSelectionPayload::recipe)
+    ).apply(instance, UncraftingRecipeSelectionPayload::new));
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    private static int packetId = 0;
+    private static int nextId() {
+        return packetId++;
+    }
+
+    public static void encode(UncraftingRecipeSelectionPayload payload, FriendlyByteBuf byteBuf){
+        byteBuf.writeJsonWithCodec(CODEC, payload);
+    }
+
+    public static UncraftingRecipeSelectionPayload decode(FriendlyByteBuf byteBuf){
+        return byteBuf.readJsonWithCodec(CODEC);
+    }
+
+    public static void register(){
+        INSTANCE.registerMessage(
+                nextId(),
+                UncraftingRecipeSelectionPayload.class,
+                UncraftingRecipeSelectionPayload::encode,
+                UncraftingRecipeSelectionPayload::decode,
+                ServerPayloadHandler::handleRecipeSelection
+        );
     }
 }
