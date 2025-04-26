@@ -1,7 +1,7 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
-import com.coolerpromc.uncrafteverything.config.UncraftingEverythingConfig;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
@@ -142,10 +144,23 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return outputHandler;
     }
 
+    public ResourceLocation inputStackLocation() {
+        return BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem());
+    }
+
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0 || UncraftingEverythingConfig.CONFIG.blacklist.get().contains(BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem()).toString())) {
+        List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.blacklist.get();
+        List<Pattern> wildcardBlacklist = blacklist.stream()
+                .filter(s -> s.contains("*"))
+                .map(s -> Pattern.compile(s.replace("*", ".*")))
+                .toList();
+
+        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0
+                || blacklist.contains(inputStackLocation().toString())
+                || wildcardBlacklist.stream().anyMatch(pattern -> pattern.matcher(inputStackLocation().toString()).matches())
+        ) {
             currentRecipes.clear();
             currentRecipe = null;
             setChanged();
@@ -472,7 +487,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
-            player.giveExperiencePoints(-UncraftingEverythingConfig.CONFIG.getExperiencePoints());
+            player.giveExperiencePoints(-UncraftEverythingConfig.CONFIG.getExperiencePoints());
             setChanged();
 
             if (level != null && !level.isClientSide()) {
@@ -489,7 +504,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private boolean hasEnoughExperience(){
-        if (player.totalExperience < UncraftingEverythingConfig.CONFIG.getExperiencePoints() && !player.isCreative()) {
+        if (player.totalExperience < UncraftEverythingConfig.CONFIG.getExperiencePoints() && !player.isCreative()) {
             player.displayClientMessage(Component.literal("You don't have enough experience points to uncraft this item!"), false);
             return false;
         }
