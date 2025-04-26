@@ -34,12 +34,14 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
@@ -153,9 +155,23 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         return outputSlots;
     }
 
+    public Identifier inputStackLocation() {
+        return Registries.ITEM.getId(this.getStack(inputSlots[0]).getItem());
+    }
+
     public void getOutputStacks() {
         if (!(world instanceof ServerWorld serverLevel)) return;
-        if (this.getStack(inputSlots[0]).isEmpty() || this.getStack(inputSlots[0]).getDamage() > 0 || UncraftEverythingConfig.blacklist.contains(Registries.ITEM.getId(this.getStack(inputSlots[0]).getItem()).toString())) {
+
+        List<String> blacklist = UncraftEverythingConfig.blacklist;
+        List<Pattern> wildcardBlacklist = blacklist.stream()
+                .filter(s -> s.contains("*"))
+                .map(s -> Pattern.compile(s.replace("*", ".*")))
+                .toList();
+
+        if (this.getStack(inputSlots[0]).isEmpty() || this.getStack(inputSlots[0]).getDamage() > 0
+                || blacklist.contains(inputStackLocation().toString())
+                || wildcardBlacklist.stream().anyMatch(pattern -> pattern.matcher(inputStackLocation().toString()).matches())
+        ) {
             currentRecipes.clear();
             currentRecipe = null;
             markDirty();
