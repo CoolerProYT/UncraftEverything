@@ -26,7 +26,7 @@ public class UncraftEverythingConfig {
         builder.pop();
 
         builder.push("Restrictions");
-        blacklist = builder.comment("A list of items that cannot be uncrafted.", "Format: modid:item_name", "Press F3 + h in game and hover item to check their modid:name").defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && ResourceLocation.tryParse((String) o) != null);
+        blacklist = builder.comment("A list of items that cannot be uncrafted.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass*", "Press F3 + h in game and hover item to check their modid:name").defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*"));
         builder.pop();
     }
 
