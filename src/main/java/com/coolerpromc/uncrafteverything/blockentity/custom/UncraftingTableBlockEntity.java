@@ -8,7 +8,6 @@ import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -31,13 +31,13 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
@@ -143,10 +143,22 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return outputHandler;
     }
 
+    public ResourceLocation inputStackLocation() {
+        return BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem());
+    }
+
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
 
-        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0 || UncraftEverythingConfig.CONFIG.blacklist.get().contains(BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem()).toString())) {
+        List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.blacklist.get();
+        List<Pattern> wildcardBlacklist = blacklist.stream()
+                .filter(s -> s.contains("*"))
+                .map(s -> Pattern.compile(s.replace("*", ".*")))
+                .toList();
+
+        if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getDamageValue() > 0
+                || blacklist.contains(inputStackLocation().toString())
+                || wildcardBlacklist.stream().anyMatch(pattern -> pattern.matcher(inputStackLocation().toString()).matches())) {
             currentRecipes.clear();
             currentRecipe = null;
             setChanged();
