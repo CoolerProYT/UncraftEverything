@@ -36,7 +36,7 @@ public class UncraftEverythingConfig {
         blacklist = blacklist.stream()
                 .filter(entry -> {
                     try {
-                        return Identifier.tryParse(entry) != null;
+                        return Identifier.tryParse(entry) != null  || entry.contains("*");
                     } catch (Exception e) {
                         return false;
                     }
@@ -53,7 +53,7 @@ public class UncraftEverythingConfig {
         configFile.set("Restrictions.restrictions", blacklist);
         configFile.setComment("Restrictions.restrictions",
                 "A list of items that cannot be uncrafted.\n" +
-                        "Format: modid:item_name\n" +
+                        "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass*\n" +
                         "Press F3 + H in game and hover item to check their modid:name");
 
         configFile.save();
