@@ -34,6 +34,7 @@ public class UncraftEverything
         NeoForge.EVENT_BUS.register(this);
         modContainer.registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         PerItemExpCostConfig.load();
+        PerItemExpCostConfig.startWatcher();
     }
 
 
