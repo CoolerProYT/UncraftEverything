@@ -25,6 +25,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -50,6 +51,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private Player player;
+    private ContainerData data;
+    private int experience = 0;
+    private int experienceType; // 0 = POINT, 1 = LEVEL
 
     private final ItemStackHandler inputHandler = new ItemStackHandler(1){
         @Override
@@ -80,6 +84,30 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public UncraftingTableBlockEntity(BlockPos pos, BlockState blockState) {
         super(UEBlockEntities.UNCRAFTING_TABLE_BE.get(), pos, blockState);
+        this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        this.data = new ContainerData() {
+            @Override
+            public int get(int index) {
+                return switch (index){
+                    case 0 -> experience;
+                    case 1 -> experienceType;
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public void set(int index, int value) {
+                switch (index){
+                    case 0 -> experience = value;
+                    case 1 -> experienceType = value;
+                }
+            }
+
+            @Override
+            public int getCount() {
+                return 2;
+            }
+        };
     }
 
     @Override
@@ -91,7 +119,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
         this.player = player;
-        return new UncraftingTableMenu(containerId, playerInventory, this);
+        return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
     @Override
@@ -110,6 +138,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (currentRecipe != null) {
             tag.put("current_recipe", currentRecipe.serializeNbt(registries));
         }
+        tag.putInt("experience", experience);
+        tag.putInt("experienceType", experienceType);
     }
 
     @Override
@@ -128,6 +158,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (tag.contains("current_recipe")){
             currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompoundOrEmpty("current_recipe"), registries);
         }
+        experience = tag.getIntOr("experience", 0);
+        experienceType = tag.getIntOr("experienceType", 0);
     }
 
     @Override
@@ -169,6 +201,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         ) {
             currentRecipes.clear();
             currentRecipe = null;
+            experience = 0;
             setChanged();
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
@@ -196,6 +229,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             return false;
         }).toList();
+
+        if (!recipes.isEmpty()){
+            experience = getExperience();
+            this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        }
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
@@ -587,6 +625,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public List<UncraftingTableRecipe> getCurrentRecipes() {
         return currentRecipes;
+    }
+
+    public ContainerData getData() {
+        return data;
     }
 
     private static class Group {
