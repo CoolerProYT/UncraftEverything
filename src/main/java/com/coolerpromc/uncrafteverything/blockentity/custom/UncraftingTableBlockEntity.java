@@ -226,7 +226,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if(recipeHolder.value() instanceof ShulkerBoxColoring transmuteRecipe){
-                return true;
+                return inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
             }
 
             return false;
