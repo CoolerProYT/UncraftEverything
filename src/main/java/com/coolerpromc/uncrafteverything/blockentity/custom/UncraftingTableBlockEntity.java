@@ -212,6 +212,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             System.out.println("Empty or damaged item in input slot");
             currentRecipes.clear();
             currentRecipe = null;
+            experience = 0;
             markDirty();
             if (world != null && !world.isClient) {
                 world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
