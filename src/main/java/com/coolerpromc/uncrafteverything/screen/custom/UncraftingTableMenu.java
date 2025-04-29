@@ -16,15 +16,17 @@ import net.minecraftforge.items.SlotItemHandler;
 public class UncraftingTableMenu extends AbstractContainerMenu {
     public final UncraftingTableBlockEntity blockEntity;
     private final Level level;
+    private final ContainerData data;
 
     public UncraftingTableMenu(int pContainerId, Inventory inventory, FriendlyByteBuf friendlyByteBuf){
-        this(pContainerId, inventory, inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos()));
+        this(pContainerId, inventory, inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos()), new SimpleContainerData(2));
     }
 
-    public UncraftingTableMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity){
+    public UncraftingTableMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity, ContainerData data){
         super(UEMenuTypes.UNCRAFTING_TABLE_MENU.get(), pContainerId);
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
         this.level = inventory.player.level();
+        this.data = data;
 
         addPlayerInventory(inventory);
         addPlayerHotbar(inventory);
@@ -36,6 +38,8 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
         for (int i = 0; i < this.blockEntity.getOutputHandler().getSlots(); i ++){
             this.addSlot(new SlotItemHandler(outputHandler, i, 98 + 18 * (i % 3), 17 + (i / 3) * 18));
         }
+
+        addDataSlots(data);
     }
 
     private static final int HOTBAR_SLOT_COUNT = 9;
@@ -118,5 +122,13 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
                 blockEntity.setChanged();
             }
         }
+    }
+
+    public String getExpType(){
+        return this.data.get(1) == 0 ? "Point" : "Level";
+    }
+
+    public int getExpAmount(){
+        return this.data.get(0);
     }
 }

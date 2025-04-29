@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
@@ -41,6 +42,8 @@ public class UncraftEverything
 
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
+        PerItemExpCostConfig.load();
+        PerItemExpCostConfig.startWatcher();
     }
 
     public void commonSetup(FMLCommonSetupEvent event) {
