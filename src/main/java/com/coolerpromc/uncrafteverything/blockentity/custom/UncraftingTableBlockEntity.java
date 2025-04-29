@@ -230,7 +230,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return false;
         }).toList();
 
-        if (!recipes.isEmpty()){
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW)){
             experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
