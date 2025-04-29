@@ -8,6 +8,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ArrayPropertyDelegate;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
@@ -17,15 +19,17 @@ import net.minecraft.world.World;
 public class UncraftingTableMenu extends ScreenHandler {
     public final UncraftingTableBlockEntity blockEntity;
     private final World world;
+    private final PropertyDelegate data;
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockPos blockPos) {
-        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(blockPos));
+        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(blockPos), new ArrayPropertyDelegate(2));
     }
 
-    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity) {
+    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, PropertyDelegate data) {
         super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId);
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
         this.world = playerInventory.player.getWorld();
+        this.data = data;
 
         this.addSlot(new Slot(this.blockEntity, this.blockEntity.getInputSlots()[0], 26, 35));
 
@@ -40,6 +44,7 @@ public class UncraftingTableMenu extends ScreenHandler {
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
+        addProperties(data);
     }
 
     @Override
@@ -102,5 +107,13 @@ public class UncraftingTableMenu extends ScreenHandler {
                 blockEntity.markDirty();
             }
         }
+    }
+
+    public String getExpType(){
+        return this.data.get(1) == 0 ? "Point" : "Level";
+    }
+
+    public int getExpAmount(){
+        return this.data.get(0);
     }
 }

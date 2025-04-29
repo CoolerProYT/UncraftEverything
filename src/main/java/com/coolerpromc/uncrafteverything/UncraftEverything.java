@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
@@ -30,6 +31,8 @@ public class UncraftEverything implements ModInitializer {
 		UncraftEverythingConfig.load();
 		UncraftEverythingConfig.save();
 
+		PerItemExpCostConfig.load();
+		PerItemExpCostConfig.startWatcher();
 
 		PayloadTypeRegistry.playC2S().register(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC);
