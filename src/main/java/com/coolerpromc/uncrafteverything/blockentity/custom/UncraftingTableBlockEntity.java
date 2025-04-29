@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
@@ -31,7 +32,8 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.recipe.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -46,10 +48,15 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
+
 public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private PlayerEntity player;
+    private PropertyDelegate data;
+    private int experience = 0;
+    private int experienceType; // 0 = POINT, 1 = LEVEL
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(10, ItemStack.EMPTY);
     private final int[] inputSlots = {0};
@@ -57,6 +64,30 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
     public UncraftingTableBlockEntity(BlockPos pos, BlockState state) {
         super(UEBlockEntities.UNCRAFTING_TABLE_BE, pos, state);
+        this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        this.data = new PropertyDelegate() {
+            @Override
+            public int get(int index) {
+                return switch (index){
+                    case 0 -> experience;
+                    case 1 -> experienceType;
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public void set(int index, int value) {
+                switch (index){
+                    case 0 -> experience = value;
+                    case 1 -> experienceType = value;
+                }
+            }
+
+            @Override
+            public int size() {
+                return 2;
+            }
+        };
     }
 
     @Override
@@ -100,7 +131,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         this.player = player;
-        return new UncraftingTableMenu(syncId, playerInventory, this);
+        return new UncraftingTableMenu(syncId, playerInventory, this, data);
     }
 
     @Override
@@ -118,6 +149,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         if (currentRecipe != null) {
             nbt.put("current_recipe", currentRecipe.serializeNbt(registries));
         }
+        nbt.putInt("experience", experience);
+        nbt.putInt("experienceType", experienceType);
     }
 
     @Override
@@ -135,6 +168,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         if (nbt.contains("current_recipe", NbtElement.COMPOUND_TYPE)){
             currentRecipe = UncraftingTableRecipe.deserializeNbt(nbt.getCompound("current_recipe"), registries);
         }
+        experience = nbt.getInt("experience");
+        experienceType = nbt.getInt("experienceType");
     }
 
     @Override
@@ -162,15 +197,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     public void getOutputStacks() {
         if (!(world instanceof ServerWorld serverLevel)) return;
 
-        List<String> blacklist = UncraftEverythingConfig.blacklist;
+        List<String> blacklist = UncraftEverythingConfig.restrictions;
         List<Pattern> wildcardBlacklist = blacklist.stream()
                 .filter(s -> s.contains("*"))
                 .map(s -> Pattern.compile(s.replace("*", ".*")))
                 .toList();
 
-        if (this.getStack(inputSlots[0]).isEmpty() || this.getStack(inputSlots[0]).getDamage() > 0
-                || blacklist.contains(inputStackLocation().toString())
-                || wildcardBlacklist.stream().anyMatch(pattern -> pattern.matcher(inputStackLocation().toString()).matches())
+        if (this.getStack(inputSlots[0]).isEmpty()
+                || this.getStack(inputSlots[0]).getDamage() > 0
+                || UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))
+                || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
+                || !UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0]))
         ) {
             System.out.println("Empty or damaged item in input slot");
             currentRecipes.clear();
@@ -197,11 +234,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
 
             if(recipeHolder.value() instanceof ShulkerBoxColoringRecipe transmuteRecipe){
-                return true;
+                return inputStack.isIn(ConventionalItemTags.SHULKER_BOXES) && !inputStack.isOf(Items.SHULKER_BOX);
             }
 
             return false;
         }).toList();
+
+        if (!recipes.isEmpty() || inputStack.isOf(Items.TIPPED_ARROW)){
+            experience = getExperience();
+            this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        }
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
@@ -507,8 +549,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 }
             }
 
+            if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+                player.addExperience(-getExperience());
+            }
+            else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+                player.addExperienceLevels(-getExperience());
+            }
             this.removeStack(0, this.currentRecipe.getInput().getCount());
-            player.addExperience(-UncraftEverythingConfig.experiencePoints);
             markDirty();
 
             getOutputStacks();
@@ -528,10 +575,44 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         this.currentRecipe = recipe;
     }
 
+    private int getExperience() {
+        Map<String, Integer> experienceMap = PerItemExpCostConfig.getPerItemExp();
+        int experience = experienceMap.getOrDefault(inputStackLocation().toString(), UncraftEverythingConfig.getExperience());
+
+        for (Map.Entry<String, Integer> exp : experienceMap.entrySet()){
+            if (exp.getKey().startsWith("#")){
+                String tagName = exp.getKey().substring(1);
+                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && this.getStack(inputSlots[0]).isIn(tagKey.get())) {
+                    experience = exp.getValue();
+                    break;
+                }
+            }
+
+            if (exp.getKey().contains("*")){
+                String regex = exp.getKey().replace("*", ".*");
+                if (Pattern.matches(regex, inputStackLocation().toString())){
+                    experience = exp.getValue();
+                    break;
+                }
+            }
+        }
+
+        return experience;
+    }
+
     private boolean hasEnoughExperience(){
-        if (player.totalExperience < UncraftEverythingConfig.experiencePoints && !player.isCreative()) {
-            player.sendMessage(Text.literal("You don't have enough experience points to uncraft this item!"), false);
-            return false;
+        if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+            if (player.totalExperience < getExperience() && !player.isCreative()) {
+                player.sendMessage(Text.literal("You don't have enough experience points to uncraft this item!"), false);
+                return false;
+            }
+        }
+        else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+            if (player.experienceLevel < getExperience() && !player.isCreative()) {
+                player.sendMessage(Text.literal("You don't have enough experience levels to uncraft this item!"), false);
+                return false;
+            }
         }
         return true;
     }
@@ -565,6 +646,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
     public List<UncraftingTableRecipe> getCurrentRecipes() {
         return currentRecipes;
+    }
+
+    public PropertyDelegate getData() {
+        return data;
     }
 
     private static class Group {

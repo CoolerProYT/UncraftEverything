@@ -59,8 +59,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
         this.x = Math.max(x, (16 * 9) + SCROLLBAR_PADDING + SCROLLBAR_WIDTH);
 
-        int buttonX = x + (backgroundWidth - 64) - 20;
-        int buttonY = y + 72;
+        int buttonX = this.x + (backgroundWidth - 64) - 20;
+        int buttonY = this.y + 72;
 
         this.addDrawableChild(ButtonWidget
                 .builder(Text.literal("UnCraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
@@ -83,6 +83,14 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
+
+        String exp = "Experience " + this.handler.getExpType() + ": " + this.handler.getExpAmount();
+
+        context.getMatrices().push();
+        context.getMatrices().scale(0.75f, 0.75f, 0.75f);
+        context.getMatrices().translate(this.x * 1.3334 + 115, this.y * 1.3334 + 121, 0);
+        context.drawText(this.textRenderer, exp, 0, 0, 0x00AA00, false);
+        context.getMatrices().pop();
 
         recipeBounds.clear();
 
