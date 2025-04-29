@@ -86,6 +86,14 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
+        String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
+
+        pGuiGraphics.pose().pushPose();
+        pGuiGraphics.pose().scale(0.75f, 0.75f, 0.75f);
+        pGuiGraphics.pose().translate(this.leftPos * 1.3334 + 115, this.topPos * 1.3334 + 121, 0);
+        pGuiGraphics.drawString(this.font, exp, 0, 0, 0x00AA00, false);
+        pGuiGraphics.pose().popPose();
+
         recipeBounds.clear();
 
         int x = this.leftPos;

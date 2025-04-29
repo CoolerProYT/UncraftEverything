@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
@@ -32,8 +33,9 @@ public class UncraftEverything
 
         NeoForge.EVENT_BUS.register(this);
         modContainer.registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
+        PerItemExpCostConfig.load();
+        PerItemExpCostConfig.startWatcher();
     }
-
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
