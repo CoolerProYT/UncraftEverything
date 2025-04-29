@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
@@ -28,6 +29,9 @@ public class UncraftEverything implements ModInitializer {
 
 		UncraftEverythingConfig.load();
 		UncraftEverythingConfig.save();
+
+		PerItemExpCostConfig.load();
+		PerItemExpCostConfig.startWatcher();
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.ID, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
 			ServerWorld level = serverPlayerEntity.getServerWorld();
