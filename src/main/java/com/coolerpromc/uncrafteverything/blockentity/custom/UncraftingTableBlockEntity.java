@@ -37,6 +37,8 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
@@ -135,41 +137,34 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.writeNbt(nbt, registries);
+    protected void writeData(WriteView view) {
+        super.writeData(view);
 
-        Inventories.writeNbt(nbt, inventory, registries);
-        NbtList listTag = new NbtList();
+        Inventories.writeData(view, inventory);
+        WriteView.ListAppender<UncraftingTableRecipe> recipeListAppender = view.getListAppender("current_recipes", UncraftingTableRecipe.CODEC);
         for (UncraftingTableRecipe recipe : currentRecipes) {
-            NbtCompound recipeTag = new NbtCompound();
-            recipeTag.put("recipe", recipe.serializeNbt(registries));
-            listTag.add(recipeTag);
+            recipeListAppender.add(recipe);
         }
-        nbt.put("current_recipes", listTag);
+
         if (currentRecipe != null) {
-            nbt.put("current_recipe", currentRecipe.serializeNbt(registries));
+            view.put("current_recipe", UncraftingTableRecipe.CODEC, currentRecipe);
         }
-        nbt.putInt("experience", experience);
-        nbt.putInt("experienceType", experienceType);
+        view.putInt("experience", experience);
+        view.putInt("experienceType", experienceType);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
+    protected void readData(ReadView view) {
+        super.readData(view);
 
-        Inventories.readNbt(nbt, inventory, registries);
-        if (nbt.contains("current_recipes")){
-            NbtList listTag = nbt.getListOrEmpty("current_recipes");
-            for (int i = 0; i < listTag.size(); i++) {
-                NbtCompound recipeTag = listTag.getCompoundOrEmpty(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompoundOrEmpty("recipe"), registries));
-            }
+        Inventories.readData(view, inventory);
+        for (UncraftingTableRecipe recipe : view.getTypedListView("current_recipes", UncraftingTableRecipe.CODEC)) {
+            currentRecipes.add(recipe);
         }
-        if (nbt.contains("current_recipe")){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(nbt.getCompoundOrEmpty("current_recipe"), registries);
-        }
-        experience = nbt.getInt("experience", UncraftEverythingConfig.experience);
-        experienceType = nbt.getInt("experienceType", UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0);
+
+        currentRecipe = view.read("current_recipe", UncraftingTableRecipe.CODEC).orElse(null);
+        experience = view.getInt("experience", UncraftEverythingConfig.experience);
+        experienceType = view.getInt("experienceType", UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0);
     }
 
     @Override

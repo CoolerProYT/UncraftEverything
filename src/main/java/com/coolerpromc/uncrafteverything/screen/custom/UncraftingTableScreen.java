@@ -4,12 +4,11 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -74,23 +73,20 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
 
         String exp = "Experience " + this.handler.getExpType() + ": " + this.handler.getExpAmount();
 
-        context.getMatrices().push();
-        context.getMatrices().scale(0.75f, 0.75f, 0.75f);
-        context.getMatrices().translate(this.x * 1.3334 + 115, this.y * 1.3334 + 121, 0);
-        context.drawText(this.textRenderer, exp, 0, 0, 0x00AA00, false);
-        context.getMatrices().pop();
+        context.getMatrices().pushMatrix();
+        context.getMatrices().scale(0.75f, 0.75f);
+        context.getMatrices().translate(this.x * 1.3334f + 115, this.y * 1.3334f + 121);
+        context.drawText(this.textRenderer, exp, 0, 0, 0xFF00AA00, false);
+        context.getMatrices().popMatrix();
 
         recipeBounds.clear();
 
@@ -214,10 +210,11 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                         y + 17 + (i / 3) * 18,
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
-                        200, 0xAA8B8B8B);
+                        0xAA8B8B8B);
             }
         }
 
+        super.render(context, mouseX, mouseY, delta);
         drawMouseoverTooltip(context, mouseX, mouseY);
     }
 

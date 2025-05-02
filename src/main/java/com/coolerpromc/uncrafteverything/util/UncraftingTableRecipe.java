@@ -1,13 +1,11 @@
 package com.coolerpromc.uncrafteverything.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +13,10 @@ import java.util.List;
 public class UncraftingTableRecipe {
     private final ItemStack input;
     private final List<ItemStack> outputs = new ArrayList<>();
+    public static final Codec<UncraftingTableRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ItemStack.OPTIONAL_CODEC.fieldOf("input").forGetter(UncraftingTableRecipe::getInput),
+            ItemStack.OPTIONAL_CODEC.listOf().fieldOf("outputs").forGetter(UncraftingTableRecipe::getOutputs)
+    ).apply(instance, UncraftingTableRecipe::new));
     public static final PacketCodec<RegistryByteBuf, UncraftingTableRecipe> STREAM_CODEC = PacketCodec.tuple(
             ItemStack.OPTIONAL_PACKET_CODEC,
             UncraftingTableRecipe::getInput,
@@ -46,34 +48,5 @@ public class UncraftingTableRecipe {
 
     public List<ItemStack> getOutputs() {
         return outputs;
-    }
-
-    public NbtCompound serializeNbt(RegistryWrapper.WrapperLookup provider) {
-        NbtCompound tag = new NbtCompound();
-        tag.put("input", input.toNbt(provider));
-        NbtList listTag = new NbtList();
-        for (ItemStack itemStack : outputs) {
-            itemStack = itemStack.isEmpty() ? new ItemStack(Items.STRUCTURE_VOID) : itemStack.copy();
-            NbtCompound itemTag = new NbtCompound();
-            itemTag.put("output", itemStack.toNbt(provider));
-            listTag.add(itemTag);
-        }
-        tag.put("outputs", listTag);
-        return tag;
-    }
-
-    public static UncraftingTableRecipe deserializeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup provider) {
-        ItemStack input = ItemStack.fromNbt(provider, tag.getCompoundOrEmpty("input")).orElse(ItemStack.EMPTY);
-        List<ItemStack> outputs = new ArrayList<>();
-
-        if (tag.contains("outputs")) {
-            NbtList listTag = tag.getListOrEmpty("outputs");
-            for (int i = 0; i < listTag.size(); i++) {
-                NbtCompound itemTag = listTag.getCompoundOrEmpty(i);
-                outputs.add(ItemStack.fromNbt(provider, itemTag.getCompoundOrEmpty("output")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY));
-            }
-        }
-
-        return new UncraftingTableRecipe(input, outputs);
     }
 }
