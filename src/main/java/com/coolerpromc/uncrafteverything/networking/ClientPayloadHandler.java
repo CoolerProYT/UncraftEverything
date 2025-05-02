@@ -5,13 +5,11 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public class ClientPayloadHandler {
-    public static void handleBlockEntityData(UncraftingTableDataPayload payload, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
+    public static void handleBlockEntityData(UncraftingTableDataPayload payload, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
             Minecraft minecraft = Minecraft.getInstance();
             Level level = minecraft.level;
             Screen screen = minecraft.screen;
@@ -22,6 +20,6 @@ public class ClientPayloadHandler {
                 }
             }
         });
-        context.get().setPacketHandled(true);
+        context.setPacketHandled(true);
     }
 }

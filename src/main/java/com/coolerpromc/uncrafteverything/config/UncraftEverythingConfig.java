@@ -1,6 +1,7 @@
 
 package com.coolerpromc.uncrafteverything.config;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +9,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -53,7 +55,7 @@ public class UncraftEverythingConfig {
     }
 
     public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
-        return allowEnchantedItems.get() || EnchantmentHelper.getEnchantments(itemStack).isEmpty();
+        return allowEnchantedItems.get() || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
@@ -126,7 +128,7 @@ public class UncraftEverythingConfig {
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            ResourceLocation location = new ResourceLocation(input);
+            ResourceLocation location = ResourceLocation.parse(input);
             return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();

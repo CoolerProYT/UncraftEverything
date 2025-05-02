@@ -11,7 +11,7 @@ public class UETags {
         public static final TagKey<Item> SHULKER_BOXES = modTag("shulker_boxes");
 
         private static TagKey<Item> modTag(String name){
-            return ItemTags.create(new ResourceLocation(UncraftEverything.MODID, name));
+            return ItemTags.create(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, name));
         }
     }
 }

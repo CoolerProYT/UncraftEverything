@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "minecraft:crafting_table"
-    }
+    "#": "minecraft:crafting_table"
   },
   "pattern": [
     "## ",
@@ -12,7 +10,8 @@
     "   "
   ],
   "result": {
-    "item": "uncrafteverything:uncrafting_table"
+    "count": 1,
+    "id": "uncrafteverything:uncrafting_table"
   },
   "show_notification": false
 }

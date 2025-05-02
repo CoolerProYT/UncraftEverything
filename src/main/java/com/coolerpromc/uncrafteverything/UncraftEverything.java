@@ -23,7 +23,9 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkDirection;
 
+@SuppressWarnings("removal")
 @Mod(UncraftEverything.MODID)
 public class UncraftEverything
 {
@@ -40,6 +42,10 @@ public class UncraftEverything
         UEBlockEntities.register(modEventBus);
         UEMenuTypes.register(modEventBus);
 
+        UncraftingTableDataPayload.register(modEventBus);
+        UncraftingTableCraftButtonClickPayload.register(modEventBus);
+        UncraftingRecipeSelectionPayload.register(modEventBus);
+
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         PerItemExpCostConfig.load();
@@ -47,11 +53,7 @@ public class UncraftEverything
     }
 
     public void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            UncraftingTableDataPayload.register();
-            UncraftingRecipeSelectionPayload.register();
-            UncraftingTableCraftButtonClickPayload.register();
-        });
+
     }
 
     @SubscribeEvent
