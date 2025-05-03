@@ -18,8 +18,11 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
 
 @SuppressWarnings("deprecation")
 public class UncraftingTableBlock extends BlockWithEntity {
@@ -33,20 +36,20 @@ public class UncraftingTableBlock extends BlockWithEntity {
     }
 
     @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new UncraftingTableBlockEntity(pos, state);
-    }
-
-    @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient){
             BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof UncraftingTableBlockEntity blockEntity){
+            if (entity instanceof UncraftingTableBlockEntity){
+                UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) entity;
                 player.openHandledScreen(blockEntity);
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
                 for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ()), 10)){
                     PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                    packetByteBuf.encodeAsJson(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
+                    try {
+                        packetByteBuf.encode(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
                 }
             }
@@ -56,5 +59,10 @@ public class UncraftingTableBlock extends BlockWithEntity {
         }
 
         return ActionResult.SUCCESS;
+    }
+
+    @Override
+    public @Nullable BlockEntity createBlockEntity(BlockView world) {
+        return new UncraftingTableBlockEntity();
     }
 }

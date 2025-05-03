@@ -22,13 +22,13 @@ public class UncraftingTableMenu extends ScreenHandler {
     private final PropertyDelegate data;
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, PacketByteBuf packetByteBuf) {
-        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(packetByteBuf.readBlockPos()), new ArrayPropertyDelegate(2));
+        this(syncId, playerInventory, playerInventory.player.getEntityWorld().getBlockEntity(packetByteBuf.readBlockPos()), new ArrayPropertyDelegate(2));
     }
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, PropertyDelegate data) {
         super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId);
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
-        this.world = playerInventory.player.getWorld();
+        this.world = playerInventory.player.getEntityWorld();
         this.data = data;
 
         this.addSlot(new Slot(this.blockEntity, this.blockEntity.getInputSlots()[0], 26, 35));
@@ -48,7 +48,7 @@ public class UncraftingTableMenu extends ScreenHandler {
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int invSlot) {
+    public ItemStack transferSlot(PlayerEntity player, int invSlot) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(invSlot);
         if (slot != null && slot.hasStack()) {
@@ -91,10 +91,10 @@ public class UncraftingTableMenu extends ScreenHandler {
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
+    public void close(PlayerEntity player) {
         ItemStack stack = blockEntity.getStack(blockEntity.getInputSlots()[0]);
         if (!stack.isEmpty()) {
-            player.getInventory().offerOrDrop(stack);
+            player.inventory.offerOrDrop(world, stack);
             blockEntity.setStack(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
             blockEntity.markDirty();
         }
@@ -102,7 +102,7 @@ public class UncraftingTableMenu extends ScreenHandler {
         for (int i : blockEntity.getOutputSlots()) {
             ItemStack outputStack = blockEntity.getStack(i);
             if (!outputStack.isEmpty()) {
-                player.getInventory().offerOrDrop(outputStack);
+                player.inventory.offerOrDrop(world, outputStack);
                 blockEntity.setStack(i, ItemStack.EMPTY);
                 blockEntity.markDirty();
             }

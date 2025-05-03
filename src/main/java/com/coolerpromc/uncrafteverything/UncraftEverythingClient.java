@@ -6,26 +6,33 @@ import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
+
 import net.minecraft.world.World;
 
 public class UncraftEverythingClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        HandledScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
+        ScreenRegistry.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(UncraftingTableDataPayload.ID, (minecraftClient, clientPlayNetworkHandler, packetByteBuf, packetSender) -> {
-            MinecraftClient minecraft = MinecraftClient.getInstance();
-            World world = minecraft.world;
-            Screen screen = minecraft.currentScreen;
+            try{
+                MinecraftClient minecraft = MinecraftClient.getInstance();
+                World world = minecraft.world;
+                Screen screen = minecraft.currentScreen;
 
-            if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
-                UncraftingTableDataPayload uncraftingTableDataPayload = packetByteBuf.decodeAsJson(UncraftingTableDataPayload.CODEC);
-                if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity blockEntity){
-                    uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
+                if (world != null && screen instanceof UncraftingTableScreen){
+                    UncraftingTableScreen uncraftingTableScreen = (UncraftingTableScreen) screen;
+                    UncraftingTableDataPayload uncraftingTableDataPayload = packetByteBuf.decode(UncraftingTableDataPayload.CODEC);
+
+                    if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity){
+                        uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
+                    }
                 }
+            } catch (Exception e) {
+                System.out.println("Failed to decode UncraftingTableDataPayload: " + e.getMessage());
             }
         });
     }

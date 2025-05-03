@@ -4,18 +4,20 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileWatcher;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UncraftEverythingConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("uncrafteverything_common.toml");
@@ -58,8 +60,12 @@ public class UncraftEverythingConfig {
         experienceType = configFile.getEnumOrElse("Experience.experienceType", ExperienceType.POINT);
         experience = Math.max(0, configFile.getOrElse("Experience.experiences", 1));
 
+        List<String> defaultRestrictions = new ArrayList<>();
+        defaultRestrictions.add("uncrafteverything:uncrafting_table");
+        defaultRestrictions.add("minecraft:crafting_table");
+
         restrictionType = configFile.getEnumOrElse("Restrictions.restrictionType", RestrictionType.BLACKLIST);
-        restrictions = configFile.getOrElse("Restrictions.restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"));
+        restrictions = configFile.getOrElse("Restrictions.restrictions", defaultRestrictions);
 
         restrictions = restrictions.stream()
                 .filter(entry -> {
@@ -69,7 +75,7 @@ public class UncraftEverythingConfig {
                         return false;
                     }
                 })
-                .toList();
+                .collect(Collectors.toList());
 
         allowEnchantedItems = configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", false);
     }
@@ -129,8 +135,8 @@ public class UncraftEverythingConfig {
         for (String entry : restrictions) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.isIn(tagKey.get())) {
+                Optional<Tag<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && itemStack.getItem().isIn(tagKey.get())) {
                     return true;
                 }
             }
@@ -161,8 +167,8 @@ public class UncraftEverythingConfig {
         for (String entry : restrictions) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.isIn(tagKey.get())) {
+                Optional<Tag<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && itemStack.getItem().isIn(tagKey.get())) {
                     return false;
                 }
             }
@@ -179,13 +185,13 @@ public class UncraftEverythingConfig {
     }
 
     public static Identifier inputStackLocation(ItemStack itemStack) {
-        return Registries.ITEM.getId(itemStack.getItem());
+        return Registry.ITEM.getId(itemStack.getItem());
     }
 
-    public static Optional<TagKey<Item>> tryParseTagKey(String input) {
+    public static Optional<Tag<Item>> tryParseTagKey(String input) {
         try {
             Identifier location = new Identifier(input);
-            return Optional.of(TagKey.of(RegistryKeys.ITEM, location));
+            return Optional.of(TagRegistry.item(location));
         } catch (Exception e) {
             return Optional.empty();
         }

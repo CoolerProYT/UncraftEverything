@@ -6,10 +6,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
-public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos){
+public class UncraftingTableCraftButtonClickPayload{
     public static final Identifier ID = new Identifier(UncraftEverything.MODID, "uncrafting_table_craft_button_click");
+    private final BlockPos blockPos;
+
+    public UncraftingTableCraftButtonClickPayload(BlockPos blockPos){
+        this.blockPos = blockPos;
+    }
 
     public static final Codec<UncraftingTableCraftButtonClickPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos)
     ).apply(instance, UncraftingTableCraftButtonClickPayload::new));
+
+    public BlockPos blockPos() {
+        return blockPos;
+    }
 }

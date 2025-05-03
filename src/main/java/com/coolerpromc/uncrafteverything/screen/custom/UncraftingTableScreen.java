@@ -7,28 +7,31 @@ import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
-    private static final Identifier TEXTURE = Identifier.of(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
-    private List<UncraftingTableRecipe> recipes = List.of();
+    private static final Identifier TEXTURE = new Identifier(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
+    private List<UncraftingTableRecipe> recipes = new ArrayList<>();
     private int selectedRecipe = 0;
     private int hoveredRecipe = -1;
     private final List<Rectangle2D> recipeBounds = new ArrayList<>();
@@ -63,36 +66,37 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int buttonX = this.x + (backgroundWidth - 64) - 20;
         int buttonY = this.y + 72;
 
-        this.addDrawableChild(ButtonWidget
-                .builder(Text.literal("UnCraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
-                .build());
+        this.addButton(new ButtonWidget(buttonX, buttonY, 64, 20, new LiteralText("UnCraft"), this::onPressed));
     }
 
     private void onPressed(ButtonWidget button) {
         PacketByteBuf packetByteBuf = PacketByteBufs.create();
-        packetByteBuf.encodeAsJson(UncraftingTableCraftButtonClickPayload.CODEC, new UncraftingTableCraftButtonClickPayload(this.handler.blockEntity.getPos()));
+        try{
+            packetByteBuf.encode(UncraftingTableCraftButtonClickPayload.CODEC, new UncraftingTableCraftButtonClickPayload(this.handler.blockEntity.getPos()));
+        } catch (IOException e) {
+            System.out.println("Failed to encode UncraftingTableCraftButtonClickPayload: " + e.getMessage());
+        }
         ClientPlayNetworking.send(UncraftingTableCraftButtonClickPayload.ID, packetByteBuf);
     }
 
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight);
+    protected void drawBackground(MatrixStack context, float delta, int mouseX, int mouseY) {
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
+        drawTexture(context, x, y, 0, 0, backgroundWidth, backgroundHeight);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(MatrixStack context, int mouseX, int mouseY, float delta) {
         renderBackground(context);
-        super.render(context, mouseX, mouseY, delta);
 
         String exp = "Experience " + this.handler.getExpType() + ": " + this.handler.getExpAmount();
 
-        context.getMatrices().push();
-        context.getMatrices().scale(0.75f, 0.75f, 0.75f);
-        context.getMatrices().translate(this.x * 1.3334 + 115, this.y * 1.3334 + 121, 0);
-        context.drawText(this.textRenderer, exp, 0, 0, 0x00AA00, false);
-        context.getMatrices().pop();
+        context.push();
+        context.scale(0.75f, 0.75f, 0.75f);
+        context.translate(this.x * 1.3334 + 115, this.y * 1.3334 + 124, 0);
+        drawStringWithShadow(context, this.textRenderer, exp, 0, 0, 0x00AA00);
+        context.pop();
 
         recipeBounds.clear();
 
@@ -104,7 +108,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        context.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        fill(context,x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -115,7 +119,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                     ((float)scrollOffset / (recipes.size() - maxVisibleRecipes)));
 
             // Draw scrollbar background
-            context.fill(
+            fill(
+                    context,
                     x - (16 * 9) - SCROLLBAR_PADDING,
                     y + 5 - SCROLLBAR_PADDING,
                     x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
@@ -123,7 +128,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                     0x50F8F9FA);
 
             // Draw scrollbar handle
-            context.fill(
+            fill(
+                    context,
                     x - (16 * 9) - SCROLLBAR_PADDING,
                     scrollY,
                     x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
@@ -149,7 +155,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             recipeBounds.add(bounds);
 
             if (selectedRecipe == j) {
-                context.fill(
+                fill(
+                        context,
                         (int) bounds.getX(),
                         (int) bounds.getY(),
                         (int) (bounds.getX() + bounds.getWidth()),
@@ -158,7 +165,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             }
 
             if (hoveredRecipe == j) {
-                context.fill(
+                fill(
+                        context,
                         (int) bounds.getX(),
                         (int) bounds.getY(),
                         (int) (bounds.getX() + bounds.getWidth()),
@@ -168,16 +176,16 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
-            Map<Item, NbtCompound> inputComponents = new HashMap<>();
+            Map<Item, CompoundTag> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
-                    inputComponents.put(itemStack.getItem(), itemStack.getNbt());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
-                    inputComponents.put(itemStack.getItem(), itemStack.getNbt());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
             }
 
@@ -185,10 +193,10 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 if (entry.getKey() == Items.AIR) continue;
                 ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
                 if (inputComponents.containsKey(entry.getKey())){
-                    itemStack.setNbt(inputComponents.get(entry.getKey()));
+                    itemStack.setTag(inputComponents.get(entry.getKey()));
                 }
-                context.drawItemWithoutEntity(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
-                context.drawItemInSlot(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                itemRenderer.renderInGui(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                itemRenderer.renderGuiItemOverlay(this.textRenderer, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
             }
 
@@ -203,25 +211,33 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         // Show selected recipe outputs
         if (!recipes.isEmpty()) {
             PacketByteBuf packetByteBuf = PacketByteBufs.create();
-            packetByteBuf.encodeAsJson(UncraftingRecipeSelectionPayload.CODEC, new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), this.recipes.get(selectedRecipe)));
+            try{
+                packetByteBuf.encode(UncraftingRecipeSelectionPayload.CODEC, new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), this.recipes.get(selectedRecipe)));
+            } catch (IOException e) {
+                System.out.println("Failed to encode UncraftingRecipeSelectionPayload: " + e.getMessage());
+            }
             ClientPlayNetworking.send(UncraftingRecipeSelectionPayload.ID, packetByteBuf);
 
             List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
             for (int i = 0; i < outputs.size(); i++) {
                 ItemStack itemStack = outputs.get(i);
-                context.drawItemWithoutEntity(
+                itemRenderer.renderInGui(
                         itemStack,
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18);
-                context.fill(
+                RenderSystem.disableDepthTest();
+                fill(
+                        context,
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18,
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
-                        200, 0xAA8B8B8B);
+                        0xAA8B8B8B);
+                RenderSystem.enableDepthTest();
             }
         }
 
+        super.render(context, mouseX, mouseY, delta);
         drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
