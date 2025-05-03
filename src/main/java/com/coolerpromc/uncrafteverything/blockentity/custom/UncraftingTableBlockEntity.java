@@ -5,6 +5,7 @@ import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
+import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
@@ -86,7 +87,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public UncraftingTableBlockEntity(BlockPos pos, BlockState blockState) {
         super(UEBlockEntities.UNCRAFTING_TABLE_BE.get(), pos, blockState);
-        this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         this.data = new ContainerData() {
             @Override
             public int get(int index) {
@@ -226,7 +227,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if(recipeHolder.value() instanceof ShulkerBoxColoring transmuteRecipe){
-                return inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
+                return inputStack.is(UETags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
             }
 
             return false;
@@ -234,7 +235,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW)){
             experience = getExperience();
-            this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+            this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
@@ -259,10 +260,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (RecipeHolder<?> r : recipes) {
-            if (r.value() instanceof ShulkerBoxColoring transmuteRecipe && inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX)) {
+            if (r.value() instanceof ShulkerBoxColoring transmuteRecipe && inputStack.is(UETags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX)) {
                 List<Ingredient> ingredients = new ArrayList<>();
 
-                Ingredient shulkerBoxIngredient = Ingredient.of(Tags.Items.SHULKER_BOXES);
+                Ingredient shulkerBoxIngredient = Ingredient.of(UETags.Items.SHULKER_BOXES);
                 ingredients.add(shulkerBoxIngredient);
 
                 Ingredient dyeIngredient = Ingredient.of(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) inputStack.getItem()).getBlock()).getColor())));

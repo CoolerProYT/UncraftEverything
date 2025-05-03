@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
     private List<UncraftingTableRecipe> recipes = List.of();
     private int selectedRecipe = 0;
     private int hoveredRecipe = -1;

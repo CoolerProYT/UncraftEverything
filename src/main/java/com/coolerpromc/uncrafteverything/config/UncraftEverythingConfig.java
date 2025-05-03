@@ -41,7 +41,7 @@ public class UncraftEverythingConfig {
         builder.push("Restrictions");
         restrictionType = builder.comment("The type of restriction to be used.").defineEnum("restrictionType", RestrictionType.BLACKLIST, RestrictionType.values());
         restrictions = builder.comment("A list of items that can/cannot be uncrafted depending on type of restriction.", "Invalid input will cause config reset at runtime.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name", "Press F3 + h in game and hover item to check their modid:name")
-                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
+                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
         builder.pop();
 
         builder.push("AllowEnchantedItems");
@@ -58,7 +58,7 @@ public class UncraftEverythingConfig {
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
-        if (restrictionType.getRaw() != RestrictionType.BLACKLIST){
+        if (restrictionType.get() != RestrictionType.BLACKLIST){
             return false;
         }
 
@@ -90,7 +90,7 @@ public class UncraftEverythingConfig {
     }
 
     public boolean isItemWhitelisted(ItemStack itemStack) {
-        if (restrictionType.getRaw() != RestrictionType.WHITELIST){
+        if (restrictionType.get() != RestrictionType.WHITELIST){
             return false;
         }
 
@@ -127,7 +127,7 @@ public class UncraftEverythingConfig {
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            ResourceLocation location = ResourceLocation.parse(input);
+            ResourceLocation location = new ResourceLocation(input);
             return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();

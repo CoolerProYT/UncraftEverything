@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, String data) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<UncraftingTableCraftButtonClickPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
+            new Type<>(new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
 
     public static final StreamCodec<ByteBuf, UncraftingTableCraftButtonClickPayload> STREAM_CODEC =
             StreamCodec.composite(

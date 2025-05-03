@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.List;
 
 public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<UncraftingTableDataPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data"));
+    public static final CustomPacketPayload.Type<UncraftingTableDataPayload> TYPE = new Type<>(new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_data"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableDataPayload> STREAM_CODEC =
             StreamCodec.composite(
