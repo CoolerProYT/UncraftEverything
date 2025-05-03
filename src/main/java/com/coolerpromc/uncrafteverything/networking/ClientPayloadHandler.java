@@ -3,9 +3,9 @@ package com.coolerpromc.uncrafteverything.networking;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -13,11 +13,13 @@ public class ClientPayloadHandler {
     public static void handleBlockEntityData(UncraftingTableDataPayload payload, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
             Minecraft minecraft = Minecraft.getInstance();
-            Level level = minecraft.level;
+            World level = minecraft.level;
             Screen screen = minecraft.screen;
 
-            if (level != null && screen instanceof UncraftingTableScreen uncraftingTableScreen) {
-                if (level.getBlockEntity(payload.blockPos()) instanceof UncraftingTableBlockEntity blockEntity) {
+            if (level != null && screen instanceof UncraftingTableScreen) {
+                UncraftingTableScreen uncraftingTableScreen = (UncraftingTableScreen) screen;
+                if (level.getBlockEntity(payload.blockPos()) instanceof UncraftingTableBlockEntity) {
+                    UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) level.getBlockEntity(payload.blockPos());
                     uncraftingTableScreen.updateFromBlockEntity(payload.recipes());
                 }
             }

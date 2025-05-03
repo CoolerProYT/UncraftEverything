@@ -3,13 +3,21 @@ package com.coolerpromc.uncrafteverything.networking;
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
-public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
+import java.io.IOException;
+
+public class UncraftingTableCraftButtonClickPayload {
+    private final BlockPos blockPos;
+
+    public UncraftingTableCraftButtonClickPayload(BlockPos blockPos){
+        this.blockPos = blockPos;
+    }
+
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_craft_button_click");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -27,12 +35,25 @@ public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
         return packetId++;
     }
 
-    public static void encode(UncraftingTableCraftButtonClickPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+    public static void encode(UncraftingTableCraftButtonClickPayload payload, PacketBuffer byteBuf){
+       try{
+           byteBuf.writeWithCodec(CODEC, payload);
+       } catch (IOException e) {
+           System.out.println("Failed to encode UncraftingTableCraftButtonClickPayload: " + e.getMessage());
+       }
     }
 
-    public static UncraftingTableCraftButtonClickPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+    public static UncraftingTableCraftButtonClickPayload decode(PacketBuffer byteBuf){
+        try{
+            return byteBuf.readWithCodec(CODEC);
+        } catch (IOException e) {
+            System.out.println("Failed to decode UncraftingTableCraftButtonClickPayload: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public BlockPos blockPos() {
+        return blockPos;
     }
 
     public static void register(){

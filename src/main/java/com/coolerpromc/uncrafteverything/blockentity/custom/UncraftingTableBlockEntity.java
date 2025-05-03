@@ -7,39 +7,36 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import com.mojang.logging.LogUtils;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.*;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.crafting.*;
-import net.minecraft.world.level.block.ShulkerBoxBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.*;
+import net.minecraft.item.crafting.*;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionUtils;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.PacketDistributor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.antlr.v4.runtime.misc.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,11 +44,11 @@ import java.util.stream.Collectors;
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
 @SuppressWarnings("unused")
-public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
+public class UncraftingTableBlockEntity extends TileEntity implements INamedContainerProvider {
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
-    private Player player;
-    private ContainerData data;
+    private PlayerEntity player;
+    private IIntArray data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
 
@@ -62,7 +59,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             getOutputStacks();
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new UncraftingTableDataPayload(getBlockPos(), getCurrentRecipes()));
+                UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new UncraftingTableDataPayload(getBlockPos(), getCurrentRecipes()));
             }
         }
     };
@@ -82,24 +79,27 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
     };
 
-    public UncraftingTableBlockEntity(BlockPos pos, BlockState blockState) {
-        super(UEBlockEntities.UNCRAFTING_TABLE_BE.get(), pos, blockState);
+    public UncraftingTableBlockEntity() {
+        super(UEBlockEntities.UNCRAFTING_TABLE_BE.get());
         this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
-        this.data = new ContainerData() {
+        this.data = new IIntArray() {
             @Override
             public int get(int index) {
-                return switch (index){
-                    case 0 -> experience;
-                    case 1 -> experienceType;
-                    default -> 0;
-                };
+                switch (index){
+                    case 0:
+                        return experience;
+                    case 1:
+                        return experienceType;
+                    default:
+                        return 0;
+                }
             }
 
             @Override
             public void set(int index, int value) {
                 switch (index){
-                    case 0 -> experience = value;
-                    case 1 -> experienceType = value;
+                    case 0: experience = value;
+                    case 1: experienceType = value;
                 }
             }
 
@@ -111,26 +111,24 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public @NotNull Component getDisplayName() {
-        return Component.translatable("block.uncrafteverything.uncrafting_table");
+    public @NotNull ITextComponent getDisplayName() {
+        return new TranslationTextComponent("block.uncrafteverything.uncrafting_table");
     }
 
     @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+    public Container createMenu(int containerId, @NotNull PlayerInventory playerInventory, @NotNull PlayerEntity player) {
         this.player = player;
         return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
-
+    public CompoundNBT save(@NotNull CompoundNBT tag) {
         tag.put("input", inputHandler.serializeNBT());
         tag.put("output", outputHandler.serializeNBT());
-        ListTag listTag = new ListTag();
+        ListNBT listTag = new ListNBT();
         for (UncraftingTableRecipe recipe : currentRecipes) {
-            CompoundTag recipeTag = new CompoundTag();
+            CompoundNBT recipeTag = new CompoundNBT();
             recipeTag.put("recipe", recipe.serializeNbt());
             listTag.add(recipeTag);
         }
@@ -140,22 +138,24 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
         tag.putInt("experience", experience);
         tag.putInt("experienceType", experienceType);
+
+        return super.save(tag);
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    public void load(BlockState blockState, @NotNull CompoundNBT tag) {
+        super.load(blockState, tag);
 
         inputHandler.deserializeNBT(tag.getCompound("input"));
         outputHandler.deserializeNBT(tag.getCompound("output"));
-        if (tag.contains("current_recipes", ListTag.TAG_LIST)){
-            ListTag listTag = tag.getList("current_recipes", CompoundTag.TAG_COMPOUND);
+        if (tag.contains("current_recipes", Constants.NBT.TAG_LIST)){
+            ListNBT listTag = tag.getList("current_recipes", Constants.NBT.TAG_COMPOUND);
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag recipeTag = listTag.getCompound(i);
+                CompoundNBT recipeTag = listTag.getCompound(i);
                 currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe")));
             }
         }
-        if (tag.contains("current_recipe", Tag.TAG_COMPOUND)){
+        if (tag.contains("current_recipe", Constants.NBT.TAG_COMPOUND)){
             currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompound("current_recipe"));
         }
         experience = tag.getInt("experience");
@@ -163,13 +163,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public @NotNull CompoundNBT getUpdateTag() {
+        CompoundNBT compoundTag = new CompoundNBT();
+        this.save(compoundTag);
+        return compoundTag;
     }
 
+    @Nullable
     @Override
-    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        CompoundNBT tag = new CompoundNBT();
+        save(tag);
+        return new SUpdateTileEntityPacket(this.getBlockPos(), 1, tag);
     }
 
     public ItemStackHandler getInputHandler() {
@@ -181,17 +186,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public ResourceLocation inputStackLocation() {
-        return BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem());
+        return ForgeRegistries.ITEMS.getKey(inputHandler.getStackInSlot(0).getItem());
     }
 
     public void getOutputStacks() {
-        if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerWorld)) return;
+        ServerWorld serverLevel = (ServerWorld) level;
 
         List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.restrictions.get();
         List<Pattern> wildcardBlacklist = blacklist.stream()
                 .filter(s -> s.contains("*"))
                 .map(s -> Pattern.compile(s.replace("*", ".*")))
-                .toList();
+                .collect(Collectors.toList());
 
         if (inputHandler.getStackInSlot(0).isEmpty()
                 || inputHandler.getStackInSlot(0).getDamageValue() > 0
@@ -211,33 +217,35 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         ItemStack inputStack = this.inputHandler.getStackInSlot(0);
 
-        List<Recipe<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
-            if (recipeHolder instanceof ShapedRecipe shapedRecipe){
+        List<IRecipe<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
+            if (recipeHolder instanceof ShapedRecipe){
+                ShapedRecipe shapedRecipe = (ShapedRecipe) recipeHolder;
                 if (shapedRecipe.result.getItem() == Items.SHULKER_BOX && inputStack.hasTag()){
                     return false;
                 }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
-            if (recipeHolder instanceof ShapelessRecipe shapelessRecipe){
+            if (recipeHolder instanceof ShapelessRecipe){
+                ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipeHolder;
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
-            if(recipeHolder instanceof ShulkerBoxColoring transmuteRecipe){
-                return inputStack.is(UETags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
+            if(recipeHolder instanceof ShulkerBoxColoringRecipe){
+                return inputStack.getItem().is(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX);
             }
 
             return false;
-        }).toList();
+        }).collect(Collectors.toList());
 
-        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW)){
+        if (!recipes.isEmpty() || inputStack.getItem().equals(Items.TIPPED_ARROW)){
             experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
 
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
-        if (inputStack.is(Items.TIPPED_ARROW)){
+        if (inputStack.getItem().equals(Items.TIPPED_ARROW)){
             Potion potion = PotionUtils.getPotion(inputStack);
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8));
             ItemStack lingeringPotion = new ItemStack(Items.LINGERING_POTION);
@@ -256,8 +264,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputs.add(outputStack);
         }
 
-        for (Recipe<?> r : recipes) {
-            if (r instanceof ShulkerBoxColoring transmuteRecipe && inputStack.is(UETags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX)) {
+        for (IRecipe<?> r : recipes) {
+            if (r instanceof ShulkerBoxColoringRecipe && inputStack.getItem().is(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX)) {
                 List<Ingredient> ingredients = new ArrayList<>();
 
                 Ingredient shulkerBoxIngredient = Ingredient.of(UETags.Items.SHULKER_BOXES);
@@ -267,7 +275,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 ingredients.add(dyeIngredient);
 
                 List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
-                CompoundTag itemContainerContents = inputStack.getTag();
+                CompoundNBT itemContainerContents = inputStack.getTag();
 
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
@@ -279,7 +287,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item, 1);
-                            if (itemStack.is(UETags.Items.SHULKER_BOXES)){
+                            if (itemStack.getItem().is(UETags.Items.SHULKER_BOXES)){
                                 itemStack.setTag(itemContainerContents);
                             }
                             outputStack.addOutput(itemStack);
@@ -289,7 +297,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
             }
 
-            if (r instanceof ShapedRecipe shapedRecipe) {
+            if (r instanceof ShapedRecipe) {
+                ShapedRecipe shapedRecipe = (ShapedRecipe) r;
                 // Get all possible combinations of ingredients
                 List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(shapedRecipe.getIngredients());
 
@@ -310,7 +319,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
             }
 
-            if (r instanceof ShapelessRecipe shapelessRecipe) {
+            if (r instanceof ShapelessRecipe) {
+                ShapelessRecipe shapelessRecipe = (ShapelessRecipe) r;
                 List<Ingredient> ingredients = new ArrayList<>(shapelessRecipe.ingredients);
 
                 if (inputStack.hasTag() && inputStack.getTagElement("Fireworks") != null){
@@ -363,10 +373,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 items = Arrays.stream(ingredient.getItems())
                         .map(ItemStack::getItem)
                         .distinct()
-                        .toList();
+                        .collect(Collectors.toList());
             } catch (IllegalStateException e) {
-                // Log error for debugging
-                LogUtils.getLogger().warn("Skipping unsupported ingredient type: {}", ingredient);
                 return Collections.emptyList();
             }
         }
@@ -379,7 +387,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     return true;
                 })
                 .sorted(Comparator.comparing(Item::getDescriptionId))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     // Helper method to get all possible combinations of ingredients for shaped recipes
@@ -390,9 +398,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             Optional<Ingredient> optIngredient = Optional.of(ingredients.get(i));
             List<Item> items = optIngredient.map(ingredient -> {
                         List<Item> ingredientItems = getItemsFromIngredient(ingredient);
-                        return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
+                        return ingredientItems.isEmpty() ? new ArrayList<>(Collections.singleton(Items.AIR)) : ingredientItems;
                     })
-                    .orElse(List.of(Items.AIR));
+                    .orElse(new ArrayList<>(Collections.singleton(Items.AIR)));
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
@@ -440,7 +448,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
             List<Item> items = getItemsFromIngredient(ingredient);
-            if (items.isEmpty()) items = List.of(Items.AIR);
+            if (items.isEmpty()) items = new ArrayList<>(Collections.singleton(Items.AIR));
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
@@ -528,7 +536,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                     if (slotStack.isEmpty()) {
                         outputHandler.setStackInSlot(i, output.copy());
-                    } else if (ItemStack.isSameItemSameTags(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
+                    } else if (ItemStack.isSame(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
                         slotStack.grow(output.getCount());
                         outputHandler.setStackInSlot(i, slotStack);
                     }
@@ -549,7 +557,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
         }
         else if (!hasRecipe()) {
-            player.displayClientMessage(Component.literal("No recipe or suitable output slot found."), false);
+            player.displayClientMessage(new StringTextComponent("No recipe or suitable output slot found."), false);
         }
     }
 
@@ -564,8 +572,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         for (Map.Entry<String, Integer> exp : experienceMap.entrySet()){
             if (exp.getKey().startsWith("#")){
                 String tagName = exp.getKey().substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && inputHandler.getStackInSlot(0).is(tagKey.get())) {
+                Optional<Tags.IOptionalNamedTag<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && inputHandler.getStackInSlot(0).getItem().is(tagKey.get())) {
                     experience = exp.getValue();
                     break;
                 }
@@ -586,13 +594,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     private boolean hasEnoughExperience(){
         if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.POINT)){
             if (player.totalExperience < getExperience() && !player.isCreative()) {
-                player.displayClientMessage(Component.literal("You don't have enough experience points to uncraft this item!"), false);
+                player.displayClientMessage(new StringTextComponent("You don't have enough experience points to uncraft this item!"), false);
                 return false;
             }
         }
         else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             if (player.experienceLevel < getExperience() && !player.isCreative()) {
-                player.displayClientMessage(Component.literal("You don't have enough experience levels to uncraft this item!"), false);
+                player.displayClientMessage(new StringTextComponent("You don't have enough experience levels to uncraft this item!"), false);
                 return false;
             }
         }
@@ -616,7 +624,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 continue;
             }
 
-            if (!ItemStack.isSameItemSameTags(slotStack, result)) {
+            if (!ItemStack.isSame(slotStack, result)) {
                 return false;
             }
 
@@ -632,7 +640,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return currentRecipes;
     }
 
-    public ContainerData getData() {
+    public IIntArray getData() {
         return data;
     }
 

@@ -1,26 +1,21 @@
 package com.coolerpromc.uncrafteverything.datagen;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
-import java.util.concurrent.CompletableFuture;
+import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
 @Mod.EventBusSubscriber(modid = UncraftEverything.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class UEDataGenerators {
     @SubscribeEvent
     public static void onGatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
-        PackOutput packOutput = generator.getPackOutput();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-        UEBlockTagGenerator blockTagGenerator = generator.addProvider(event.includeServer(), new UEBlockTagGenerator(packOutput, lookupProvider, existingFileHelper));
-        generator.addProvider(event.includeServer(), new UEItemTagGenerator(packOutput, lookupProvider, blockTagGenerator.contentsGetter(), existingFileHelper));
+        UEBlockTagGenerator blockTagGenerator = new UEBlockTagGenerator(generator, existingFileHelper);
+        generator.addProvider(blockTagGenerator);
+        generator.addProvider(new UEItemTagGenerator(generator, blockTagGenerator, existingFileHelper));
     }
 }

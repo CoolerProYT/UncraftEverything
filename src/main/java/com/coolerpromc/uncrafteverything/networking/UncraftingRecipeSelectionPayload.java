@@ -4,13 +4,23 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
-public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) {
+import java.io.IOException;
+
+public class UncraftingRecipeSelectionPayload {
+    public final BlockPos blockPos;
+    public final UncraftingTableRecipe recipe;
+
+    public UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe){
+        this.blockPos = blockPos;
+        this.recipe = recipe;
+    }
+
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_recipe_selection");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -29,12 +39,31 @@ public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTabl
         return packetId++;
     }
 
-    public static void encode(UncraftingRecipeSelectionPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+    public static void encode(UncraftingRecipeSelectionPayload payload, PacketBuffer byteBuf){
+        try{
+            byteBuf.writeWithCodec(CODEC, payload);
+        }
+        catch (IOException e){
+            System.out.println("Failed to encode UncraftingRecipeSelectionPayload: " + e.getMessage());
+        }
     }
 
-    public static UncraftingRecipeSelectionPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+    public static UncraftingRecipeSelectionPayload decode(PacketBuffer byteBuf){
+        try{
+            return byteBuf.readWithCodec(CODEC);
+        }
+        catch (IOException e){
+            System.out.println("Failed to decode UncraftingRecipeSelectionPayload: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public BlockPos blockPos(){
+        return blockPos;
+    }
+
+    public UncraftingTableRecipe recipe(){
+        return recipe;
     }
 
     public static void register(){

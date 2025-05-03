@@ -1,16 +1,17 @@
 
 package com.coolerpromc.uncrafteverything.config;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +38,14 @@ public class UncraftEverythingConfig {
         experience = builder.comment("The default amount of experience point/level required to uncraft an item. More detailed exp can me configured in uncrafteverything-exp.json").defineInRange("experiences", 1, 0, Integer.MAX_VALUE);
         builder.pop();
 
+        List<String> defaultRestrictions = new ArrayList<>();
+        defaultRestrictions.add("uncrafteverything:uncrafting_table");
+        defaultRestrictions.add("minecraft:crafting_table");
+
         builder.push("Restrictions");
         restrictionType = builder.comment("The type of restriction to be used.").defineEnum("restrictionType", RestrictionType.BLACKLIST, RestrictionType.values());
         restrictions = builder.comment("A list of items that can/cannot be uncrafted depending on type of restriction.", "Invalid input will cause config reset at runtime.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name", "Press F3 + h in game and hover item to check their modid:name")
-                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
+                .defineList("restrictions", defaultRestrictions, o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
         builder.pop();
 
         builder.push("AllowEnchantedItems");
@@ -71,8 +76,8 @@ public class UncraftEverythingConfig {
         for (String entry : restrictions.get()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
+                Optional<Tags.IOptionalNamedTag<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && itemStack.getItem().is(tagKey.get())) {
                     return true;
                 }
             }
@@ -103,8 +108,8 @@ public class UncraftEverythingConfig {
         for (String entry : restrictions.get()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
+                Optional<Tags.IOptionalNamedTag<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && itemStack.getItem().is(tagKey.get())) {
                     return false;
                 }
             }
@@ -121,13 +126,13 @@ public class UncraftEverythingConfig {
     }
 
     public ResourceLocation inputStackLocation(ItemStack itemStack) {
-        return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        return ForgeRegistries.ITEMS.getKey(itemStack.getItem());
     }
 
-    public static Optional<TagKey<Item>> tryParseTagKey(String input) {
+    public static Optional<Tags.IOptionalNamedTag<Item>> tryParseTagKey(String input) {
         try {
             ResourceLocation location = new ResourceLocation(input);
-            return Optional.of(TagKey.create(Registries.ITEM, location));
+            return Optional.of(ItemTags.createOptional(location));
         } catch (Exception e) {
             return Optional.empty();
         }

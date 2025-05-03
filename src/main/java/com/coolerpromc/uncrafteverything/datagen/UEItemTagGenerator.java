@@ -2,23 +2,21 @@ package com.coolerpromc.uncrafteverything.datagen;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UETags;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.data.BlockTagsProvider;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.ItemTagsProvider;
+import net.minecraft.item.Items;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 
 public class UEItemTagGenerator extends ItemTagsProvider {
-    public UEItemTagGenerator(PackOutput p_275343_, CompletableFuture<HolderLookup.Provider> p_275729_, CompletableFuture<TagLookup<Block>> p_275322_, @Nullable ExistingFileHelper existingFileHelper) {
-        super(p_275343_, p_275729_, p_275322_, UncraftEverything.MODID, existingFileHelper);
+    public UEItemTagGenerator(DataGenerator dataGenerator, BlockTagsProvider p_275322_, @Nullable ExistingFileHelper existingFileHelper) {
+        super(dataGenerator, p_275322_, UncraftEverything.MODID, existingFileHelper);
     }
 
     @Override
-    protected void addTags(HolderLookup.Provider provider) {
+    protected void addTags() {
         this.tag(UETags.Items.SHULKER_BOXES).add(
                 Items.SHULKER_BOX,
                 Items.WHITE_SHULKER_BOX,

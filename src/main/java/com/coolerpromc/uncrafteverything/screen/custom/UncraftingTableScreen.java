@@ -4,18 +4,19 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -23,9 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
+public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
-    private List<UncraftingTableRecipe> recipes = List.of();
+    private List<UncraftingTableRecipe> recipes = new ArrayList<>();
     private int selectedRecipe = 0;
     private int hoveredRecipe = -1;
     private final List<Rectangle2D> recipeBounds = new ArrayList<>();
@@ -37,7 +38,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     private static final int SCROLLBAR_PADDING = 2;
     private Rectangle2D scrollBarBounds;
 
-    public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
+    public UncraftingTableScreen(UncraftingTableMenu menu, PlayerInventory playerInventory, ITextComponent title) {
         super(menu, playerInventory, title);
     }
 
@@ -60,9 +61,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int buttonX = leftPos + (imageWidth - 64) - 20;
         int buttonY = topPos + 72;
 
-        this.addRenderableWidget(Button
-                .builder(Component.literal("UnCraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
-                .build());
+        this.addButton(new Button(buttonX, buttonY, 64, 20, new StringTextComponent("UnCraft"), this::onPressed));
     }
 
     private void onPressed(Button button) {
@@ -71,27 +70,25 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     @Override
-    protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
+    protected void renderBg(MatrixStack pGuiGraphics, float partialTick, int mouseX, int mouseY) {
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        this.minecraft.getTextureManager().bind(TEXTURE);
         int x = this.leftPos;
         int y = this.topPos;
-
-        pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+        blit(pGuiGraphics, x, y, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
-    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(MatrixStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
 
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().scale(0.75f, 0.75f, 0.75f);
-        pGuiGraphics.pose().translate(this.leftPos * 1.3334 + 115, this.topPos * 1.3334 + 121, 0);
-        pGuiGraphics.drawString(this.font, exp, 0, 0, 0x00AA00, false);
-        pGuiGraphics.pose().popPose();
+        pGuiGraphics.pushPose();
+        pGuiGraphics.scale(0.75f, 0.75f, 0.75f);
+        pGuiGraphics.translate(this.leftPos * 1.3334 + 115, this.topPos * 1.3334 + 124, 0);
+        drawString(pGuiGraphics, this.font, exp, 0, 0, 0x00AA00);
+        pGuiGraphics.popPose();
 
         recipeBounds.clear();
 
@@ -106,7 +103,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        pGuiGraphics.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        fill(pGuiGraphics, x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -117,7 +114,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                     ((float)scrollOffset / (recipes.size() - maxVisibleRecipes)));
 
             // Draw scrollbar background
-            pGuiGraphics.fill(
+            fill(
+                    pGuiGraphics,
                     x - (16 * 9) - SCROLLBAR_PADDING,
                     y + 5 - SCROLLBAR_PADDING,
                     x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
@@ -125,7 +123,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                     0x50F8F9FA);
 
             // Draw scrollbar handle
-            pGuiGraphics.fill(
+            fill(
+                    pGuiGraphics,
                     x - (16 * 9) - SCROLLBAR_PADDING,
                     scrollY,
                     x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
@@ -151,7 +150,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             recipeBounds.add(bounds);
 
             if (selectedRecipe == j) {
-                pGuiGraphics.fill(
+                fill(
+                        pGuiGraphics,
                         (int) bounds.getX(),
                         (int) bounds.getY(),
                         (int) (bounds.getX() + bounds.getWidth()),
@@ -160,7 +160,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
 
             if (hoveredRecipe == j) {
-                pGuiGraphics.fill(
+                fill(
+                        pGuiGraphics,
                         (int) bounds.getX(),
                         (int) bounds.getY(),
                         (int) (bounds.getX() + bounds.getWidth()),
@@ -170,7 +171,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
-            Map<Item, CompoundTag> inputComponents = new HashMap<>();
+            Map<Item, CompoundNBT> inputComponents = new HashMap<>();
 
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
@@ -189,8 +190,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 if (inputComponents.containsKey(entry.getKey())){
                     itemStack.setTag(inputComponents.get(entry.getKey()));
                 }
-                pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
-                pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                itemRenderer.renderAndDecorateFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                itemRenderer.renderGuiItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
                 i++;
             }
 
@@ -209,19 +210,22 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
             for (int i = 0; i < outputs.size(); i++) {
                 ItemStack itemStack = outputs.get(i);
-                pGuiGraphics.renderFakeItem(
-                        itemStack,
+                itemRenderer.renderGuiItem(itemStack,
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18);
-                pGuiGraphics.fill(
+                RenderSystem.disableDepthTest();
+                fill(
+                        pGuiGraphics,
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18,
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
-                        200, 0xAA8B8B8B);
+                        0x998B8B8B);
+                RenderSystem.enableDepthTest();
             }
         }
 
+        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
@@ -272,7 +276,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             // Calculate scroll position based on mouse Y position relative to scrollable area
             int scrollAreaHeight = maxVisibleRecipes * 16;
             float relativeY = (float)(mouseY - (y + 5)) / scrollAreaHeight;
-            relativeY = Mth.clamp(relativeY, 0.0F, 1.0F);
+            relativeY = MathHelper.clamp(relativeY, 0.0F, 1.0F);
 
             // Set scroll offset
             scrollOffset = Math.round(relativeY * (recipes.size() - maxVisibleRecipes));
@@ -286,7 +290,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
         if (recipes.size() > maxVisibleRecipes) {
             // Adjust scroll offset based on mouse wheel
-            scrollOffset = Mth.clamp(scrollOffset - (int) scrollDelta, 0, recipes.size() - maxVisibleRecipes);
+            scrollOffset = MathHelper.clamp(scrollOffset - (int) scrollDelta, 0, recipes.size() - maxVisibleRecipes);
             return true;
         }
 

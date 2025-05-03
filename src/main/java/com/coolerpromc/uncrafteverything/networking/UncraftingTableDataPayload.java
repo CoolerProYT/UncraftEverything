@@ -4,18 +4,27 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes) {
+public class UncraftingTableDataPayload {
+    private final BlockPos blockPos;
+    private final List<UncraftingTableRecipe> recipes;
+
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes){
+        this.blockPos = blockPos;
+        this.recipes = recipes;
+    }
+
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_data");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -34,12 +43,23 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         return packetId++;
     }
 
-    public static void encode(UncraftingTableDataPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+    public static void encode(UncraftingTableDataPayload payload, PacketBuffer byteBuf){
+        try{
+            byteBuf.writeWithCodec(CODEC, payload);
+        }
+        catch (IOException e){
+            System.out.println("Failed to encode UncraftingTableDataPayload: " + e.getMessage());
+        }
     }
 
-    public static UncraftingTableDataPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+    public static UncraftingTableDataPayload decode(PacketBuffer byteBuf){
+        try{
+            return byteBuf.readWithCodec(CODEC);
+        }
+        catch (IOException e){
+            System.out.println("Failed to decode UncraftingTableDataPayload: " + e.getMessage());
+            return null;
+        }
     }
 
     private static java.util.function.BiConsumer<UncraftingTableDataPayload, Supplier<NetworkEvent.Context>> getHandler() {
@@ -47,6 +67,14 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
                 net.minecraftforge.api.distmarker.Dist.CLIENT,
                 () -> () -> ClientPayloadHandler::handleBlockEntityData
         );
+    }
+
+    public BlockPos blockPos() {
+        return blockPos;
+    }
+
+    public List<UncraftingTableRecipe> recipes() {
+        return recipes;
     }
 
     public static void register(){

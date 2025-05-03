@@ -2,11 +2,10 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,27 +43,27 @@ public class UncraftingTableRecipe {
         return outputs;
     }
 
-    public CompoundTag serializeNbt() {
-        CompoundTag tag = new CompoundTag();
-        tag.put("input", input.save(new CompoundTag()));
-        ListTag listTag = new ListTag();
+    public CompoundNBT serializeNbt() {
+        CompoundNBT tag = new CompoundNBT();
+        tag.put("input", input.save(new CompoundNBT()));
+        ListNBT listTag = new ListNBT();
         for (ItemStack itemStack : outputs) {
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.save(new CompoundTag()));
+            CompoundNBT itemTag = new CompoundNBT();
+            itemTag.put("output", itemStack.save(new CompoundNBT()));
             listTag.add(itemTag);
         }
         tag.put("outputs", listTag);
         return tag;
     }
 
-    public static UncraftingTableRecipe deserializeNbt(CompoundTag tag) {
+    public static UncraftingTableRecipe deserializeNbt(CompoundNBT tag) {
         ItemStack input = ItemStack.of(tag.getCompound("input"));
         List<ItemStack> outputs = new ArrayList<>();
 
-        if (tag.contains("outputs", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
+        if (tag.contains("outputs", Constants.NBT.TAG_LIST)) {
+            ListNBT listTag = tag.getList("outputs", Constants.NBT.TAG_COMPOUND);
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompound(i);
+                CompoundNBT itemTag = listTag.getCompound(i);
                 outputs.add(ItemStack.of(itemTag.getCompound("output")));
             }
         }
