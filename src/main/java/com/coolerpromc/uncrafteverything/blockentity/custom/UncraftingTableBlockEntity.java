@@ -50,12 +50,22 @@ import java.util.stream.Collectors;
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
 public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
+    public static final int NO_RECIPE = 0;
+    public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
+    public static final int NO_ENOUGH_EXPERIENCE = 2;
+    public static final int NO_ENOUGH_INPUT = 3;
+    public static final int SHULKER_WITH_ITEM = 4;
+    public static final int RESTRICTED_ITEM = 5;
+    public static final int DAMAGED_ITEM = 6;
+    public static final int ENCHANTED_ITEM = 7;
+
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private PlayerEntity player;
     private PropertyDelegate data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
+    private int status = -1;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(10, ItemStack.EMPTY);
     private final int[] inputSlots = {0};
@@ -70,6 +80,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 return switch (index){
                     case 0 -> experience;
                     case 1 -> experienceType;
+                    case 2 -> status;
                     default -> 0;
                 };
             }
@@ -79,12 +90,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 switch (index){
                     case 0 -> experience = value;
                     case 1 -> experienceType = value;
+                    case 2 -> status = value;
                 }
             }
 
             @Override
             public int size() {
-                return 2;
+                return 3;
             }
         };
     }
@@ -198,6 +210,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     public void getOutputStacks() {
         if (!(world instanceof ServerWorld serverLevel)) return;
 
+        this.status = -1;
+
+        ItemStack inputStack = this.getStack(inputSlots[0]);
+
         List<String> blacklist = UncraftEverythingConfig.restrictions;
         List<Pattern> wildcardBlacklist = blacklist.stream()
                 .filter(s -> s.contains("*"))
@@ -209,7 +225,32 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 || UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))
                 || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
                 || !UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0]))
+                || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasNbt())
         ) {
+            if (this.getStack(inputSlots[0]).getDamage() > 0){
+                this.status = DAMAGED_ITEM;
+            }
+
+            if (UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))){
+                this.status = RESTRICTED_ITEM;
+            }
+
+            if (UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))){
+                this.status = RESTRICTED_ITEM;
+            }
+
+            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0]))){
+                this.status = ENCHANTED_ITEM;
+            }
+
+            if(inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasNbt()){
+                this.status = SHULKER_WITH_ITEM;
+            }
+
+            if (this.getStack(inputSlots[0]).isEmpty()){
+                this.status = NO_RECIPE;
+            }
+
             currentRecipes.clear();
             currentRecipe = null;
             experience = 0;
@@ -220,17 +261,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             return;
         }
 
-        ItemStack inputStack = this.getStack(inputSlots[0]);
-
         List<Recipe<?>> recipes = serverLevel.getRecipeManager().values().stream().filter(recipeHolder -> {
             if (recipeHolder instanceof ShapedRecipe shapedRecipe){
-                if (shapedRecipe.output.getItem() == Items.SHULKER_BOX && inputStack.hasNbt()){
-                    return false;
+                if (shapedRecipe.output.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.output.getCount()){
+                    this.status = NO_ENOUGH_INPUT;
                 }
                 return shapedRecipe.output.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.output.getCount();
             }
 
             if (recipeHolder instanceof ShapelessRecipe shapelessRecipe){
+                if (shapelessRecipe.output.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.output.getCount()){
+                    this.status = NO_ENOUGH_INPUT;
+                }
                 return shapelessRecipe.output.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.output.getCount();
             }
 
@@ -238,11 +280,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 return inputStack.isIn(ConventionalItemTags.SHULKER_BOXES) && !inputStack.isOf(Items.SHULKER_BOX);
             }
 
+            if (this.status == -1){
+                this.status = NO_RECIPE;
+            }
             return false;
         }).toList();
 
         if (!recipes.isEmpty() || inputStack.isOf(Items.TIPPED_ARROW)){
-            experience = getExperience();
+            this.status = -1;
+            this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
 
@@ -357,6 +403,19 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
         if (!currentRecipes.isEmpty()) {
             this.currentRecipe = outputs.get(0);
+            if(!hasRecipe()){
+                this.status = NO_SUITABLE_OUTPUT_SLOT;
+            }
+            else{
+                if (!hasEnoughExperience()) {
+                    this.status = NO_ENOUGH_EXPERIENCE;
+                }
+            }
+        }
+        else{
+            if (this.status == -1){
+                this.status = NO_RECIPE;
+            }
         }
     }
 
@@ -565,9 +624,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
                 }
             }
-        }
-        else if (!hasRecipe()){
-            player.sendMessage(Text.literal("No recipe or suitable output slot found."), false);
         }
     }
 
