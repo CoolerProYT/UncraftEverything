@@ -10,7 +10,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -222,6 +224,48 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
                         200, 0xAA8B8B8B);
+            }
+        }
+
+        int status = this.menu.getStatus();
+
+        if (status != -1){
+            String statusText = switch (status){
+                case 0 -> "No Recipe Found!";
+                case 1 -> "No Suitable Output Slot!";
+                case 2 -> "Not Enough Experience!";
+                case 3 -> "Not Enough Input Item!";
+                case 4 -> "Shulker Box is Not Empty!";
+                case 5 -> "Item Restricted by Config!";
+                case 6 -> "Item is Damaged!";
+                case 7 -> "Enchanted Item Not Allowed!";
+                default -> "";
+            };
+
+            int textY = y;
+
+            pGuiGraphics.pose().pushPose();
+            pGuiGraphics.pose().translate(0, 0, 400);
+            pGuiGraphics.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
+            pGuiGraphics.pose().popPose();
+            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText), 54);
+
+            switch (formattedText.size()){
+                case 1 -> textY += 27;
+                case 2 -> textY += 34;
+                case 3 -> textY += 30;
+                case 4 -> textY += 23;
+                default -> textY += 27;
+            }
+
+            for (FormattedCharSequence formattedcharsequence : formattedText) {
+                int textWidth = font.width(formattedcharsequence);
+                int centeredX = x + 97 + (54 - textWidth) / 2;
+                pGuiGraphics.pose().pushPose();
+                pGuiGraphics.pose().translate(centeredX, textY, 400);
+                pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xAA0000, false);
+                pGuiGraphics.pose().popPose();
+                textY += 9;
             }
         }
 
