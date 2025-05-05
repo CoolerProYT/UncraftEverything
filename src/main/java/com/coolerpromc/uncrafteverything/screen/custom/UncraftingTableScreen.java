@@ -14,6 +14,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.text.OrderedText;
+import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -215,6 +217,43 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         }
 
         super.render(context, mouseX, mouseY, delta);
+
+        int status = this.handler.getStatus();
+
+        if (status != -1){
+            String statusText = switch (status){
+                case 0 -> "No Recipe Found!";
+                case 1 -> "No Suitable Output Slot!";
+                case 2 -> "Not Enough Experience!";
+                case 3 -> "Not Enough Input Item!";
+                case 4 -> "Shulker Box is Not Empty!";
+                case 5 -> "Item Restricted by Config!";
+                case 6 -> "Item is Damaged!";
+                case 7 -> "Enchanted Item Not Allowed!";
+                default -> "";
+            };
+
+            int textY = y;
+
+            context.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
+            List<OrderedText> formattedText = textRenderer.wrapLines(StringVisitable.plain(statusText), 54);
+
+            switch (formattedText.size()){
+                case 1 -> textY += 27;
+                case 2 -> textY += 34;
+                case 3 -> textY += 30;
+                case 4 -> textY += 23;
+                default -> textY += 27;
+            }
+
+            for (OrderedText formattedcharsequence : formattedText) {
+                int textWidth = textRenderer.getWidth(formattedcharsequence);
+                int centeredX = x + 97 + (54 - textWidth) / 2;
+                context.drawText(textRenderer, formattedcharsequence, centeredX, textY, 0xFFAA0000, false);
+                textY += 9;
+            }
+        }
+
         drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
