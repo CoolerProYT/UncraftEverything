@@ -42,6 +42,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
             if (entity instanceof UncraftingTableBlockEntity){
                 UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) entity;
                 player.openHandledScreen(blockEntity);
+                blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
                 for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ()), 10)){
                     PacketByteBuf packetByteBuf = PacketByteBufs.create();

@@ -18,6 +18,8 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.OrderedText;
+import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
@@ -238,6 +240,50 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         }
 
         super.render(context, mouseX, mouseY, delta);
+
+        int status = this.handler.getStatus();
+
+        if (status != -1){
+            String statusText;
+            switch (status){
+                case 0 : statusText = "No Recipe Found!"; break;
+                case 1 : statusText = "No Suitable Output Slot!"; break;
+                case 2 : statusText = "Not Enough Experience!"; break;
+                case 3 : statusText = "Not Enough Input Item!"; break;
+                case 4 : statusText = "Shulker Box is Not Empty!"; break;
+                case 5 : statusText = "Item Restricted by Config!"; break;
+                case 6 : statusText = "Item is Damaged!"; break;
+                case 7 : statusText = "Enchanted Item Not Allowed!"; break;
+                default : statusText = "";
+            }
+
+            int textY = y;
+
+            context.push();
+            context.translate(0,0,400);
+            fill(context, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
+            context.pop();
+            List<OrderedText> formattedText = textRenderer.wrapLines(StringVisitable.plain(statusText), 54);
+
+            switch (formattedText.size()){
+                case 1 : textY += 27; break;
+                case 2 : textY += 34; break;
+                case 3 : textY += 30; break;
+                case 4 : textY += 23; break;
+                default : textY += 27;
+            }
+
+            for (OrderedText formattedcharsequence : formattedText) {
+                int textWidth = textRenderer.getWidth(formattedcharsequence);
+                int centeredX = x + 97 + (54 - textWidth) / 2;
+                context.push();
+                context.translate(centeredX,textY,400);
+                textRenderer.draw(context, formattedcharsequence, 0, 0, 0xFFAA0000);
+                context.pop();
+                textY += 9;
+            }
+        }
+
         drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
