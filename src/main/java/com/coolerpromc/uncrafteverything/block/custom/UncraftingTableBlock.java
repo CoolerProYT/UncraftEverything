@@ -37,8 +37,9 @@ public class UncraftingTableBlock extends BaseEntityBlock {
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (!pLevel.isClientSide){
             BlockEntity entity = pLevel.getBlockEntity(pPos);
-            if (entity instanceof UncraftingTableBlockEntity blockEntity){;
+            if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 NetworkHooks.openScreen((ServerPlayer) pPlayer, blockEntity, pPos);
+                blockEntity.getOutputStacks();
                 if (!pLevel.isClientSide()) {
                     pLevel.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
                     UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
