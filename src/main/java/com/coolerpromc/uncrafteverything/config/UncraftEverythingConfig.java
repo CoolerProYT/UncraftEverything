@@ -186,7 +186,7 @@ public class UncraftEverythingConfig {
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            Identifier location = Identifier.tryParse(input);
+            Identifier location = Identifier.of(input);
             return Optional.of(TagKey.of(RegistryKeys.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();
