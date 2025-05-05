@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.hit.BlockHitResult;
@@ -48,6 +47,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openHandledScreen(blockEntity);
+                blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
                 for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ()), 10)){
                     ServerPlayNetworking.send(playerEntity, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
