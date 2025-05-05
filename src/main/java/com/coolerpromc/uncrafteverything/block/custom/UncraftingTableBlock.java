@@ -46,6 +46,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openMenu(blockEntity, pos);
+                blockEntity.getOutputStacks();
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
                     PacketDistributor.sendToPlayersNear((ServerLevel) level, null, blockEntity.getBlockPos().getX(), blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), 10, new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
