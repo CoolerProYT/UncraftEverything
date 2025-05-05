@@ -19,7 +19,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public UncraftingTableMenu(int pContainerId, Inventory inventory, FriendlyByteBuf friendlyByteBuf){
-        this(pContainerId, inventory, inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos()), new SimpleContainerData(2));
+        this(pContainerId, inventory, inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos()), new SimpleContainerData(3));
     }
 
     public UncraftingTableMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity, ContainerData data){
@@ -130,5 +130,9 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
 
     public int getExpAmount(){
         return this.data.get(0);
+    }
+
+    public int getStatus(){
+        return this.data.get(2);
     }
 }
