@@ -45,12 +45,22 @@ import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.t
 
 @SuppressWarnings("unused")
 public class UncraftingTableBlockEntity extends TileEntity implements INamedContainerProvider {
+    public static final int NO_RECIPE = 0;
+    public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
+    public static final int NO_ENOUGH_EXPERIENCE = 2;
+    public static final int NO_ENOUGH_INPUT = 3;
+    public static final int SHULKER_WITH_ITEM = 4;
+    public static final int RESTRICTED_ITEM = 5;
+    public static final int DAMAGED_ITEM = 6;
+    public static final int ENCHANTED_ITEM = 7;
+
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private PlayerEntity player;
     private IIntArray data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
+    private int status = -1;
 
     private final ItemStackHandler inputHandler = new ItemStackHandler(1){
         @Override
@@ -90,6 +100,8 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                         return experience;
                     case 1:
                         return experienceType;
+                    case 2:
+                        return status;
                     default:
                         return 0;
                 }
@@ -100,12 +112,13 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 switch (index){
                     case 0: experience = value;
                     case 1: experienceType = value;
+                    case 2: status = value;
                 }
             }
 
             @Override
             public int getCount() {
-                return 2;
+                return 3;
             }
         };
     }
@@ -193,6 +206,10 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         if (!(level instanceof ServerWorld)) return;
         ServerWorld serverLevel = (ServerWorld) level;
 
+        this.status = -1;
+
+        ItemStack inputStack = this.inputHandler.getStackInSlot(0);
+
         List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.restrictions.get();
         List<Pattern> wildcardBlacklist = blacklist.stream()
                 .filter(s -> s.contains("*"))
@@ -204,7 +221,32 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
                 || !UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))
+                || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasTag())
         ) {
+            if (inputHandler.getStackInSlot(0).getDamageValue() > 0){
+                this.status = DAMAGED_ITEM;
+            }
+
+            if (UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))){
+                this.status = RESTRICTED_ITEM;
+            }
+
+            if (UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))){
+                this.status = RESTRICTED_ITEM;
+            }
+
+            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
+                this.status = ENCHANTED_ITEM;
+            }
+
+            if(inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasTag()){
+                this.status = SHULKER_WITH_ITEM;
+            }
+
+            if (inputHandler.getStackInSlot(0).isEmpty()){
+                this.status = NO_RECIPE;
+            }
+
             currentRecipes.clear();
             currentRecipe = null;
             experience = 0;
@@ -215,19 +257,20 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             return;
         }
 
-        ItemStack inputStack = this.inputHandler.getStackInSlot(0);
-
         List<IRecipe<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder instanceof ShapedRecipe){
                 ShapedRecipe shapedRecipe = (ShapedRecipe) recipeHolder;
-                if (shapedRecipe.result.getItem() == Items.SHULKER_BOX && inputStack.hasTag()){
-                    return false;
+                if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
+                    this.status = NO_ENOUGH_INPUT;
                 }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
             if (recipeHolder instanceof ShapelessRecipe){
                 ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipeHolder;
+                if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
+                    this.status = NO_ENOUGH_INPUT;
+                }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
@@ -235,11 +278,15 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 return inputStack.getItem().is(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX);
             }
 
+            if (this.status == -1){
+                this.status = NO_RECIPE;
+            }
             return false;
         }).collect(Collectors.toList());
 
         if (!recipes.isEmpty() || inputStack.getItem().equals(Items.TIPPED_ARROW)){
-            experience = getExperience();
+            this.status = -1;
+            this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
 
@@ -355,28 +402,32 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
 
         if (!currentRecipes.isEmpty()) {
             this.currentRecipe = outputs.get(0);
+            if(!hasRecipe()){
+                this.status = NO_SUITABLE_OUTPUT_SLOT;
+            }
+            else{
+                if (!hasEnoughExperience()) {
+                    this.status = NO_ENOUGH_EXPERIENCE;
+                }
+            }
+        }
+        else{
+            if (this.status == -1){
+                this.status = NO_RECIPE;
+            }
         }
     }
 
     private List<Item> getItemsFromIngredient(Ingredient ingredient) {
-        List<Item> items = new ArrayList<>();
+        List<Item> items;
 
-        // Handle tag ingredients
-        if (false) {
-            /*for (var holder : ingredient.getCustomIngredient().getItems().toList()) {
-                items.add(holder.getItem());
-            }*/
-        }
-        // Handle regular item ingredients
-        else {
-            try {
-                items = Arrays.stream(ingredient.getItems())
-                        .map(ItemStack::getItem)
-                        .distinct()
-                        .collect(Collectors.toList());
-            } catch (IllegalStateException e) {
-                return Collections.emptyList();
-            }
+        try {
+            items = Arrays.stream(ingredient.getItems())
+                    .map(ItemStack::getItem)
+                    .distinct()
+                    .collect(Collectors.toList());
+        } catch (IllegalStateException e) {
+            return Collections.emptyList();
         }
 
         return items.stream()
@@ -555,9 +606,6 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
-        }
-        else if (!hasRecipe()) {
-            player.displayClientMessage(new StringTextComponent("No recipe or suitable output slot found."), false);
         }
     }
 

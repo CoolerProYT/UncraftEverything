@@ -23,7 +23,7 @@ public class UncraftingTableMenu extends Container {
     private final IIntArray data;
 
     public UncraftingTableMenu(int pContainerId, PlayerInventory inventory, PacketBuffer friendlyByteBuf){
-        this(pContainerId, inventory, inventory.player.level.getBlockEntity(friendlyByteBuf.readBlockPos()), new IntArray(2));
+        this(pContainerId, inventory, inventory.player.level.getBlockEntity(friendlyByteBuf.readBlockPos()), new IntArray(3));
     }
 
     public UncraftingTableMenu(int pContainerId, PlayerInventory inventory, TileEntity blockEntity, IIntArray data){
@@ -134,5 +134,9 @@ public class UncraftingTableMenu extends Container {
 
     public int getExpAmount(){
         return this.data.get(0);
+    }
+
+    public int getStatus(){
+        return this.data.get(2);
     }
 }

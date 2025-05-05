@@ -43,6 +43,7 @@ public class UncraftingTableBlock extends ContainerBlock {
             if (entity instanceof UncraftingTableBlockEntity){
                 UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) entity;
                 NetworkHooks.openGui((ServerPlayerEntity) pPlayer, blockEntity, pPos);
+                blockEntity.getOutputStacks();
                 if (!pLevel.isClientSide()) {
                     pLevel.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
                     UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) pPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));

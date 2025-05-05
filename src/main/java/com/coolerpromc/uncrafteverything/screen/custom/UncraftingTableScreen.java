@@ -13,9 +13,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.awt.geom.Rectangle2D;
@@ -224,8 +226,51 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 RenderSystem.enableDepthTest();
             }
         }
-
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
+        int status = this.menu.getStatus();
+
+        if (status != -1){
+            String statusText;
+            switch (status){
+                case 0 : statusText = "No Recipe Found!"; break;
+                case 1 : statusText = "No Suitable Output Slot!"; break;
+                case 2 : statusText = "Not Enough Experience!"; break;
+                case 3 : statusText = "Not Enough Input Item!"; break;
+                case 4 : statusText = "Shulker Box is Not Empty!"; break;
+                case 5 : statusText = "Item Restricted by Config!"; break;
+                case 6 : statusText = "Item is Damaged!"; break;
+                case 7 : statusText = "Enchanted Item Not Allowed!"; break;
+                default : statusText = "";
+            }
+
+            int textY = y;
+
+            pGuiGraphics.pushPose();
+            pGuiGraphics.translate(0, 0, 400);
+            fill(pGuiGraphics, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
+            pGuiGraphics.popPose();
+            List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(statusText), 54);
+
+            switch (formattedText.size()){
+                case 1 : textY += 27; break;
+                case 2 : textY += 34; break;
+                case 3 : textY += 30; break;
+                case 4 : textY += 23; break;
+                default : textY += 27;
+            }
+
+            for (IReorderingProcessor formattedcharsequence : formattedText) {
+                int textWidth = font.width(formattedcharsequence);
+                int centeredX = x + 97 + (54 - textWidth) / 2;
+                pGuiGraphics.pushPose();
+                pGuiGraphics.translate(centeredX, textY, 400);
+                font.draw(pGuiGraphics, formattedcharsequence, 0, 0, 0xAA0000);
+                pGuiGraphics.popPose();
+                textY += 9;
+            }
+        }
+
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
