@@ -6,7 +6,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -41,12 +43,55 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         return packetId++;
     }
 
-    public static void encode(UncraftingTableDataPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+    public static void encode(UncraftingTableDataPayload payload, RegistryFriendlyByteBuf byteBuf){
+        byteBuf.writeBlockPos(payload.blockPos());
+
+        byteBuf.writeVarInt(payload.recipes().size());
+
+        for (UncraftingTableRecipe recipe : payload.recipes()) {
+            if (byteBuf instanceof RegistryFriendlyByteBuf registryBuf) {
+                UncraftingTableRecipe.STREAM_CODEC.encode(registryBuf, recipe);
+            } else {
+                byteBuf.writeBoolean(!recipe.getInput().isEmpty());
+                if (!recipe.getInput().isEmpty()) {
+                    ItemStack.STREAM_CODEC.encode(byteBuf, recipe.getInput());
+                }
+
+                byteBuf.writeVarInt(recipe.getOutputs().size());
+                for (var output : recipe.getOutputs()) {
+                    byteBuf.writeBoolean(!output.isEmpty());
+                    if (!output.isEmpty()) {
+                        ItemStack.STREAM_CODEC.encode(byteBuf, output);
+                    }
+                }
+            }
+        }
     }
 
-    public static UncraftingTableDataPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+    public static UncraftingTableDataPayload decode(RegistryFriendlyByteBuf byteBuf){
+        BlockPos pos = byteBuf.readBlockPos();
+
+        int recipeCount = byteBuf.readVarInt();
+        List<UncraftingTableRecipe> recipes = new java.util.ArrayList<>(recipeCount);
+
+        for (int i = 0; i < recipeCount; i++) {
+            if (byteBuf instanceof RegistryFriendlyByteBuf registryBuf) {
+                recipes.add(UncraftingTableRecipe.STREAM_CODEC.decode(registryBuf));
+            } else {
+                var input = byteBuf.readBoolean() ? ItemStack.STREAM_CODEC.decode(byteBuf) : net.minecraft.world.item.ItemStack.EMPTY;
+
+                int outputCount = byteBuf.readVarInt();
+                List<net.minecraft.world.item.ItemStack> outputs = new java.util.ArrayList<>(outputCount);
+
+                for (int j = 0; j < outputCount; j++) {
+                    outputs.add(byteBuf.readBoolean() ? ItemStack.STREAM_CODEC.decode(byteBuf) : net.minecraft.world.item.ItemStack.EMPTY);
+                }
+
+                recipes.add(new UncraftingTableRecipe(input, outputs));
+            }
+        }
+
+        return new UncraftingTableDataPayload(pos, recipes);
     }
 
     public static void register(IEventBus bus) {

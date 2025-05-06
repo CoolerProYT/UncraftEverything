@@ -6,11 +6,16 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.network.*;
 import net.minecraftforge.network.SimpleChannel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) {
     private static final int PROTOCOL_VERSION = 0;
@@ -37,12 +42,36 @@ public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTabl
         return packetId++;
     }
 
-    public static void encode(UncraftingRecipeSelectionPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+    public static void encode(UncraftingRecipeSelectionPayload payload, RegistryFriendlyByteBuf byteBuf){
+        byteBuf.writeBlockPos(payload.blockPos());
+
+        ItemStack.STREAM_CODEC.encode(byteBuf, payload.recipe().getInput());
+
+        byteBuf.writeInt(payload.recipe().getOutputs().size());
+
+        for (ItemStack output : payload.recipe().getOutputs()) {
+            byteBuf.writeBoolean(!output.isEmpty());
+            if (!output.isEmpty()) {
+                ItemStack.STREAM_CODEC.encode(byteBuf, output);
+            }
+        }
     }
 
-    public static UncraftingRecipeSelectionPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+    public static UncraftingRecipeSelectionPayload decode(RegistryFriendlyByteBuf byteBuf){
+        BlockPos blockPos = byteBuf.readBlockPos();
+        ItemStack input = ItemStack.STREAM_CODEC.decode(byteBuf);
+        int outputCount = byteBuf.readInt();
+        List<ItemStack> outputs = new ArrayList<>(outputCount);
+
+        for (int i = 0; i < outputCount; i++) {
+            if (byteBuf.readBoolean()) {
+                outputs.add(ItemStack.STREAM_CODEC.decode(byteBuf));
+            } else {
+                outputs.add(ItemStack.EMPTY);
+            }
+        }
+
+        return new UncraftingRecipeSelectionPayload(blockPos, new UncraftingTableRecipe(input, outputs));
     }
 
     public static void register(IEventBus bus) {
