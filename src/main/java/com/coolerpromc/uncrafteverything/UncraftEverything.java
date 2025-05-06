@@ -40,7 +40,7 @@ public class UncraftEverything implements ModInitializer {
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getServerWorld();
+				ServerWorld level = player.getWorld();
 				BlockPos pos = uncraftingTableCraftButtonClickPayload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -54,7 +54,7 @@ public class UncraftEverything implements ModInitializer {
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionPayload.TYPE, (uncraftingRecipeSelectionPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getServerWorld();
+				ServerWorld level = player.getWorld();
 				BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
