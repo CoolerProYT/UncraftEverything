@@ -9,6 +9,7 @@ import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -18,10 +19,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +32,13 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.armortrim.TrimMaterial;
+import net.minecraft.world.item.armortrim.TrimPattern;
+import net.minecraft.world.item.armortrim.TrimPatterns;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,7 +53,7 @@ import java.util.stream.Collectors;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "deprecation"})
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     public static final int NO_RECIPE = 0;
     public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
@@ -60,7 +67,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private Player player;
-    private ContainerData data;
+    private final ContainerData data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
@@ -81,6 +88,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            if (player != null){
+                handleRecipeSelection(currentRecipe);
+            }
             if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
@@ -213,7 +223,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 || inputHandler.getStackInSlot(0).getDamageValue() > 0
                 || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
-                || !UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))
+                || (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0)) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim"))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasTag())
         ) {
             if (inputHandler.getStackInSlot(0).getDamageValue() > 0){
@@ -228,7 +238,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
+            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0)) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim")){
                 this.status = ENCHANTED_ITEM;
             }
 
@@ -255,6 +265,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
+                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
@@ -262,11 +276,41 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
+                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
             if(recipeHolder instanceof ShulkerBoxColoring transmuteRecipe){
                 return inputStack.is(UETags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
+            }
+
+            if (recipeHolder instanceof SmithingTransformRecipe smithingTransformRecipe){
+                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
+                    return false;
+                }
+                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
+                return inputStack.is(smithingTransformRecipe.result.getItem());
+            }
+
+            if (recipeHolder instanceof SmithingTrimRecipe smithingTrimRecipe){
+                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
+                    return false;
+                }
+
+                Optional<ArmorTrim> armorTrim = ArmorTrim.getTrim(this.level.registryAccess(), inputStack);
+                if (armorTrim.isPresent()){
+                    Ingredient ingredient = smithingTrimRecipe.addition;
+                    Optional<Holder.Reference<TrimPattern>> trimPatternReference = TrimPatterns.getFromTemplate(this.level.registryAccess(), smithingTrimRecipe.template.getItems()[0]);
+                    if (ingredient != Ingredient.EMPTY && trimPatternReference.isPresent() && armorTrim.get().pattern().equals(trimPatternReference.get())){
+                        return true;
+                    }
+                }
             }
 
             if (this.status == -1){
@@ -360,9 +404,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 List<Ingredient> ingredients = new ArrayList<>(shapelessRecipe.ingredients);
 
                 if (inputStack.hasTag() && inputStack.getTagElement("Fireworks") != null){
-                    byte fireworks = inputStack.getTagElement("Fireworks").getByte("Flight");
-                    for(int i = 1;i < fireworks;i++){
-                        ingredients.add(Ingredient.of(Items.GUNPOWDER));
+                    CompoundTag compoundTag = inputStack.getTagElement("Fireworks");
+                    if (compoundTag != null){
+                        byte fireworks = compoundTag.getByte("Flight");
+                        for(int i = 1;i < fireworks;i++){
+                            ingredients.add(Ingredient.of(Items.GUNPOWDER));
+                        }
                     }
                 }
                 List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
@@ -380,6 +427,77 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             } else {
                                 outputStack.addOutput(new ItemStack(item, 1));
                             }
+                        }
+                    }
+                    outputs.add(outputStack);
+                }
+            }
+
+            if (r instanceof SmithingTransformRecipe smithingTransformRecipe){
+                NonNullList<Ingredient> ingredients = NonNullList.create();
+
+                ingredients.add(smithingTransformRecipe.base);
+                ingredients.add(smithingTransformRecipe.addition);
+                ingredients.add(smithingTransformRecipe.template);
+
+                List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(smithingTransformRecipe.result);
+
+                    for (Item item : ingredientCombination) {
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()),
+                                    new ItemStack(stack.getItem(), stack.getCount() + 1));
+                        } else {
+                            outputStack.addOutput(new ItemStack(item, 1));
+                        }
+                    }
+                    outputs.add(outputStack);
+                }
+            }
+
+            if (r instanceof SmithingTrimRecipe smithingTrimRecipe){
+                Optional<ArmorTrim> armorTrim = ArmorTrim.getTrim(this.level.registryAccess(), inputStack);
+                Ingredient additionIngredient = smithingTrimRecipe.addition;
+
+                NonNullList<Ingredient> ingredients = NonNullList.create();
+                Arrays.stream(smithingTrimRecipe.base.getItems()).filter(itemStack -> itemStack.is(inputStack.getItem())).forEach(itemStack -> ingredients.add(Ingredient.of(itemStack)));
+                ingredients.add(smithingTrimRecipe.template);
+                Arrays.stream(smithingTrimRecipe.addition.getItems()).filter(itemStack -> {
+                    if (armorTrim.isPresent()){
+                        ResourceKey<TrimMaterial> armorTrimKey = armorTrim.get().material().unwrapKey().orElse(null);
+                        ResourceKey<Item> itemResourceKey =  itemStack.getItemHolder().unwrapKey().orElse(null);
+                        if (itemResourceKey != null && armorTrimKey != null){
+                            return itemResourceKey.location().getPath().contains(armorTrimKey.location().getPath());
+                        }
+                    }
+                    return false;
+                }).forEach(itemStack -> ingredients.add(Ingredient.of(itemStack)));
+
+                List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
+                Map<Enchantment, Integer> itemEnchantments = EnchantmentHelper.getEnchantments(inputStack);
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(inputStack.copyWithCount(1));
+
+                    for (Item item : ingredientCombination) {
+                        if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
+                            if (item.getDefaultInstance().is(ingredients.get(0).getItems()[0].getItem())){
+                                EnchantmentHelper.setEnchantments(itemEnchantments, stack);
+                            }
+                            stack.setCount(stack.getCount() + 1);
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), stack);
+                        } else {
+                            ItemStack itemStack = new ItemStack(item, 1);
+                            if (item.getDefaultInstance().is(ingredients.get(0).getItems()[0].getItem())){
+                                EnchantmentHelper.setEnchantments(itemEnchantments, itemStack);
+                            }
+                            outputStack.addOutput(itemStack);
                         }
                     }
                     outputs.add(outputStack);
@@ -408,7 +526,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private List<Item> getItemsFromIngredient(Ingredient ingredient) {
-        List<Item> items = new ArrayList<>();
+        List<Item> items;
 
         try {
             items = Arrays.stream(ingredient.getItems())
@@ -449,8 +567,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            List<Item> finalItems = items;
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
             group.positions.add(i);
         }
 
@@ -602,6 +719,23 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public void handleRecipeSelection(UncraftingTableRecipe recipe){
         this.currentRecipe = recipe;
+
+        if(!hasRecipe()){
+            if (inputHandler.getStackInSlot(0).isEmpty()){
+                this.status = NO_RECIPE;
+            }
+            else {
+                this.status = NO_SUITABLE_OUTPUT_SLOT;
+            }
+        }
+        else{
+            if (hasEnoughExperience()){
+                this.status = -1;
+            }
+            else{
+                this.status = NO_ENOUGH_EXPERIENCE;
+            }
+        }
     }
 
     private int getExperience() {
@@ -632,16 +766,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean hasEnoughExperience(){
         if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.POINT)){
-            if (player.totalExperience < getExperience() && !player.isCreative()) {
-                player.displayClientMessage(Component.literal("You don't have enough experience points to uncraft this item!"), false);
-                return false;
-            }
+            return player.totalExperience >= getExperience() || player.isCreative();
         }
         else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
-            if (player.experienceLevel < getExperience() && !player.isCreative()) {
-                player.displayClientMessage(Component.literal("You don't have enough experience levels to uncraft this item!"), false);
-                return false;
-            }
+            return player.experienceLevel >= getExperience() || player.isCreative();
         }
         return true;
     }
