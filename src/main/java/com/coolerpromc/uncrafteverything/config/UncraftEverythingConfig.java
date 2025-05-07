@@ -16,7 +16,6 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +29,7 @@ public class UncraftEverythingConfig {
     public static RestrictionType restrictionType;
     public static List<String> restrictions;
     public static boolean allowEnchantedItems;
+    public static boolean allowUnSmithing;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -75,6 +75,8 @@ public class UncraftEverythingConfig {
                 .toList();
 
         allowEnchantedItems = configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", false);
+
+        allowUnSmithing = configFile.getOrElse("AllowUnSmithing.allowUnSmithing", true);
     }
 
     public static void save() {
@@ -97,6 +99,9 @@ public class UncraftEverythingConfig {
         configFile.set("AllowEnchantedItems.allowEnchantedItems", allowEnchantedItems);
         configFile.setComment("AllowEnchantedItems.allowEnchantedItems", "Allow uncrafting of enchanted items. [true/false]");
 
+        configFile.set("AllowUnSmithing.allowUnSmithing", allowUnSmithing);
+        configFile.setComment("AllowUnSmithing.allowUnSmithing", "Allow uncrafting of items that obtained from smithing (Trimmed Armor/Netherite Armor). [true/false]");
+
         configFile.save();
     }
 
@@ -111,6 +116,10 @@ public class UncraftEverythingConfig {
 
     public static int getExperience() {
         return experience;
+    }
+
+    public static boolean allowUnSmithing() {
+        return allowUnSmithing;
     }
 
     public static boolean isEnchantedItemsAllowed(ItemStack itemStack) {
