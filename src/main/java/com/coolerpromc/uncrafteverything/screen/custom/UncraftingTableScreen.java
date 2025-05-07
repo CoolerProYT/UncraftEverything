@@ -255,7 +255,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 int textWidth = textRenderer.getWidth(formattedcharsequence);
                 int centeredX = x + 97 + (54 - textWidth) / 2;
                 context.getMatrices().push();
-                context.getMatrices().translate(centeredX,textY,401);
+                context.getMatrices().translate(centeredX,textY,400);
                 context.drawText(textRenderer, formattedcharsequence, 0, 0, 0xFFAA0000, false);
                 context.getMatrices().pop();
                 textY += 9;
