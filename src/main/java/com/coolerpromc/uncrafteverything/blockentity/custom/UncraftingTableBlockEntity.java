@@ -16,6 +16,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.component.type.FireworksComponent;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -23,12 +24,15 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.equipment.trim.ArmorTrim;
+import net.minecraft.item.equipment.trim.ArmorTrimMaterial;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.recipe.*;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.TagKey;
@@ -51,6 +55,7 @@ import java.util.stream.Collectors;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
+@SuppressWarnings({"unused", "deprecation"})
 public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
     public static final int NO_RECIPE = 0;
     public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
@@ -64,7 +69,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private PlayerEntity player;
-    private PropertyDelegate data;
+    private final PropertyDelegate data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
@@ -118,6 +123,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     @Override
     public ItemStack removeStack(int slot) {
         getOutputStacks();
+        if (slot != 0){
+            if (player != null){
+                handleRecipeSelection(currentRecipe);
+            }
+        }
         return ImplementedInventory.super.removeStack(slot);
     }
 
@@ -218,7 +228,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 || this.getStack(inputSlots[0]).getDamage() > 0
                 || UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))
                 || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
-                || !UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0]))
+                || (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && !inputStack.contains(DataComponentTypes.TRIM))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponentTypes.CONTAINER) != ContainerComponent.DEFAULT)
         ) {
             if (this.getStack(inputSlots[0]).getDamage() > 0){
@@ -233,7 +243,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0]))){
+            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && !inputStack.contains(DataComponentTypes.TRIM)){
                 this.status = ENCHANTED_ITEM;
             }
 
@@ -260,6 +270,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
+                if (!UncraftEverythingConfig.isEnchantedItemsAllowed(inputStack)){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
@@ -267,11 +281,39 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
+                if (!UncraftEverythingConfig.isEnchantedItemsAllowed(inputStack)){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
             if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
                 return transmuteRecipe.result.itemEntry().value() == inputStack.getItem();
+            }
+
+            if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
+                if (!UncraftEverythingConfig.allowUnSmithing()){
+                    return false;
+                }
+                if (!UncraftEverythingConfig.isEnchantedItemsAllowed(inputStack)){
+                    this.status = ENCHANTED_ITEM;
+                    return false;
+                }
+                return inputStack.isOf(smithingTransformRecipe.result.itemEntry().value());
+            }
+
+            if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
+                if (!UncraftEverythingConfig.allowUnSmithing()){
+                    return false;
+                }
+                ArmorTrim armorTrim = inputStack.get(DataComponentTypes.TRIM);
+                if (armorTrim != null){
+                    Optional<Ingredient> ingredient = smithingTrimRecipe.addition();
+                    if (ingredient.isPresent() && armorTrim.pattern().equals(smithingTrimRecipe.pattern)){
+                        return true;
+                    }
+                }
             }
 
             if (this.status == -1){
@@ -362,8 +404,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
                 if (inputStack.contains(DataComponentTypes.FIREWORKS)){
                     FireworksComponent fireworks = inputStack.get(DataComponentTypes.FIREWORKS);
-                    for(int i = 1;i < fireworks.flightDuration();i++){
-                        ingredients.add(Ingredient.ofItem(Items.GUNPOWDER));
+                    if (fireworks != null){
+                        for(int i = 1;i < fireworks.flightDuration();i++){
+                            ingredients.add(Ingredient.ofItem(Items.GUNPOWDER));
+                        }
                     }
                 }
 
@@ -382,6 +426,77 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             } else {
                                 outputStack.addOutput(new ItemStack(item, 1));
                             }
+                        }
+                    }
+                    outputs.add(outputStack);
+                }
+            }
+
+            if (r.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
+                List<Optional<Ingredient>> ingredients = new ArrayList<>();
+
+                ingredients.add(Optional.of(smithingTransformRecipe.base()));
+                ingredients.add(smithingTransformRecipe.addition());
+                ingredients.add(smithingTransformRecipe.template());
+
+                List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.itemEntry().value(), 1));
+
+                    for (Item item : ingredientCombination) {
+                        if (outputStack.getOutputs().contains(item.getDefaultStack())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()),
+                                    new ItemStack(stack.getItem(), stack.getCount() + 1));
+                        } else {
+                            outputStack.addOutput(new ItemStack(item, 1));
+                        }
+                    }
+                    outputs.add(outputStack);
+                }
+            }
+
+            if (r.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
+                ArmorTrim armorTrim = inputStack.get(DataComponentTypes.TRIM);
+                Optional<Ingredient> additionIngredient = smithingTrimRecipe.addition();
+
+                List<Optional<Ingredient>> ingredients = new ArrayList<>();
+                smithingTrimRecipe.base().getMatchingItems().filter(itemHolder -> inputStack.isOf(itemHolder.value())).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.ofItem(itemHolder.value()))));
+                ingredients.add(smithingTrimRecipe.template());
+                if (additionIngredient.isPresent() && armorTrim != null){
+                    additionIngredient.get().getMatchingItems().filter(itemHolder -> {
+                        RegistryKey<Item> itemResourceKey = itemHolder.getKey().orElse(null);
+                        RegistryKey<ArmorTrimMaterial> armorTrimKey = armorTrim.material().getKey().orElse(null);
+                        if (itemResourceKey != null && armorTrimKey != null){
+                            return itemResourceKey.getValue().getPath().contains(armorTrimKey.getValue().getPath());
+                        }
+                        return false;
+                    }).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.ofItem(itemHolder.value()))));
+                }
+
+                List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
+                ItemEnchantmentsComponent itemEnchantments = inputStack.get(DataComponentTypes.ENCHANTMENTS);
+
+                // Create a recipe for each combination
+                for (List<Item> ingredientCombination : allIngredientCombinations) {
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(inputStack.copyWithCount(1));
+
+                    for (Item item : ingredientCombination) {
+                        if (outputStack.getOutputs().contains(item.getDefaultStack())) {
+                            ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
+                            if (item.getDefaultStack().isOf(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().getMatchingItems().toList().getFirst().value() : Items.AIR)){
+                                stack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                            }
+                            stack.setCount(stack.getCount() + 1);
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
+                        } else {
+                            ItemStack itemStack = new ItemStack(item, 1);
+                            if (item.getDefaultStack().isOf(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().getMatchingItems().toList().getFirst().value() : Items.AIR)){
+                                itemStack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                            }
+                            outputStack.addOutput(itemStack);
                         }
                     }
                     outputs.add(outputStack);
@@ -460,8 +575,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            List<Item> finalItems = items;
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
             group.positions.add(i);
         }
 
@@ -549,7 +663,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             return result;
         }
 
-        List<T> firstList = lists.get(0);
+        List<T> firstList = lists.getFirst();
         List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
 
         for (T item : firstList) {
@@ -617,6 +731,23 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
     public void handleRecipeSelection(UncraftingTableRecipe recipe){
         this.currentRecipe = recipe;
+
+        if(!hasRecipe()){
+            if (this.getStack(0).isEmpty()){
+                this.status = NO_RECIPE;
+            }
+            else {
+                this.status = NO_SUITABLE_OUTPUT_SLOT;
+            }
+        }
+        else{
+            if (hasEnoughExperience()){
+                this.status = -1;
+            }
+            else{
+                this.status = NO_ENOUGH_EXPERIENCE;
+            }
+        }
     }
 
     private int getExperience() {
@@ -647,16 +778,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
     private boolean hasEnoughExperience(){
         if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
-            if (player.totalExperience < getExperience() && !player.isCreative()) {
-                player.sendMessage(Text.literal("You don't have enough experience points to uncraft this item!"), false);
-                return false;
-            }
+            return player.totalExperience >= getExperience() || player.isCreative();
         }
         else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
-            if (player.experienceLevel < getExperience() && !player.isCreative()) {
-                player.sendMessage(Text.literal("You don't have enough experience levels to uncraft this item!"), false);
-                return false;
-            }
+            return player.experienceLevel >= getExperience() || player.isCreative();
         }
         return true;
     }
