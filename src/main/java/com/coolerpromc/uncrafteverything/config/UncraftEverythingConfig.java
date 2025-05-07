@@ -24,6 +24,7 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.EnumValue<RestrictionType> restrictionType;
     public final ForgeConfigSpec.ConfigValue<List<? extends String>> restrictions;
     public final ForgeConfigSpec.BooleanValue allowEnchantedItems;
+    public final ForgeConfigSpec.BooleanValue allowUnSmithing;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -51,10 +52,18 @@ public class UncraftEverythingConfig {
         builder.push("AllowEnchantedItems");
         allowEnchantedItems = builder.comment("Allow uncrafting of enchanted items. [true/false]").define("allowEnchantedItems", false);
         builder.pop();
+
+        builder.push("AllowUnSmithing");
+        allowUnSmithing = builder.comment("Allow uncrafting of items that obtained from smithing (Trimmed Armor/Netherite Armor). [true/false]").define("allowUnSmithing", true);
+        builder.pop();
     }
 
     public int getExperience() {
         return experience.get();
+    }
+
+    public boolean allowUnSmithing() {
+        return allowUnSmithing.get();
     }
 
     public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
