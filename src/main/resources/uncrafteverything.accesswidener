@@ -4,3 +4,5 @@ accessible field net/minecraft/recipe/ShapelessRecipe output Lnet/minecraft/item
 accessible field net/minecraft/recipe/ShapelessRecipe input Lnet/minecraft/util/collection/DefaultedList;
 accessible method net/minecraft/recipe/Ingredient cacheMatchingStacks ()V
 accessible field net/minecraft/recipe/Ingredient matchingStacks [Lnet/minecraft/item/ItemStack;
+accessible field net/minecraft/recipe/SmithingRecipe base Lnet/minecraft/recipe/Ingredient;
+accessible field net/minecraft/recipe/SmithingRecipe addition Lnet/minecraft/recipe/Ingredient;
