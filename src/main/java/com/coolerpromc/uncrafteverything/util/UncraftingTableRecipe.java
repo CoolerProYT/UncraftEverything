@@ -2,10 +2,10 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -67,6 +67,40 @@ public class UncraftingTableRecipe {
                 CompoundTag itemTag = listTag.getCompound(i);
                 outputs.add(ItemStack.of(itemTag.getCompound("output")));
             }
+        }
+
+        return new UncraftingTableRecipe(input, outputs);
+    }
+
+    public void writeToBuf(FriendlyByteBuf packetByteBuf){
+        packetByteBuf.writeBoolean(!this.getInput().isEmpty());
+        if (!this.getInput().isEmpty()) {
+            packetByteBuf.writeItem(this.getInput());
+        }
+
+        packetByteBuf.writeVarInt(this.getOutputs().size());
+        for (var output : this.getOutputs()) {
+            packetByteBuf.writeBoolean(!output.isEmpty());
+            if (!output.isEmpty()) {
+                packetByteBuf.writeItem(output);
+            }
+        }
+    }
+
+    public static UncraftingTableRecipe readFromBuf(FriendlyByteBuf packetByteBuf){
+        ItemStack input = ItemStack.EMPTY;
+        if (packetByteBuf.readBoolean()) {
+            input = packetByteBuf.readItem();
+        }
+
+        int count = packetByteBuf.readVarInt();
+        List<ItemStack> outputs = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            ItemStack output = ItemStack.EMPTY;
+            if (packetByteBuf.readBoolean()) {
+                output = packetByteBuf.readItem();
+            }
+            outputs.add(output);
         }
 
         return new UncraftingTableRecipe(input, outputs);

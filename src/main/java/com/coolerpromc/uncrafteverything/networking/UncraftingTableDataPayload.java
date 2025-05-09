@@ -12,6 +12,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -35,11 +36,24 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
     }
 
     public static void encode(UncraftingTableDataPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+        byteBuf.writeBlockPos(payload.blockPos());
+        byteBuf.writeVarInt(payload.recipes().size());
+
+        for (UncraftingTableRecipe recipe : payload.recipes()) {
+            recipe.writeToBuf(byteBuf);
+        }
     }
 
     public static UncraftingTableDataPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+        BlockPos blockPos = byteBuf.readBlockPos();
+        int recipeCount = byteBuf.readVarInt();
+        List<UncraftingTableRecipe> recipes = new ArrayList<>();
+
+        for (int i = 0; i < recipeCount; i++) {
+            recipes.add(UncraftingTableRecipe.readFromBuf(byteBuf));
+        }
+
+        return new UncraftingTableDataPayload(blockPos, recipes);
     }
 
     private static java.util.function.BiConsumer<UncraftingTableDataPayload, Supplier<NetworkEvent.Context>> getHandler() {
