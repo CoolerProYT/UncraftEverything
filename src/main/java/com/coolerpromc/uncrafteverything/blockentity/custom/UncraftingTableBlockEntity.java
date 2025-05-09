@@ -747,7 +747,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 world.updateListeners(pos, getCachedState(), getCachedState(), 3);
                 for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(getPos().getX(), getPos().getY(), getPos().getZ()), 10)){
                     PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                    packetByteBuf.encodeAsJson(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(this.getPos(), this.getCurrentRecipes()));
+
+                    packetByteBuf.writeVarInt(this.getCurrentRecipes().size());
+
+                    for (UncraftingTableRecipe recipe : this.getCurrentRecipes()) {
+                        recipe.writeToBuf(packetByteBuf);
+                    }
                     ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
                 }
             }
