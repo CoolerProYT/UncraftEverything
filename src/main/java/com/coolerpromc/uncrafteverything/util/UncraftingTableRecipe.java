@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.PacketByteBuf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,40 @@ public class UncraftingTableRecipe {
                 NbtCompound itemTag = listTag.getCompound(i);
                 outputs.add(ItemStack.fromNbt(itemTag.getCompound("output")));
             }
+        }
+
+        return new UncraftingTableRecipe(input, outputs);
+    }
+
+    public void writeToBuf(PacketByteBuf packetByteBuf){
+        packetByteBuf.writeBoolean(!this.getInput().isEmpty());
+        if (!this.getInput().isEmpty()) {
+            packetByteBuf.writeItemStack(this.getInput());
+        }
+
+        packetByteBuf.writeVarInt(this.getOutputs().size());
+        for (var output : this.getOutputs()) {
+            packetByteBuf.writeBoolean(!output.isEmpty());
+            if (!output.isEmpty()) {
+                packetByteBuf.writeItemStack(output);
+            }
+        }
+    }
+
+    public static UncraftingTableRecipe readFromBuf(PacketByteBuf packetByteBuf){
+        ItemStack input = ItemStack.EMPTY;
+        if (packetByteBuf.readBoolean()) {
+            input = packetByteBuf.readItemStack();
+        }
+
+        int count = packetByteBuf.readVarInt();
+        List<ItemStack> outputs = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            ItemStack output = ItemStack.EMPTY;
+            if (packetByteBuf.readBoolean()) {
+                output = packetByteBuf.readItemStack();
+            }
+            outputs.add(output);
         }
 
         return new UncraftingTableRecipe(input, outputs);
