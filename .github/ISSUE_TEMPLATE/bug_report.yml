@@ -40,7 +40,7 @@ body:
       description: If applicable, add screenshots to help explain your problem.
       placeholder: "Drag and drop or paste images here."
 
-    - type: input
+  - type: input
     id: mod_version
     attributes:
       label: Mod Version
