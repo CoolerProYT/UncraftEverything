@@ -40,12 +40,27 @@ body:
       description: If applicable, add screenshots to help explain your problem.
       placeholder: "Drag and drop or paste images here."
 
-  - type: input
-    id: versions
+    - type: input
+    id: mod_version
     attributes:
-      label: Versions
-      description: Provide version info.
-      placeholder: "Mod: v1.3.0, MC: 1.21.5, Loader: NeoForge"
+      label: Mod Version
+      placeholder: "e.g. v1.3.0"
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft_version
+    attributes:
+      label: Minecraft Version
+      placeholder: "e.g. 1.21.5"
+    validations:
+      required: true
+
+  - type: input
+    id: mod_loader
+    attributes:
+      label: Mod Loader
+      placeholder: "e.g. NeoForge, Forge, Fabric, Quilt"
     validations:
       required: true
 
