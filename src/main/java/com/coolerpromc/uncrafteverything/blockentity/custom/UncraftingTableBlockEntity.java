@@ -42,6 +42,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -208,6 +209,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel)) return;
+        if (player == null) return;
 
         this.status = -1;
 
@@ -313,11 +315,87 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
             }
 
+            if (ModList.get().isLoaded("recipestages")) {
+                try {
+                    Class<?> shapedRecipeStageClass = Class.forName("com.blamejared.recipestages.recipes.ShapedRecipeStage");
+                    Class<?> recipeStageClass = Class.forName("com.blamejared.recipestages.recipes.RecipeStage");
+                    Class<?> gameStageHelperClass = Class.forName("net.darkhax.gamestages.GameStageHelper");
+
+                    if (shapedRecipeStageClass.isInstance(recipeHolder)) {
+                        String stage = (String) shapedRecipeStageClass.getMethod("getStage").invoke(recipeHolder);
+                        Boolean hasStage = (Boolean) gameStageHelperClass.getMethod("hasAnyOf", Player.class, Collection.class).invoke(null, player, Collections.singleton(stage));
+
+                        if (hasStage) {
+                            Object recipe = shapedRecipeStageClass.getMethod("getRecipe").invoke(recipeHolder);
+
+                            if (recipe instanceof ShapedRecipe shapedRecipe) {
+                                if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()) {
+                                    this.status = NO_ENOUGH_INPUT;
+                                }
+                                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))) {
+                                    this.status = ENCHANTED_ITEM;
+                                    return false;
+                                }
+                                return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
+                            }
+                        }
+                    }
+
+                    if (recipeStageClass.isInstance(recipeHolder)) {
+                        String stage = (String) recipeStageClass.getMethod("getStage").invoke(recipeHolder);
+
+                        Boolean hasStage = (Boolean) gameStageHelperClass.getMethod("hasAnyOf", Player.class, Collection.class).invoke(null, player, Collections.singleton(stage));
+
+                        if (hasStage) {
+                            Object recipe = recipeStageClass.getMethod("getRecipe").invoke(recipeHolder);
+
+                            if (recipe instanceof ShapelessRecipe shapelessRecipe) {
+                                if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()) {
+                                    this.status = NO_ENOUGH_INPUT;
+                                }
+                                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))) {
+                                    this.status = ENCHANTED_ITEM;
+                                    return false;
+                                }
+                                return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("[UncraftEverything] Failed to get recipe from RecipeStages: " + e.getMessage());
+                }
+            }
+
             if (this.status == -1){
                 this.status = NO_RECIPE;
             }
             return false;
-        }).toList();
+        }).map(recipe -> {
+            if (ModList.get().isLoaded("recipestages")) {
+                try {
+                    Class<?> shapedRecipeStageClass = Class.forName("com.blamejared.recipestages.recipes.ShapedRecipeStage");
+                    Class<?> recipeStageClass = Class.forName("com.blamejared.recipestages.recipes.RecipeStage");
+
+                    if (shapedRecipeStageClass.isInstance(recipe)) {
+                        Object innerRecipe = shapedRecipeStageClass.getMethod("getRecipe").invoke(recipe);
+                        if (innerRecipe instanceof ShapedRecipe shapedRecipe) {
+                            return shapedRecipe;
+                        }
+                    }
+
+                    if (recipeStageClass.isInstance(recipe)) {
+                        Object innerRecipe = recipeStageClass.getMethod("getRecipe").invoke(recipe);
+                        if (innerRecipe instanceof ShapelessRecipe shapelessRecipe) {
+                            return shapelessRecipe;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("[UncraftEverything] Failed to get recipe from RecipeStages: " + e.getMessage());
+                }
+            }
+
+            return recipe instanceof Recipe<?> ? recipe : null;
+        }).filter(Objects::nonNull).toList();
 
         if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW)){
             this.status = -1;

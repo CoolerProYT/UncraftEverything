@@ -52,6 +52,8 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', mod_id
+
+            property 'mixin.env.remapRefMap', 'true'
         }
 
         server {
@@ -75,10 +77,23 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
+    maven {
+        name = "Curse Maven"
+        url = "https://cursemaven.com"
+    }
+    maven {
+        url 'https://maven.blamejared.com'
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+//    implementation fg.deobf("curse.maven:gamestages-268655:5790361")
+//    implementation fg.deobf("curse.maven:bookshelf-228525:5423987")
+//    implementation fg.deobf("curse.maven:crafttweaker-239197:6132440")
+//    implementation fg.deobf("curse.maven:create-328085:6323270")
+//    implementation fg.deobf("curse.maven:recipe-stages-280554:5173574")
 }
 
 tasks.named('processResources', ProcessResources).configure {
