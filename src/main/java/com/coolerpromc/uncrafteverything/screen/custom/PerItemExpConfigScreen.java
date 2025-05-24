@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
@@ -127,16 +128,12 @@ public class PerItemExpConfigScreen extends Screen {
         drawCenteredString(guiGraphics, font, title, width / 2, 10, 0xFFFFFF);
         drawCenteredString(guiGraphics, font, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
 
-        enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
-
         for (TextFieldWidget editBox : scrollableEditBoxes) {
             editBox.render(guiGraphics, mouseX, mouseY, delta);
         }
         for (Button button : scrollableButtons) {
             button.render(guiGraphics, mouseX, mouseY, delta);
         }
-
-        disableScissor();
 
         this.children.forEach(renderable -> {
             if (renderable instanceof Button && !scrollableButtons.contains(renderable)) {

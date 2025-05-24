@@ -40,6 +40,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
     private static final int SCROLLBAR_PADDING = 2;
     private Rectangle2D scrollBarBounds;
 
+    private Button configButton;
     private Button expConfigButton;
 
     public UncraftingTableScreen(UncraftingTableMenu menu, PlayerInventory playerInventory, ITextComponent title) {
@@ -68,7 +69,8 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         this.addButton(new Button(buttonX, buttonY, 64, 20, new StringTextComponent("UnCraft"), this::onPressed));
 
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
-//            this.addWidget(new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, new StringTextComponent(""), this::openConfigScreen).size().pos().build());
+            configButton = new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, new StringTextComponent(""), this::openConfigScreen);
+            this.addWidget(configButton);
             expConfigButton = new Button(leftPos + imageWidth - 30, topPos + 3, 12, 12, new StringTextComponent(""), this::openExpScreen);
             this.addWidget(expConfigButton);
         }
@@ -79,9 +81,9 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         UncraftingTableCraftButtonClickPayload.INSTANCE.sendToServer(payload);
     }
 
-    /*private void openConfigScreen(Button button){
-        this.getMinecraft().setScreen(new UEConfigScreen(Component.literal("Uncraft Everything Config"), this));
-    }*/
+    private void openConfigScreen(Button button){
+        this.getMinecraft().setScreen(new UEConfigScreen(new StringTextComponent("Uncraft Everything Config"), this));
+    }
 
     private void openExpScreen(Button button){
         this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
@@ -95,8 +97,10 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int y = this.topPos;
         blit(pGuiGraphics, x, y, 0, 0, imageWidth, imageHeight);
 
+        configButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
         expConfigButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
 
+        fill(pGuiGraphics, leftPos + imageWidth - 15, topPos + 3 + 11, leftPos + imageWidth - 17 + 12, topPos + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
         fill(pGuiGraphics, leftPos + imageWidth - 29, topPos + 3 + 11, leftPos + imageWidth - 31 + 12, topPos + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
         this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
@@ -107,7 +111,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
 
         this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
         pGuiGraphics.pushPose();
-        pGuiGraphics.translate(leftPos + imageWidth - 30 + 2, topPos + 5, 1000);
+        pGuiGraphics.translate(leftPos + imageWidth - 30 + 2, topPos + 5, 400);
         blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
         pGuiGraphics.popPose();
     }
