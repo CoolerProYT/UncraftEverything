@@ -4,6 +4,8 @@ package com.coolerpromc.uncrafteverything.config;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -145,11 +147,35 @@ public class UncraftEverythingConfig {
 
     public enum ExperienceType {
         LEVEL,
-        POINT
+        POINT;
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, ExperienceType> STREAM_CODEC = new StreamCodec<>() {
+            @Override
+            public ExperienceType decode(RegistryFriendlyByteBuf buffer) {
+                return buffer.readEnum(ExperienceType.class);
+            }
+
+            @Override
+            public void encode(RegistryFriendlyByteBuf buffer, ExperienceType value) {
+                buffer.writeEnum(value);
+            }
+        };
     }
 
     public enum RestrictionType {
         BLACKLIST,
-        WHITELIST
+        WHITELIST;
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, RestrictionType> STREAM_CODEC = new StreamCodec<>() {
+            @Override
+            public RestrictionType decode(RegistryFriendlyByteBuf buffer) {
+                return buffer.readEnum(RestrictionType.class);
+            }
+
+            @Override
+            public void encode(RegistryFriendlyByteBuf buffer, RestrictionType value) {
+                buffer.writeEnum(value);
+            }
+        };
     }
 }

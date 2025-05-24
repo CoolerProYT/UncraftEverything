@@ -2,10 +2,12 @@ package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -42,19 +44,22 @@ public class UncraftingTableBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!level.isClientSide){
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer){
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openMenu(blockEntity, pos);
                 blockEntity.getOutputStacks();
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-                    PacketDistributor.sendToPlayersNear((ServerLevel) level, null, blockEntity.getBlockPos().getX(), blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), 10, new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
+                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
                 }
             }
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            PacketDistributor.sendToServer(new RequestConfigPayload());
         }
 
         return InteractionResult.SUCCESS;
