@@ -37,7 +37,6 @@ public class UncraftEverything
         PerItemExpCostConfig.startWatcher();
     }
 
-
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {

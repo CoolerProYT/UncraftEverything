@@ -5,6 +5,7 @@ import com.coolerpromc.uncrafteverything.networking.*;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -31,6 +32,31 @@ public class UEModBusEvent {
                 UncraftingRecipeSelectionPayload.TYPE,
                 UncraftingRecipeSelectionPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleRecipeSelection
+        );
+
+        registrar.playToServer(
+                UEConfigPayload.TYPE,
+                UEConfigPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleConfig
+        );
+
+        registrar.playToServer(
+                RequestConfigPayload.TYPE,
+                RequestConfigPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleRequestConfig
+        );
+
+        registrar.playToClient(
+                ResponseConfigPayload.TYPE,
+                ResponseConfigPayload.STREAM_CODEC,
+                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {
+                }
+        );
+
+        registrar.playToServer(
+            UEExpPayload.TYPE,
+            UEExpPayload.STREAM_CODEC,
+            ServerPayloadHandler::handleExpCost
         );
     }
 }
