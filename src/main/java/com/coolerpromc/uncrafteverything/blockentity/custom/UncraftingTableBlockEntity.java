@@ -396,7 +396,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return recipe instanceof Recipe<?> ? recipe : null;
         }).toList();
 
-        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && !EnchantmentHelper.getEnchantments(inputStack).isEmpty())){
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && !EnchantmentHelper.getEnchantments(inputStack).isEmpty() && !inputStack.getItem().equals(Items.ENCHANTED_BOOK))){
             this.status = -1;
             this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
@@ -423,7 +423,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputs.add(outputStack);
         }
 
-        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty()){
+        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty() && !inputStack.getItem().equals(Items.ENCHANTED_BOOK)){
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
             Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(inputStack);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
