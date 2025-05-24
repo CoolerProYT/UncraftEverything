@@ -21,4 +21,12 @@ public class ClientPayloadHandler {
             }
         });
     }
+
+    public static ResponseConfigPayload payloadFromServer;
+
+    public static void handleConfigSync(ResponseConfigPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            payloadFromServer = payload;
+        });
+    }
 }

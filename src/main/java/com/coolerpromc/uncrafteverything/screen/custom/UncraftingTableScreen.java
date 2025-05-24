@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
@@ -66,11 +67,35 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.addRenderableWidget(Button
                 .builder(Component.literal("UnCraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
                 .build());
+
+        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
+            SpriteIconButton configButton = SpriteIconButton
+                    .builder(Component.literal(""), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
+                    .build();
+            configButton.setX(leftPos + imageWidth - 16);
+            configButton.setY(topPos + 3);
+            this.addRenderableWidget(configButton);
+
+            SpriteIconButton expButton = SpriteIconButton
+                    .builder(Component.literal(""), this::openExpScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp"), 8, 8)
+                    .build();
+            expButton.setX(leftPos + imageWidth - 30);
+            expButton.setY(topPos + 3);
+            this.addRenderableWidget(expButton);
+        }
     }
 
     private void onPressed(Button button) {
         UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), "Craft");
         PacketDistributor.sendToServer(payload);
+    }
+
+    private void openConfigScreen(Button button){
+        this.getMinecraft().setScreen(new UEConfigScreen(Component.literal("Uncraft Everything Config"), this));
+    }
+
+    private void openExpScreen(Button button){
+        this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
     }
 
     @Override
@@ -109,7 +134,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        pGuiGraphics.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (!recipes.isEmpty()){
+            pGuiGraphics.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        }
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -266,6 +293,16 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xAA0000, false);
                 pGuiGraphics.pose().popPose();
                 textY += 9;
+            }
+        }
+
+        if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
+            if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
+                pGuiGraphics.renderTooltip(this.font, Component.literal("Common Config"), pMouseX, pMouseY);
+            }
+
+            if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
+                pGuiGraphics.renderTooltip(this.font, Component.literal("Per Item Experience Config"), pMouseX, pMouseY);
             }
         }
 

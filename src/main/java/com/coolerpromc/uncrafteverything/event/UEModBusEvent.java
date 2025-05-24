@@ -32,5 +32,30 @@ public class UEModBusEvent {
                 UncraftingRecipeSelectionPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleRecipeSelection
         );
+
+        registrar.playToServer(
+                UEConfigPayload.TYPE,
+                UEConfigPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleConfig
+        );
+
+        registrar.playToServer(
+                RequestConfigPayload.TYPE,
+                RequestConfigPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleRequestConfig
+        );
+
+        registrar.playToClient(
+                ResponseConfigPayload.TYPE,
+                ResponseConfigPayload.STREAM_CODEC,
+                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {
+                }
+        );
+
+        registrar.playToServer(
+                UEExpPayload.TYPE,
+                UEExpPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleExpCost
+        );
     }
 }

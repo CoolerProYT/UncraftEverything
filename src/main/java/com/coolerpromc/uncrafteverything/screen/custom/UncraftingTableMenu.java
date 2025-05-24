@@ -17,6 +17,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
     public final UncraftingTableBlockEntity blockEntity;
     private final Level level;
     private final ContainerData data;
+    public final Player player;
 
     public UncraftingTableMenu(int pContainerId, Inventory inventory, FriendlyByteBuf friendlyByteBuf){
         this(pContainerId, inventory, inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos()), new SimpleContainerData(3));
@@ -27,6 +28,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
         this.level = inventory.player.level();
         this.data = data;
+        this.player = inventory.player;
 
         addPlayerInventory(inventory);
         addPlayerHotbar(inventory);
