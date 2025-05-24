@@ -21,6 +21,7 @@ public class UncraftingTableMenu extends Container {
     public final UncraftingTableBlockEntity blockEntity;
     private final World level;
     private final IIntArray data;
+    public final PlayerEntity player;
 
     public UncraftingTableMenu(int pContainerId, PlayerInventory inventory, PacketBuffer friendlyByteBuf){
         this(pContainerId, inventory, inventory.player.level.getBlockEntity(friendlyByteBuf.readBlockPos()), new IntArray(3));
@@ -31,6 +32,7 @@ public class UncraftingTableMenu extends Container {
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
         this.level = inventory.player.level;
         this.data = data;
+        this.player = inventory.player;
 
         addPlayerInventory(inventory);
         addPlayerHotbar(inventory);

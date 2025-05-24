@@ -9,6 +9,8 @@ import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -56,7 +58,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
-    private PlayerEntity player;
+    private ServerPlayerEntity player;
     private final IIntArray data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
@@ -134,7 +136,9 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
     @Nullable
     @Override
     public Container createMenu(int containerId, @NotNull PlayerInventory playerInventory, @NotNull PlayerEntity player) {
-        this.player = player;
+        if (player instanceof ServerPlayerEntity){
+            this.player = (ServerPlayerEntity) player;
+        }
         return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
@@ -266,8 +270,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
@@ -278,8 +281,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
@@ -294,8 +296,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
                     return false;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return inputStack.getItem().equals(smithingTransformRecipe.getResultItem().getItem());
@@ -307,7 +308,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             return false;
         }).collect(Collectors.toList());
 
-        if (!recipes.isEmpty() || inputStack.getItem().equals(Items.TIPPED_ARROW)){
+        if (!recipes.isEmpty() || inputStack.getItem().equals(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && !EnchantmentHelper.getEnchantments(inputStack).isEmpty())){
             this.status = -1;
             this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
@@ -333,6 +334,18 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
 
             outputs.add(outputStack);
         }
+        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty()){
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
+            Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(inputStack);
+            ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantmentHelper.setEnchantments(enchantments, book);
+
+            outputStack.addOutput(new ItemStack(inputStack.getItem(), 1));
+            outputStack.addOutput(book);
+
+            outputs.add(outputStack);
+        }
+
 
         for (IRecipe<?> r : recipes) {
             if (r instanceof ShulkerBoxColoringRecipe && inputStack.getItem().is(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX)) {

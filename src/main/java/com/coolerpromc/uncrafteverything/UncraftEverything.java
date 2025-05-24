@@ -6,9 +6,7 @@ import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
+import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.gui.ScreenManager;
@@ -51,6 +49,10 @@ public class UncraftEverything
             UncraftingTableDataPayload.register();
             UncraftingRecipeSelectionPayload.register();
             UncraftingTableCraftButtonClickPayload.register();
+            RequestConfigPayload.register();
+            ResponseConfigPayload.register();
+            UEConfigPayload.register();
+            UEExpPayload.register();
         });
     }
 

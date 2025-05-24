@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockRenderType;
@@ -38,7 +39,7 @@ public class UncraftingTableBlock extends ContainerBlock {
 
     @Override
     public ActionResultType use(BlockState pState, World pLevel, BlockPos pPos, PlayerEntity pPlayer, Hand pHand, BlockRayTraceResult pHit) {
-        if (!pLevel.isClientSide){
+        if (!pLevel.isClientSide && pPlayer instanceof ServerPlayerEntity) {
             TileEntity entity = pLevel.getBlockEntity(pPos);
             if (entity instanceof UncraftingTableBlockEntity){
                 UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) entity;
@@ -52,6 +53,9 @@ public class UncraftingTableBlock extends ContainerBlock {
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            RequestConfigPayload.INSTANCE.send(PacketDistributor.SERVER.noArg(), new RequestConfigPayload());
         }
 
         return ActionResultType.SUCCESS;

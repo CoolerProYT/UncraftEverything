@@ -40,6 +40,8 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
     private static final int SCROLLBAR_PADDING = 2;
     private Rectangle2D scrollBarBounds;
 
+    private Button expConfigButton;
+
     public UncraftingTableScreen(UncraftingTableMenu menu, PlayerInventory playerInventory, ITextComponent title) {
         super(menu, playerInventory, title);
     }
@@ -64,6 +66,12 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int buttonY = topPos + 72;
 
         this.addButton(new Button(buttonX, buttonY, 64, 20, new StringTextComponent("UnCraft"), this::onPressed));
+
+        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
+//            this.addWidget(new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, new StringTextComponent(""), this::openConfigScreen).size().pos().build());
+            expConfigButton = new Button(leftPos + imageWidth - 30, topPos + 3, 12, 12, new StringTextComponent(""), this::openExpScreen);
+            this.addWidget(expConfigButton);
+        }
     }
 
     private void onPressed(Button button) {
@@ -71,13 +79,37 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         UncraftingTableCraftButtonClickPayload.INSTANCE.sendToServer(payload);
     }
 
+    /*private void openConfigScreen(Button button){
+        this.getMinecraft().setScreen(new UEConfigScreen(Component.literal("Uncraft Everything Config"), this));
+    }*/
+
+    private void openExpScreen(Button button){
+        this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
+    }
+
     @Override
     protected void renderBg(MatrixStack pGuiGraphics, float partialTick, int mouseX, int mouseY) {
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bind(TEXTURE);
+        this.getMinecraft().getTextureManager().bind(TEXTURE);
         int x = this.leftPos;
         int y = this.topPos;
         blit(pGuiGraphics, x, y, 0, 0, imageWidth, imageHeight);
+
+        expConfigButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
+
+        fill(pGuiGraphics, leftPos + imageWidth - 29, topPos + 3 + 11, leftPos + imageWidth - 31 + 12, topPos + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+
+        this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
+        pGuiGraphics.pushPose();
+        pGuiGraphics.translate(leftPos + imageWidth - 16 + 2, topPos + 5, 400);
+        blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
+        pGuiGraphics.popPose();
+
+        this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
+        pGuiGraphics.pushPose();
+        pGuiGraphics.translate(leftPos + imageWidth - 30 + 2, topPos + 5, 1000);
+        blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
+        pGuiGraphics.popPose();
     }
 
     @Override
@@ -105,7 +137,9 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        fill(pGuiGraphics, x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (!recipes.isEmpty()){
+            fill(pGuiGraphics, x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        }
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -268,6 +302,16 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 font.draw(pGuiGraphics, formattedcharsequence, 0, 0, 0xAA0000);
                 pGuiGraphics.popPose();
                 textY += 9;
+            }
+        }
+
+        if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
+            if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
+                renderTooltip(pGuiGraphics, new StringTextComponent("Common Config"), pMouseX, pMouseY);
+            }
+
+            if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
+                renderTooltip(pGuiGraphics, new StringTextComponent("Per Item Experience Config"), pMouseX, pMouseY);
             }
         }
 

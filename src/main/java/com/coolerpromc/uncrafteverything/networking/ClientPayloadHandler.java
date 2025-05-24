@@ -26,4 +26,12 @@ public class ClientPayloadHandler {
         });
         context.get().setPacketHandled(true);
     }
+
+    public static ResponseConfigPayload payloadFromServer;
+
+    public static void handleConfigSync(ResponseConfigPayload payload, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> {
+            payloadFromServer = payload;
+        });
+    }
 }
