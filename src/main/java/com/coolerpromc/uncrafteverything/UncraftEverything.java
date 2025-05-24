@@ -6,9 +6,7 @@ import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
+import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -23,7 +21,6 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.NetworkDirection;
 
 @SuppressWarnings("removal")
 @Mod(UncraftEverything.MODID)
@@ -45,6 +42,10 @@ public class UncraftEverything
         UncraftingTableDataPayload.register(modEventBus);
         UncraftingTableCraftButtonClickPayload.register(modEventBus);
         UncraftingRecipeSelectionPayload.register(modEventBus);
+        RequestConfigPayload.register(modEventBus);
+        ResponseConfigPayload.register(modEventBus);
+        UEConfigPayload.register(modEventBus);
+        UEExpPayload.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);

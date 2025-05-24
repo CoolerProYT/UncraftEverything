@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -42,21 +43,23 @@ public class UncraftingTableBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!level.isClientSide){
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 ((ServerPlayer) player).openMenu(blockEntity, pos);
                 blockEntity.getOutputStacks();
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-                    PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(null, blockEntity.getBlockPos().getX(), blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ(), 10, level.dimension());
-                    PacketDistributor.PacketTarget target = PacketDistributor.NEAR.with(targetPoint);
+                    PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(serverPlayer);
                     UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()), target);
                 }
             }
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         }
 
         return InteractionResult.SUCCESS;

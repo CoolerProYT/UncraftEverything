@@ -22,4 +22,12 @@ public class ClientPayloadHandler {
         });
         context.setPacketHandled(true);
     }
+
+    public static ResponseConfigPayload payloadFromServer;
+
+    public static void handleConfigSync(ResponseConfigPayload payload, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            payloadFromServer = payload;
+        });
+    }
 }
