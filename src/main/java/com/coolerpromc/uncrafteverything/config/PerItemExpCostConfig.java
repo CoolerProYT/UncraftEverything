@@ -49,6 +49,9 @@ public class PerItemExpCostConfig {
     }
 
     public static Map<String, Integer> getPerItemExp() {
+        if (perItemExp == null) {
+            load();
+        }
         return perItemExp;
     }
 

@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,19 +36,22 @@ public class UncraftingTableBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (!pLevel.isClientSide){
+        if (!pLevel.isClientSide && pPlayer instanceof ServerPlayer serverPlayer) {
             BlockEntity entity = pLevel.getBlockEntity(pPos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
-                NetworkHooks.openScreen((ServerPlayer) pPlayer, blockEntity, pPos);
+                NetworkHooks.openScreen(serverPlayer, blockEntity, pPos);
                 blockEntity.getOutputStacks();
                 if (!pLevel.isClientSide()) {
                     pLevel.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-                    UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) pPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
+                    UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
                 }
             }
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            RequestConfigPayload.INSTANCE.send(PacketDistributor.SERVER.noArg(), new RequestConfigPayload());
         }
 
         return InteractionResult.SUCCESS;

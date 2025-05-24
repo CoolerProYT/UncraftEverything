@@ -67,7 +67,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
-    private Player player;
+    private ServerPlayer player;
     private final ContainerData data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
@@ -141,7 +141,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
-        this.player = player;
+        if (player instanceof ServerPlayer serverPlayer){
+            this.player = serverPlayer;
+        }
         return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
@@ -267,8 +269,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
@@ -278,8 +279,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
@@ -293,8 +293,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
                     return false;
                 }
-                if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0))){
-                    this.status = ENCHANTED_ITEM;
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
                     return false;
                 }
                 return inputStack.is(smithingTransformRecipe.result.getItem());
@@ -395,9 +394,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             return recipe instanceof Recipe<?> ? recipe : null;
-        }).filter(Objects::nonNull).toList();
+        }).toList();
 
-        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW)){
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && !EnchantmentHelper.getEnchantments(inputStack).isEmpty())){
             this.status = -1;
             this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.get() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
@@ -420,6 +419,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputStack.addOutput(new ItemStack(Items.ARROW, 1));
             outputStack.addOutput(new ItemStack(Items.ARROW, 1));
             outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+
+            outputs.add(outputStack);
+        }
+
+        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty()){
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
+            Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(inputStack);
+            ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantmentHelper.setEnchantments(enchantments, book);
+
+            outputStack.addOutput(new ItemStack(inputStack.getItem(), 1));
+            outputStack.addOutput(book);
 
             outputs.add(outputStack);
         }
