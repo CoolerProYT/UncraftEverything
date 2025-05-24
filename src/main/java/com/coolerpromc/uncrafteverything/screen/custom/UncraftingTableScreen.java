@@ -69,7 +69,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
             this.addRenderableWidget(new Button.Builder(Component.empty(), this::openConfigScreen).size(12, 12).pos(leftPos + imageWidth - 16, topPos + 3).build());
-            this.addRenderableWidget(new Button.Builder(Component.empty(), this::openConfigScreen).size(12, 12).pos(leftPos + imageWidth - 30, topPos + 3).build());
+            this.addRenderableWidget(new Button.Builder(Component.empty(), this::openExpScreen).size(12, 12).pos(leftPos + imageWidth - 30, topPos + 3).build());
         }
     }
 
