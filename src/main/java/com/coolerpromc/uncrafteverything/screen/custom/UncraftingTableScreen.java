@@ -45,6 +45,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     private static final int SCROLLBAR_PADDING = 2;
     private Rectangle2D scrollBarBounds;
 
+    private ButtonWidget configButton;
+    private ButtonWidget expConfigButton;
+
     public UncraftingTableScreen(UncraftingTableMenu handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
@@ -69,6 +72,13 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int buttonY = this.y + 72;
 
         this.addButton(new ButtonWidget(buttonX, buttonY, 64, 20, new LiteralText("UnCraft"), this::onPressed));
+
+        if (this.handler.player.isCreative() || this.handler.player.hasPermissionLevel(4)) {
+            configButton = new ButtonWidget(this.x + backgroundWidth - 16, this.y + 3, 12, 12, new LiteralText(""), this::openConfigScreen);
+            this.addChild(configButton);
+            expConfigButton = new ButtonWidget(this.x + backgroundWidth - 30, this.y + 3, 12, 12, new LiteralText(""), this::openExpScreen);
+            this.addChild(expConfigButton);
+        }
     }
 
     private void onPressed(ButtonWidget button) {
@@ -81,11 +91,37 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         ClientPlayNetworking.send(UncraftingTableCraftButtonClickPayload.ID, packetByteBuf);
     }
 
+    private void openConfigScreen(ButtonWidget button){
+        this.client.openScreen(new UEConfigScreen(new LiteralText("Uncraft Everything Config"), this));
+    }
+
+    private void openExpScreen(ButtonWidget button){
+        this.client.openScreen(new PerItemExpConfigScreen(this));
+    }
+
     @Override
     protected void drawBackground(MatrixStack context, float delta, int mouseX, int mouseY) {
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
         drawTexture(context, x, y, 0, 0, backgroundWidth, backgroundHeight);
+
+        configButton.render(context, mouseX, mouseY, delta);
+        expConfigButton.render(context, mouseX, mouseY, delta);
+
+        fill(context, x + backgroundWidth - 15, y + 3 + 11, x + backgroundWidth - 17 + 12, y + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+        fill(context, x + backgroundWidth - 29, y + 3 + 11, x + backgroundWidth - 31 + 12, y + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+
+        this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
+        context.push();
+        context.translate(x + backgroundWidth - 16 + 2, y + 5, 400);
+        drawTexture(context, 0, 0, 0, 0,8, 8, 8, 8);
+        context.pop();
+
+        this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
+        context.push();
+        context.translate(x + backgroundWidth - 30 + 2, y + 5, 400);
+        drawTexture(context, 0, 0, 0, 0,8, 8, 8, 8);
+        context.pop();
     }
 
     @Override
@@ -110,7 +146,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        fill(context,x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (!recipes.isEmpty()){
+            fill(context,x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        }
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -281,6 +319,16 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 textRenderer.draw(context, formattedcharsequence, 0, 0, 0xFFAA0000);
                 context.pop();
                 textY += 9;
+            }
+        }
+
+        if (this.handler.player.hasPermissionLevel(4) || this.handler.player.isCreative()){
+            if (mouseX >= x + backgroundWidth - 16 && mouseX <= x + backgroundWidth - 4 && mouseY >= y + 3 && mouseY <= y + 15) {
+                renderTooltip(context, new LiteralText("Common Config"), mouseX, mouseY);
+            }
+
+            if (mouseX >= x + backgroundWidth - 30 && mouseX <= x + backgroundWidth - 18 && mouseY >= y + 3 && mouseY <= y + 15) {
+                renderTooltip(context, new LiteralText("Per Item Experience Config"), mouseX, mouseY);
             }
         }
 

@@ -20,6 +20,7 @@ public class UncraftingTableMenu extends ScreenHandler {
     public final UncraftingTableBlockEntity blockEntity;
     private final World world;
     private final PropertyDelegate data;
+    public final PlayerEntity player;
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, PacketByteBuf packetByteBuf) {
         this(syncId, playerInventory, playerInventory.player.getEntityWorld().getBlockEntity(packetByteBuf.readBlockPos()), new ArrayPropertyDelegate(3));
@@ -30,6 +31,7 @@ public class UncraftingTableMenu extends ScreenHandler {
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
         this.world = playerInventory.player.getEntityWorld();
         this.data = data;
+        this.player = playerInventory.player;
 
         this.addSlot(new Slot(this.blockEntity, this.blockEntity.getInputSlots()[0], 26, 35));
 
