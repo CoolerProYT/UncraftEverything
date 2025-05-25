@@ -10,6 +10,8 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
@@ -205,11 +207,35 @@ public class UncraftEverythingConfig {
 
     public enum ExperienceType {
         LEVEL,
-        POINT
+        POINT;
+
+        public static final PacketCodec<RegistryByteBuf, ExperienceType> STREAM_CODEC = new PacketCodec<>() {
+            @Override
+            public ExperienceType decode(RegistryByteBuf buffer) {
+                return buffer.readEnumConstant(ExperienceType.class);
+            }
+
+            @Override
+            public void encode(RegistryByteBuf buffer, ExperienceType value) {
+                buffer.writeEnumConstant(value);
+            }
+        };
     }
 
     public enum RestrictionType {
         BLACKLIST,
-        WHITELIST
+        WHITELIST;
+
+        public static final PacketCodec<RegistryByteBuf, RestrictionType> STREAM_CODEC = new PacketCodec<>() {
+            @Override
+            public RestrictionType decode(RegistryByteBuf buffer) {
+                return buffer.readEnumConstant(RestrictionType.class);
+            }
+
+            @Override
+            public void encode(RegistryByteBuf buffer, RestrictionType value) {
+                buffer.writeEnumConstant(value);
+            }
+        };
     }
 }

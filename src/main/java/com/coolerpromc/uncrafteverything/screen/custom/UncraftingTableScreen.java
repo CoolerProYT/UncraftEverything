@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
@@ -67,11 +68,35 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         this.addDrawableChild(ButtonWidget
                 .builder(Text.literal("UnCraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
                 .build());
+
+        if (this.handler.player.isCreative() || this.handler.player.hasPermissionLevel(4)){
+            TextIconButtonWidget configButton = TextIconButtonWidget
+                    .builder(Text.literal(""), this::openConfigScreen, true).dimension(12, 12).texture(Identifier.of(UncraftEverything.MODID, "config"), 8, 8)
+                    .build();
+            configButton.setX(this.x + backgroundWidth - 16);
+            configButton.setY(this.y + 3);
+            this.addDrawableChild(configButton);
+
+            TextIconButtonWidget expButton = TextIconButtonWidget
+                    .builder(Text.literal(""), this::openExpScreen, true).dimension(12, 12).texture(Identifier.of(UncraftEverything.MODID, "exp"), 8, 8)
+                    .build();
+            expButton.setX(this.x + backgroundWidth - 30);
+            expButton.setY(this.y + 3);
+            this.addDrawableChild(expButton);
+        }
     }
 
     private void onPressed(ButtonWidget button) {
         UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.handler.blockEntity.getPos(), "Craft");
         ClientPlayNetworking.send(payload);
+    }
+
+    private void openConfigScreen(ButtonWidget button){
+        this.client.setScreen(new UEConfigScreen(Text.literal("Uncraft Everything Config"), this));
+    }
+
+    private void openExpScreen(ButtonWidget button){
+        this.client.setScreen(new PerItemExpConfigScreen(this));
     }
 
     @Override
@@ -104,7 +129,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        context.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (!recipes.isEmpty()){
+            context.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        }
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -259,6 +286,16 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 context.drawText(textRenderer, formattedcharsequence, 0, 0, 0xFFAA0000, false);
                 context.getMatrices().pop();
                 textY += 9;
+            }
+        }
+
+        if (this.handler.player.hasPermissionLevel(4) || this.handler.player.isCreative()){
+            if (mouseX >= x + backgroundWidth - 16 && mouseX <= x + backgroundWidth - 4 && mouseY >= y + 3 && mouseY <= y + 15) {
+                context.drawTooltip(this.textRenderer, Text.literal("Common Config"), mouseX, mouseY);
+            }
+
+            if (mouseX >= x + backgroundWidth - 30 && mouseX <= x + backgroundWidth - 18 && mouseY >= y + 3 && mouseY <= y + 15) {
+                context.drawTooltip(this.textRenderer, Text.literal("Per Item Experience Config"), mouseX, mouseY);
             }
         }
 
