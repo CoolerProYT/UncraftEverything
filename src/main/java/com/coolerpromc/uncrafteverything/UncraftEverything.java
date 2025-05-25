@@ -6,9 +6,7 @@ import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlock
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
+import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -37,6 +35,10 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionPayload.TYPE, UncraftingRecipeSelectionPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UEConfigPayload.TYPE, UEConfigPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(RequestConfigPayload.TYPE, RequestConfigPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playS2C().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -63,6 +65,40 @@ public class UncraftEverything implements ModInitializer {
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(UEConfigPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity) {
+				UncraftEverythingConfig.restrictionType = payload.restrictionType();
+				UncraftEverythingConfig.restrictions = payload.restrictedItems();
+				UncraftEverythingConfig.allowEnchantedItems = payload.allowEnchantedItem();
+				UncraftEverythingConfig.experienceType = payload.experienceType();
+				UncraftEverythingConfig.experience = payload.experience();
+				UncraftEverythingConfig.allowUnSmithing = payload.allowUnsmithing();
+				UncraftEverythingConfig.save();
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(RequestConfigPayload.TYPE, (requestConfigPayload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player) {
+				ServerPlayNetworking.send(player, new ResponseConfigPayload(
+						UncraftEverythingConfig.restrictionType,
+						UncraftEverythingConfig.restrictions,
+						UncraftEverythingConfig.allowEnchantedItems,
+						UncraftEverythingConfig.experienceType,
+						UncraftEverythingConfig.experience,
+						UncraftEverythingConfig.allowUnSmithing,
+						PerItemExpCostConfig.getPerItemExp()
+				));
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(UEExpPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity) {
+				PerItemExpCostConfig.getPerItemExp().clear();
+				PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
+				PerItemExpCostConfig.save();
 			}
 		});
 	}
