@@ -68,6 +68,18 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         this.addDrawableChild(ButtonWidget
                 .builder(Text.literal("UnCraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
                 .build());
+
+        if (this.handler.player.isCreative() || this.handler.player.hasPermissionLevel(4)){
+            ButtonWidget configButton = ButtonWidget
+                    .builder(Text.literal(""), this::openConfigScreen).size(12, 12).position(x + backgroundWidth - 16, y + 3)
+                    .build();
+            this.addDrawableChild(configButton);
+
+            ButtonWidget expButton = ButtonWidget
+                    .builder(Text.literal(""), this::openExpScreen).size(12, 12).position(x + backgroundWidth - 30, y + 3)
+                    .build();
+            this.addDrawableChild(expButton);
+        }
     }
 
     private void onPressed(ButtonWidget button) {
@@ -76,11 +88,29 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         ClientPlayNetworking.send(UncraftingTableCraftButtonClickPayload.ID, packetByteBuf);
     }
 
+    private void openConfigScreen(ButtonWidget button){
+        this.client.setScreen(new UEConfigScreen(Text.literal("Uncraft Everything Config"), this));
+    }
+
+    private void openExpScreen(ButtonWidget button){
+        this.client.setScreen(new PerItemExpConfigScreen(this));
+    }
+
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight);
+
+        context.getMatrices().push();
+        context.getMatrices().translate(x + backgroundWidth - 16 + 2, y + 5, 400);
+        context.drawTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/config.png"), 0, 0, 0, 0,8, 8, 8, 8);
+        context.getMatrices().pop();
+
+        context.getMatrices().push();
+        context.getMatrices().translate(x + backgroundWidth - 30 + 2, y + 5, 400);
+        context.drawTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/exp.png"), 0, 0, 0, 0,8, 8, 8, 8);
+        context.getMatrices().pop();
     }
 
     @Override
@@ -106,7 +136,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 
-        context.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (!recipes.isEmpty()){
+            context.fill(x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        }
 
         // Setup scrollbar bounds
         int scrollbarHeight;
@@ -263,6 +295,16 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 context.drawText(textRenderer, formattedcharsequence, 0, 0, 0xFFAA0000, false);
                 context.getMatrices().pop();
                 textY += 9;
+            }
+        }
+
+        if (this.handler.player.hasPermissionLevel(4) || this.handler.player.isCreative()){
+            if (mouseX >= x + backgroundWidth - 16 && mouseX <= x + backgroundWidth - 4 && mouseY >= y + 3 && mouseY <= y + 15) {
+                context.drawTooltip(this.textRenderer, Text.literal("Common Config"), mouseX, mouseY);
+            }
+
+            if (mouseX >= x + backgroundWidth - 30 && mouseX <= x + backgroundWidth - 18 && mouseY >= y + 3 && mouseY <= y + 15) {
+                context.drawTooltip(this.textRenderer, Text.literal("Per Item Experience Config"), mouseX, mouseY);
             }
         }
 

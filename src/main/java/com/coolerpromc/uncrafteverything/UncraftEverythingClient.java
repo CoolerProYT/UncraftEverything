@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything;
 
+import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
@@ -16,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UncraftEverythingClient implements ClientModInitializer {
+    public static ResponseConfigPayload payloadFromServer;
+
     @Override
     public void onInitializeClient() {
         HandledScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
@@ -35,6 +38,10 @@ public class UncraftEverythingClient implements ClientModInitializer {
 
                 uncraftingTableScreen.updateFromBlockEntity(recipes);
             }
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(ResponseConfigPayload.TYPE, (minecraftClient, clientPlayNetworkHandler, packetByteBuf, packetSender) -> {
+            payloadFromServer = ResponseConfigPayload.decode(packetByteBuf);
         });
     }
 }

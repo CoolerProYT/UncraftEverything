@@ -1,7 +1,9 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -39,21 +41,22 @@ public class UncraftingTableBlock extends BlockWithEntity {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient){
+        if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer){
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openHandledScreen(blockEntity);
                 blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
-                for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ()), 10)){
-                    PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                    packetByteBuf.encodeAsJson(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
-                    ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
-                }
+                PacketByteBuf packetByteBuf = PacketByteBufs.create();
+                packetByteBuf.encodeAsJson(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
+                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, packetByteBuf);
             }
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            ClientPlayNetworking.send(RequestConfigPayload.TYPE, RequestConfigPayload.encode(PacketByteBufs.create(), new RequestConfigPayload()));
         }
 
         return ActionResult.SUCCESS;
