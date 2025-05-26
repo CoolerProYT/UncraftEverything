@@ -29,14 +29,8 @@ public class UncraftEverythingClient implements ClientModInitializer {
             Screen screen = minecraft.currentScreen;
 
             if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
-                int recipeCount = packetByteBuf.readVarInt();
-                List<UncraftingTableRecipe> recipes = new ArrayList<>();
-
-                for (int i = 0; i < recipeCount; i++) {
-                    recipes.add(UncraftingTableRecipe.readFromBuf(packetByteBuf));
-                }
-
-                uncraftingTableScreen.updateFromBlockEntity(recipes);
+                UncraftingTableDataPayload payload = UncraftingTableDataPayload.decode(packetByteBuf);
+                uncraftingTableScreen.updateFromBlockEntity(payload.recipes());
             }
         });
 

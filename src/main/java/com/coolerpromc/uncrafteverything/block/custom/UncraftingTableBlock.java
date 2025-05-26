@@ -47,9 +47,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
                 player.openHandledScreen(blockEntity);
                 blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
-                PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                packetByteBuf.encodeAsJson(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
-                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, packetByteBuf);
+                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()), PacketByteBufs.create()));
             }
             else {
                 throw new IllegalStateException("Container provider is missing");

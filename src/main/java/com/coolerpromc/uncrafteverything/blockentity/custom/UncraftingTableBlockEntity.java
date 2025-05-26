@@ -116,17 +116,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         getOutputStacks();
         if (world != null && !world.isClient() && slot == inputSlots[0]) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(getPos().getX(), getPos().getY(), getPos().getZ()), 10)){
-                PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.pos, this.getCurrentRecipes()), PacketByteBufs.create()));
 
-                packetByteBuf.writeVarInt(this.getCurrentRecipes().size());
-
-                for (UncraftingTableRecipe recipe : this.getCurrentRecipes()) {
-                    recipe.writeToBuf(packetByteBuf);
-                }
-
-                ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
-            }
         }
     }
 
@@ -757,14 +748,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             if (world != null && !world.isClient()) {
                 world.updateListeners(pos, getCachedState(), getCachedState(), 3);
                 for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(getPos().getX(), getPos().getY(), getPos().getZ()), 10)){
-                    PacketByteBuf packetByteBuf = PacketByteBufs.create();
-
-                    packetByteBuf.writeVarInt(this.getCurrentRecipes().size());
-
-                    for (UncraftingTableRecipe recipe : this.getCurrentRecipes()) {
-                        recipe.writeToBuf(packetByteBuf);
-                    }
-                    ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, packetByteBuf);
+                    ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.getPos(), this.getCurrentRecipes()), PacketByteBufs.create()));
                 }
             }
         }
