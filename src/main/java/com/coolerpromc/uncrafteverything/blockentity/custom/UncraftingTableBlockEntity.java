@@ -568,7 +568,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     if (item.getDescriptionId().contains("shulker_box")){
                         return item == Items.SHULKER_BOX;
                     }
-                    return true;
+                    return item.getCraftingRemainingItem(item.getDefaultInstance()) == ItemStack.EMPTY || item.getCraftingRemainingItem(item.getDefaultInstance()).getItem() != item.getDefaultInstance().getItem();
                 })
                 .sorted(Comparator.comparing(Item::getDescriptionId))
                 .toList();
