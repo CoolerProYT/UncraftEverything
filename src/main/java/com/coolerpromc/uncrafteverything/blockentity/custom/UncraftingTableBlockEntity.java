@@ -569,7 +569,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     if (item.getTranslationKey().contains("shulker_box")){
                         return item == Items.SHULKER_BOX;
                     }
-                    return true;
+                    return item.getRecipeRemainder(item.getDefaultStack()) == ItemStack.EMPTY || item.getRecipeRemainder(item.getDefaultStack()).getItem() != item.getDefaultStack().getItem();
                 })
                 .sorted(Comparator.comparing(Item::getTranslationKey))
                 .toList();
