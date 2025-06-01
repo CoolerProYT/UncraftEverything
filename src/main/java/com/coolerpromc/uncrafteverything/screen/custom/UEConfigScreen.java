@@ -53,7 +53,10 @@ public class UEConfigScreen extends Screen {
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        MultiLineEditBox restrictionsInput = new MultiLineEditBox(this.font, x, 42, widgetWidth, 88, Component.literal("List of item to restrict for Whitelist/Blacklist"),Component.literal("Restrictions"));
+        MultiLineEditBox restrictionsInput = MultiLineEditBox.builder()
+                .setX(x)
+                .setY(42)
+                .build(this.font, widgetWidth, 88, Component.literal("List of item to restrict for Whitelist/Blacklist"));
         restrictionsInput.setValue(joined);
         this.addRenderableWidget(restrictionsInput);
 
@@ -121,27 +124,26 @@ public class UEConfigScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int x = 10;
         int textWidth = this.width / 2 - 10;
 
-        pGuiGraphics.drawCenteredString(this.font, Component.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderlined(true)), this.width / 2, 4, 0xFFFFFF);
-        pGuiGraphics.drawString(this.font, "Restriction Type", x, 18 + (this.font.lineHeight / 2) + 2, 0xFFFFFF);
+        pGuiGraphics.drawCenteredString(this.font, Component.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderlined(true)), this.width / 2, 4, 0xFFFFFFFF);
+        pGuiGraphics.drawString(this.font, "Restriction Type", x, 18 + (this.font.lineHeight / 2) + 2, 0xFFFFFFFF);
         Component format = Component.literal("Restricted Items \n(Please write each item in new line)");
-        pGuiGraphics.drawWordWrap(this.font, format, x, 42 + (this.font.lineHeight / 2) + 20, textWidth,0xFFFFFF);
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().scale(0.65f, 0.65f, 0f);
-        pGuiGraphics.pose().translate(x * 1.55, (42 * 1.6) + this.font.wordWrapHeight(format, textWidth) * 2 - (this.font.lineHeight * 0.65) + 40, 0);
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0, (int) (textWidth * 1.5),11184810);
-        pGuiGraphics.pose().popPose();
+        pGuiGraphics.drawWordWrap(this.font, format, x, 42 + (this.font.lineHeight / 2) + 20, textWidth,0xFFFFFFFF);
+        pGuiGraphics.pose().pushMatrix();
+        pGuiGraphics.pose().scale(0.65f, 0.65f);
+        pGuiGraphics.pose().translate(x * 1.55f, (42 * 1.6f) + this.font.wordWrapHeight(format, textWidth) * 2 - (this.font.lineHeight * 0.65f) + 40);
+        pGuiGraphics.drawWordWrap(this.font, Component.literal("Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0, (int) (textWidth * 1.5),0xFFAAAAAA);
+        pGuiGraphics.pose().popMatrix();
         Component allowEnchantedItem = Component.literal("Allow Enchanted Item to be Uncrafted (Enchanted Book will be given)");
-        pGuiGraphics.drawWordWrap(this.font, allowEnchantedItem, x, 135 + (this.font.lineHeight / 2) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4, textWidth, 0xFFFFFF);
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Experience Type"), x, 158 + (this.font.lineHeight / 2) + 2, textWidth,0xFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, allowEnchantedItem, x, 135 + (this.font.lineHeight / 2) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4, textWidth, 0xFFFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, Component.literal("Experience Type"), x, 158 + (this.font.lineHeight / 2) + 2, textWidth,0xFFFFFFFF);
         Component expRequired = Component.literal("Experience Required \n(Level/Point based on previous config)");
-        pGuiGraphics.drawWordWrap(this.font, expRequired, x, 183 + (this.font.lineHeight / 2) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4, textWidth,0xFFFFFF);
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Allow Unsmithing (Netherite/Trimmed Armor)"), x, 208 + (this.font.lineHeight / 2) + 2, textWidth, 0xFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, expRequired, x, 183 + (this.font.lineHeight / 2) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4, textWidth,0xFFFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, Component.literal("Allow Unsmithing (Netherite/Trimmed Armor)"), x, 208 + (this.font.lineHeight / 2) + 2, textWidth, 0xFFFFFFFF);
     }
 
     @Override

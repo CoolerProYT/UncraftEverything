@@ -32,6 +32,13 @@ repositories {
     }
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     maven { url "https://maven.architectury.dev/" }
+    maven {
+        name 'Maven for PR #2297'
+        url 'https://prmaven.neoforged.net/NeoForge/pr2297'
+        content {
+            includeModule('net.neoforged', 'neoforge')
+        }
+    }
 }
 
 base {

@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
@@ -101,26 +102,23 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     @Override
     protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
         int x = this.leftPos;
         int y = this.topPos;
 
-        pGuiGraphics.blit(RenderType::guiTextured, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
 
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().scale(0.75f, 0.75f, 0.75f);
-        pGuiGraphics.pose().translate(this.leftPos * 1.3334 + 115, this.topPos * 1.3334 + 121, 0);
-        pGuiGraphics.drawString(this.font, exp, 0, 0, 0x00AA00, false);
-        pGuiGraphics.pose().popPose();
+        pGuiGraphics.pose().pushMatrix();
+        pGuiGraphics.pose().scale(0.75f, 0.75f);
+        pGuiGraphics.pose().translate(this.leftPos * 1.3334f + 115, this.topPos * 1.3334f + 121);
+        pGuiGraphics.drawString(this.font, exp, 0, 0, 0xFF00AA00, false);
+        pGuiGraphics.pose().popMatrix();
 
         recipeBounds.clear();
 
@@ -251,9 +249,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                         y + 17 + (i / 3) * 18,
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
-                        200, 0xAA8B8B8B);
+                        0xAA8B8B8B);
             }
         }
+
+        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int status = this.menu.getStatus();
 
@@ -272,10 +272,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             int textY = y;
 
-            pGuiGraphics.pose().pushPose();
-            pGuiGraphics.pose().translate(0, 0, 400);
+            pGuiGraphics.pose().pushMatrix();
+            pGuiGraphics.pose().translate(0, 0);
             pGuiGraphics.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
-            pGuiGraphics.pose().popPose();
+            pGuiGraphics.pose().popMatrix();
             List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText), 54);
 
             switch (formattedText.size()){
@@ -289,21 +289,21 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             for (FormattedCharSequence formattedcharsequence : formattedText) {
                 int textWidth = font.width(formattedcharsequence);
                 int centeredX = x + 97 + (54 - textWidth) / 2;
-                pGuiGraphics.pose().pushPose();
-                pGuiGraphics.pose().translate(centeredX, textY, 400);
-                pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xAA0000, false);
-                pGuiGraphics.pose().popPose();
+                pGuiGraphics.pose().pushMatrix();
+                pGuiGraphics.pose().translate(centeredX, textY);
+                pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xFFAA0000, false);
+                pGuiGraphics.pose().popMatrix();
                 textY += 9;
             }
         }
 
         if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
             if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.renderTooltip(this.font, Component.literal("Common Config"), pMouseX, pMouseY);
+                pGuiGraphics.setTooltipForNextFrame(this.font, Component.literal("Common Config"), pMouseX, pMouseY);
             }
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.renderTooltip(this.font, Component.literal("Per Item Experience Config"), pMouseX, pMouseY);
+                pGuiGraphics.setTooltipForNextFrame(this.font, Component.literal("Per Item Experience Config"), pMouseX, pMouseY);
             }
         }
 

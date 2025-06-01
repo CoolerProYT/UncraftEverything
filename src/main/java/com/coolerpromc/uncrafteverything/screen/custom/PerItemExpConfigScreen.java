@@ -117,8 +117,6 @@ public class PerItemExpConfigScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
-
         guiGraphics.fill(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
         guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
