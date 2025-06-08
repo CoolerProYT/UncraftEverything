@@ -31,6 +31,7 @@ public class UncraftEverythingConfig {
     public static List<String> restrictions;
     public static boolean allowEnchantedItems;
     public static boolean allowUnSmithing;
+    public static boolean allowDamaged;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -78,6 +79,8 @@ public class UncraftEverythingConfig {
         allowEnchantedItems = configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", false);
 
         allowUnSmithing = configFile.getOrElse("AllowUnSmithing.allowUnSmithing", true);
+
+        allowDamaged = configFile.getOrElse("AllowDamaged.allowDamaged", true);
     }
 
     public static void save() {
@@ -103,6 +106,9 @@ public class UncraftEverythingConfig {
         configFile.set("AllowUnSmithing.allowUnSmithing", allowUnSmithing);
         configFile.setComment("AllowUnSmithing.allowUnSmithing", "Allow uncrafting of items that obtained from smithing (Trimmed Armor/Netherite Armor). [true/false]");
 
+        configFile.set("AllowDamaged.allowDamaged", allowDamaged);
+        configFile.setComment("AllowDamaged.allowDamaged", "Allow uncrafting of damaged items. [true/false]");
+
         configFile.save();
     }
 
@@ -117,6 +123,10 @@ public class UncraftEverythingConfig {
 
     public static int getExperience() {
         return experience;
+    }
+
+    public static boolean allowDamaged() {
+        return allowDamaged;
     }
 
     public static boolean isEnchantedItemsAllowed(ItemStack itemStack) {
