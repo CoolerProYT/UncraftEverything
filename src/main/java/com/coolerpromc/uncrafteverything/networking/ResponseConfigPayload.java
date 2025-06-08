@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, Map<String, Integer> perItemExp) implements CustomPayload {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) implements CustomPayload {
     public static final Id<ResponseConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "response_config"));
 
     public static final PacketCodec<RegistryByteBuf, ResponseConfigPayload> STREAM_CODEC = PacketCodec.tuple(
@@ -28,6 +28,8 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
             ResponseConfigPayload::experience,
             PacketCodecs.BOOLEAN,
             ResponseConfigPayload::allowUnsmithing,
+            PacketCodecs.BOOLEAN,
+            ResponseConfigPayload::allowDamaged,
             PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT),
             ResponseConfigPayload::perItemExp,
             ResponseConfigPayload::new
