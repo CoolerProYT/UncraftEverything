@@ -18,14 +18,16 @@ public class UEConfigPayload {
     public final UncraftEverythingConfig.ExperienceType experienceType;
     public final int experience;
     public final boolean allowUnsmithing;
+    public final boolean allowDamaged;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing){
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) {
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
         this.experienceType = experienceType;
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
+        this.allowDamaged = allowDamaged;
     }
 
     public static PacketByteBuf encode(PacketByteBuf buf, UEConfigPayload payload) {
@@ -35,6 +37,7 @@ public class UEConfigPayload {
         buf.writeEnumConstant(payload.experienceType);
         buf.writeInt(payload.experience);
         buf.writeBoolean(payload.allowUnsmithing);
+        buf.writeBoolean(payload.allowDamaged);
 
         return buf;
     }
@@ -46,8 +49,9 @@ public class UEConfigPayload {
         UncraftEverythingConfig.ExperienceType experienceType = buf.readEnumConstant(UncraftEverythingConfig.ExperienceType.class);
         int experience = buf.readInt();
         boolean allowUnsmithing = buf.readBoolean();
+        boolean allowDamaged = buf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
     }
 
     public UncraftEverythingConfig.RestrictionType restrictionType() {
