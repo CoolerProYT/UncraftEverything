@@ -74,6 +74,7 @@ public class UncraftEverything implements ModInitializer {
 			UncraftEverythingConfig.experienceType = payload.experienceType();
 			UncraftEverythingConfig.experience = payload.experience();
 			UncraftEverythingConfig.allowUnSmithing = payload.allowUnsmithing();
+			UncraftEverythingConfig.allowDamaged = payload.allowDamaged();
 			UncraftEverythingConfig.save();
 		});
 
@@ -85,6 +86,7 @@ public class UncraftEverything implements ModInitializer {
 					UncraftEverythingConfig.experienceType,
 					UncraftEverythingConfig.experience,
 					UncraftEverythingConfig.allowUnSmithing,
+					UncraftEverythingConfig.allowDamaged,
 					PerItemExpCostConfig.getPerItemExp()
 			)));
 		});
