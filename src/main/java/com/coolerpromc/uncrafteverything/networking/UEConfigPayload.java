@@ -9,7 +9,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing){
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged){
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "ue_config");
     private static final String PROTOCOL_VERSION = "1";
 
@@ -31,6 +31,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         byteBuf.writeEnum(payload.experienceType);
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
+        byteBuf.writeBoolean(payload.allowDamaged);
     }
 
     public static UEConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -40,8 +41,9 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         UncraftEverythingConfig.ExperienceType experienceType = byteBuf.readEnum(UncraftEverythingConfig.ExperienceType.class);
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
+        boolean allowDamaged = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
     }
 
     public static void register(){

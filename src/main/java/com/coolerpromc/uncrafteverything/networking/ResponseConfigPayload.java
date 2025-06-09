@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, Map<String, Integer> perItemExp) {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) {
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "response_config");
     private static final String PROTOCOL_VERSION = "1";
 
@@ -33,6 +33,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         byteBuf.writeEnum(payload.experienceType);
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
+        byteBuf.writeBoolean(payload.allowDamaged);
         byteBuf.writeMap(payload.perItemExp, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeVarInt);
     }
 
@@ -43,9 +44,10 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         UncraftEverythingConfig.ExperienceType experienceType = byteBuf.readEnum(UncraftEverythingConfig.ExperienceType.class);
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
+        boolean allowDamaged = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = byteBuf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readVarInt);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
     }
 
     public static void register(){
