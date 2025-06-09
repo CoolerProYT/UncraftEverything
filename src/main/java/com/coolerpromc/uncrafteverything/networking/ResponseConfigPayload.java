@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, Map<String, Integer> perItemExp) implements CustomPacketPayload {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) implements CustomPacketPayload {
     public static final Type<ResponseConfigPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ResponseConfigPayload> STREAM_CODEC = StreamCodec.of(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
@@ -24,6 +24,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         UncraftEverythingConfig.ExperienceType.STREAM_CODEC.encode(buf, payload.experienceType);
         ByteBufCodecs.INT.encode(buf, payload.experience);
         ByteBufCodecs.BOOL.encode(buf, payload.allowUnsmithing);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
         ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
     }
 
@@ -34,9 +35,10 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         UncraftEverythingConfig.ExperienceType experienceType = UncraftEverythingConfig.ExperienceType.STREAM_CODEC.decode(buf);
         int experience = ByteBufCodecs.INT.decode(buf);
         boolean allowUnsmithing = ByteBufCodecs.BOOL.decode(buf);
+        boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
         Map<String, Integer> perItemExp = ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
     }
 
     @Override
