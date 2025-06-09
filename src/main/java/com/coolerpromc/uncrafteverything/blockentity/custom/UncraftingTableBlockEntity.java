@@ -408,7 +408,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.output.getItem(), shapedRecipe.output.getCount()));
                     Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
@@ -458,7 +458,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.output.getItem(), shapelessRecipe.output.getCount()));
                     Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
@@ -509,7 +509,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                         if (outputStack.getOutputs().contains(item.getDefaultStack())) {
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
                             if (item.getDefaultStack().isDamageable()){
-                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                                stack.setDamage(inputStack.getDamage());
                             }
                             stack.increment(1);
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
@@ -517,8 +517,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack itemStack = new ItemStack(item, 1);
                             // If the item is damageable, set the damage to the input stack's damage
                             if (item.getDefaultStack().isDamageable()){
-                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
-                                if (itemStack.getOrDefault(DataComponentTypes.DAMAGE, 0) >= itemStack.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0)){
+                                itemStack.setDamage(inputStack.getDamage());
+                                if (itemStack.getDamage() >= itemStack.getMaxDamage()){
                                     itemStack = ItemStack.EMPTY;
                                 }
                             }
@@ -559,7 +559,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
                             if (item.getDefaultStack().isOf(ingredients.get(0).getMatchingStacks()[0].getItem())){
                                 EnchantmentHelper.set(itemEnchantments, stack);
-                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                                stack.setDamage(inputStack.getDamage());
                             }
                             stack.setCount(stack.getCount() + 1);
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
@@ -567,7 +567,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack itemStack = new ItemStack(item, 1);
                             if (item.getDefaultStack().isOf(ingredients.get(0).getMatchingStacks()[0].getItem())){
                                 EnchantmentHelper.set(itemEnchantments, itemStack);
-                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                                itemStack.setDamage(inputStack.getDamage());
                             }
                             outputStack.addOutput(itemStack);
                         }

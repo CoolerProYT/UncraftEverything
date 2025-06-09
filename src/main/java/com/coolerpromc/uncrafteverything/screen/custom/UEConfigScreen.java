@@ -135,8 +135,8 @@ public class UEConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        double newScroll = scrollAmount - verticalAmount * 10; // 10 is scroll speed
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        double newScroll = scrollAmount - amount * 10; // 10 is scroll speed
         scrollAmount = Math.max(0, Math.min(newScroll, getMaxScroll()));
 
         this.clearChildren();
@@ -148,10 +148,10 @@ public class UEConfigScreen extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 264) { // Down arrow
-            mouseScrolled(0, 0, 0, -1);
+            mouseScrolled(0, 0, -1);
             return true;
         } else if (keyCode == 265) { // Up arrow
-            mouseScrolled(0, 0, 0, 1);
+            mouseScrolled(0, 0, 1);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
