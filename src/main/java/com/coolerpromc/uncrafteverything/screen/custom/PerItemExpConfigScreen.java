@@ -119,8 +119,8 @@ public class PerItemExpConfigScreen extends Screen {
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         guiGraphics.fill(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
-        guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
-        guiGraphics.drawCenteredString(font, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
+        guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
+        guiGraphics.drawCenteredString(font, "Entries: " + entries.size(), width / 2, 25, 0xFFCCCCCC);
 
         guiGraphics.enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
 
@@ -140,7 +140,7 @@ public class PerItemExpConfigScreen extends Screen {
         });
 
         if (maxScrollOffset > 0) {
-            guiGraphics.drawCenteredString(font, "Scroll to see more entries", width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
+            guiGraphics.drawCenteredString(font, "Scroll to see more entries", width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
         }
     }
 
