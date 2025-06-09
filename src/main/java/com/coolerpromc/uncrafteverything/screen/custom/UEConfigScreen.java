@@ -212,7 +212,7 @@ public class UEConfigScreen extends Screen {
         pGuiGraphics.disableScissor();
 
         // Draw title and scroll indicator outside scissor area
-        pGuiGraphics.drawTextWrapped(this.textRenderer, Text.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF);
+        pGuiGraphics.drawText(this.textRenderer, Text.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF, false);
 
         // Draw scroll indicator if content overflows
         if (getMaxScroll() > 0) {

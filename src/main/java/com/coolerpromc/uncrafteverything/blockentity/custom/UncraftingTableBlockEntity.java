@@ -424,25 +424,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     }
                     // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the output
                     if (inputStack.isDamaged()){
-                        RepairableComponent repairableComponent = inputStack.get(DataComponentTypes.REPAIRABLE);
-                        if (repairableComponent != null){
-                            for (var x : allIngredients.entrySet()){
-                                if (repairableComponent.matches(new ItemStack(x.getKey(), x.getValue()))){
-                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).isOf(x.getKey())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
-                                            damagedPercentage--;
-                                        }
+                        for (var x : allIngredients.entrySet()){
+                            if (inputStack.getItem().canRepair(inputStack, new ItemStack(x.getKey(), x.getValue()))){
+                                int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
+                                for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                    if (outputStack.getOutputs().get(i).isOf(x.getKey())){
+                                        outputStack.setOutput(i, ItemStack.EMPTY);
+                                        damagedPercentage--;
                                     }
-                                    break;
                                 }
+                                break;
                             }
-                        }
-                        else{
-                            this.status = DAMAGED_ITEM;
-                            outputs.clear();
-                            return;
                         }
                     }
                     outputs.add(outputStack);
@@ -483,25 +475,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     }
                     // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the output
                     if (inputStack.isDamaged()){
-                        RepairableComponent repairableComponent = inputStack.get(DataComponentTypes.REPAIRABLE);
-                        if (repairableComponent != null){
-                            for (var x : allIngredients.entrySet()){
-                                if (repairableComponent.matches(new ItemStack(x.getKey(), x.getValue()))){
-                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).isOf(x.getKey())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
-                                            damagedPercentage--;
-                                        }
+                        for (var x : allIngredients.entrySet()){
+                            if (inputStack.getItem().canRepair(inputStack, new ItemStack(x.getKey(), x.getValue()))){
+                                int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
+                                for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                    if (outputStack.getOutputs().get(i).isOf(x.getKey())){
+                                        outputStack.setOutput(i, ItemStack.EMPTY);
+                                        damagedPercentage--;
                                     }
-                                    break;
                                 }
+                                break;
                             }
-                        }
-                        else{
-                            this.status = DAMAGED_ITEM;
-                            outputs.clear();
-                            return;
                         }
                     }
                     outputs.add(outputStack);

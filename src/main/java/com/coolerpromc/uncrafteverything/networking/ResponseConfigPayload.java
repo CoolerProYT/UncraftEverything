@@ -35,6 +35,6 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = buf.readBoolean();
         Map<String, Integer> perItemExp = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readVarInt);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
     }
 }
