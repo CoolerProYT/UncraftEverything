@@ -523,10 +523,21 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultStack())) {
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
-                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()),
-                                    new ItemStack(stack.getItem(), stack.getCount() + 1));
+                            if (item.getDefaultStack().isDamageable()){
+                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                            }
+                            stack.increment(1);
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
                         } else {
-                            outputStack.addOutput(new ItemStack(item, 1));
+                            ItemStack itemStack = new ItemStack(item, 1);
+                            // If the item is damageable, set the damage to the input stack's damage
+                            if (item.getDefaultStack().isDamageable()){
+                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                                if (itemStack.getOrDefault(DataComponentTypes.DAMAGE, 0) >= itemStack.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0)){
+                                    itemStack = ItemStack.EMPTY;
+                                }
+                            }
+                            outputStack.addOutput(itemStack);
                         }
                     }
                     outputs.add(outputStack);
@@ -563,6 +574,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
                             if (item.getDefaultStack().isOf(Arrays.stream(ingredients.getFirst().getMatchingStacks()).toList().getFirst().getItem())){
                                 stack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
                             }
                             stack.setCount(stack.getCount() + 1);
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
@@ -570,6 +582,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack itemStack = new ItemStack(item, 1);
                             if (item.getDefaultStack().isOf(Arrays.stream(ingredients.getFirst().getMatchingStacks()).toList().getFirst().getItem())){
                                 itemStack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
                             }
                             outputStack.addOutput(itemStack);
                         }
