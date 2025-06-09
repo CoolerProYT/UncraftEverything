@@ -143,7 +143,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
         context.getMatrices().push();
         context.getMatrices().translate(0, 0, 600);
-        context.drawTexture(RenderLayer::getGuiTextured, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
+        context.drawTexture(RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
         this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
         this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal(pageToDisplay + " of " + maxPageCount), x - 75, y + backgroundHeight - 18, 4210752);
 
