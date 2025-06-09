@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEConfigPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -14,6 +15,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import org.lwjgl.opengl.GL11;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,14 +36,12 @@ public class UEConfigScreen extends Screen {
     // Scroll variables
     private double scrollAmount = 0.0;
     private final int CONTENT_HEIGHT = 240;
-    private EditBoxWidget restrictionsInput;
-    private TextFieldWidget experienceInput;
-    private ButtonWidget saveButton;
 
     private ButtonWidget restrictionTypeButton;
     private ButtonWidget toggleEnchantedBtn;
     private ButtonWidget toggleEnchantmentTypeBtn;
     private ButtonWidget toggleAllowUnsmithing;
+    private ButtonWidget toggleAllowDamaged;
     private ButtonWidget doneButton;
 
     private MultiLineEditBox restrictionsInput;
@@ -101,20 +101,19 @@ public class UEConfigScreen extends Screen {
         this.addChild(experienceInput);
 
         // Toggle for allowUnsmithing
-        toggleAllowUnsmithing = new ButtonWidget(x, 208, widgetWidth, 20, new LiteralText(getUnsmithingLabel(allowUnsmithing)), btn -> {
+        toggleAllowUnsmithing = new ButtonWidget(x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20, new LiteralText(getUnsmithingLabel(allowUnsmithing)), btn -> {
             allowUnsmithing = !allowUnsmithing;
-            btn.setMessage(Text.literal(getUnsmithingLabel(allowUnsmithing)));
-        }).dimensions(x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20).build();
-        this.addDrawableChild(toggleAllowUnsmithing);
+            btn.setMessage(new LiteralText(getUnsmithingLabel(allowUnsmithing)));
+        });
+        this.addChild(toggleAllowUnsmithing);
 
-        ButtonWidget toggleAllowDamaged = ButtonWidget.builder(Text.literal(getDamagedLabel(allowDamagedItems)), btn -> {
+        toggleAllowDamaged = new ButtonWidget(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20, new LiteralText(getDamagedLabel(allowDamagedItems)), btn -> {
             allowDamagedItems = !allowDamagedItems;
-            btn.setMessage(Text.literal(getDamagedLabel(allowDamagedItems)));
-        }).dimensions(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
-        this.addDrawableChild(toggleAllowDamaged);
+            btn.setMessage(new LiteralText(getDamagedLabel(allowDamagedItems)));
+        });
+        this.addChild(toggleAllowDamaged);
 
-        // Save button (always at bottom)
-        saveButton = ButtonWidget.builder(Text.literal("Done"), btn -> {
+        doneButton = new ButtonWidget(this.width / 2 - 100, this.height - 23, 200, 20, new LiteralText("Done"), btn -> {
             String[] entries = restrictionsInput.getText().split("\n");
             List<String> restrictedItems = Arrays.stream(entries)
                     .map(String::trim)
@@ -131,9 +130,11 @@ public class UEConfigScreen extends Screen {
             UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems);
             ClientPlayNetworking.send(UEConfigPayload.TYPE, UEConfigPayload.encode(PacketByteBufs.create(), configPayload));
             ClientPlayNetworking.send(RequestConfigPayload.TYPE, RequestConfigPayload.encode(PacketByteBufs.create(), new RequestConfigPayload()));
-            this.client.setScreen(parent);
-        }).dimensions(this.width / 2 - 100, this.height - 23, 200, 20).build();
-        this.addDrawableChild(saveButton);
+            this.client.openScreen(parent);
+        });
+
+        // Save button
+        this.addChild(doneButton);
     }
 
     @Override
@@ -141,7 +142,7 @@ public class UEConfigScreen extends Screen {
         double newScroll = scrollAmount - amount * 10; // 10 is scroll speed
         scrollAmount = Math.max(0, Math.min(newScroll, getMaxScroll()));
 
-        this.clearChildren();
+        this.children().clear();
         this.init();
 
         return true;
@@ -175,10 +176,13 @@ public class UEConfigScreen extends Screen {
     public void render(MatrixStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
 
-        // Enable scissor test to clip content outside the scrollable area
-        int scissorTop = 25;
-        int scissorBottom = this.height - 45;
-        pGuiGraphics.enableScissor(0, scissorTop, this.width, scissorBottom);
+        int scale = (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
+        int clipTop = 45;
+        int clipBottom = this.height - 25;
+        int clipHeight = clipBottom - clipTop;
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(0, clipTop * scale, this.width * scale, clipHeight * scale);
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
@@ -189,35 +193,43 @@ public class UEConfigScreen extends Screen {
         this.toggleEnchantedBtn.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.toggleEnchantmentTypeBtn.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.toggleAllowUnsmithing.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.toggleAllowDamaged.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.doneButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int x = 10;
         int textWidth = this.width / 2 - 10;
         int baseY = 40;
 
-        pGuiGraphics.drawTextWithShadow(this.textRenderer, "Restriction Type", x, (int) (baseY - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), 0xFFFFFF);
-
-        drawCenteredText(pGuiGraphics, this.textRenderer, new LiteralText("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF);
-        drawStringWithShadow(pGuiGraphics, this.textRenderer, "Restriction Type", x, 18 + (this.textRenderer.fontHeight / 2) + 2, 0xFFFFFF);
+        drawTextWithShadow(pGuiGraphics, this.textRenderer, new LiteralText("Restriction Type"), x, (int) (baseY - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), 0xFFFFFF);
         LiteralText format = new LiteralText("Restricted Items \n(Please write each item in new line)");
-        this.textRenderer.drawTrimmed(format, x, 42 + (this.textRenderer.fontHeight / 2) + 20, textWidth,0xFFFFFF);
+        this.textRenderer.drawTrimmed(format, x, (int) (baseY + 25 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 20), textWidth, 0xFFFFFF);
         pGuiGraphics.push();
         pGuiGraphics.scale(0.65f, 0.65f, 1f);
-        pGuiGraphics.translate(x * 1.55, (42 * 1.6) + this.textRenderer.getStringBoundedHeight(format.getString(), textWidth) * 2 - (this.textRenderer.fontHeight * 0.65) + 40, 0);
-        drawTextWithShadow(pGuiGraphics, this.textRenderer, new LiteralText("Format: modid:item_name / modid:* / modid:*_glass / modid:black_*"), 0, 0,11184810);
+        pGuiGraphics.translate(x * 1.55, ((baseY + 25 - scrollAmount) * 1.6) + this.textRenderer.getStringBoundedHeight(format.getString(), textWidth) * 2 - (this.textRenderer.fontHeight * 0.65) + 40, 0);
+        drawTextWithShadow(pGuiGraphics, this.textRenderer, new LiteralText("Format: modid:item_name / modid:* / modid:*_glass / modid:black_*"), 0, 0, 11184810);
         pGuiGraphics.pop();
         pGuiGraphics.push();
         pGuiGraphics.scale(0.65f, 0.65f, 1f);
-        pGuiGraphics.translate(x * 1.55, (42 * 1.6) + this.textRenderer.getStringBoundedHeight(format.getString(), textWidth) * 2 - (this.textRenderer.fontHeight * 0.65) + 50, 0);
-        drawTextWithShadow(pGuiGraphics, this.textRenderer, new LiteralText("/ modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0,11184810);
+        pGuiGraphics.translate(x * 1.55, ((baseY + 25 - scrollAmount) * 1.6) + this.textRenderer.getStringBoundedHeight(format.getString(), textWidth) * 2 - (this.textRenderer.fontHeight * 0.65) + 50, 0);
+        drawTextWithShadow(pGuiGraphics, this.textRenderer, new LiteralText("/ modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0, 11184810);
         pGuiGraphics.pop();
         LiteralText allowEnchantedItem = new LiteralText("Allow Enchanted Item to be Uncrafted (Enchanted Book will be given)");
-        this.textRenderer.drawTrimmed(allowEnchantedItem, x, 135 + (this.textRenderer.fontHeight / 2) + 1 - this.textRenderer.getStringBoundedHeight(allowEnchantedItem.getString(), textWidth) / 4, textWidth, 0xFFFFFF);
-        this.textRenderer.drawTrimmed(new LiteralText("Experience Type"), x, 158 + (this.textRenderer.fontHeight / 2) + 2, textWidth,0xFFFFFF);
+        this.textRenderer.drawTrimmed(allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(allowEnchantedItem.getString(), textWidth) / 4d), textWidth, 0xFFFFFF);
+        this.textRenderer.drawTrimmed(new LiteralText("Experience Type"), x, (int) (baseY + 145 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFF);
         LiteralText expRequired = new LiteralText("Experience Required \n(Level/Point based on previous config)");
-        this.textRenderer.drawTrimmed(expRequired, x, 183 + (this.textRenderer.fontHeight / 2) + 1 - this.textRenderer.getStringBoundedHeight(expRequired.getString(), textWidth) / 4, textWidth,0xFFFFFF);
-        this.textRenderer.drawTrimmed(new LiteralText("Allow Unsmithing (Netherite/Trimmed Armor)"), x, 208 + (this.textRenderer.fontHeight / 2) + 2, textWidth, 0xFFFFFF);
-        pGuiGraphics.drawTextWrapped(this.textRenderer, Text.literal("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"), x, (int) (baseY + 220 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(Text.literal("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"), textWidth) / 4d), textWidth, 0xFFFFFF);
+        this.textRenderer.drawTrimmed(expRequired, x, (int) (baseY + 170 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(expRequired.getString(), textWidth) / 4d), textWidth, 0xFFFFFF);
+        this.textRenderer.drawTrimmed(new LiteralText("Allow Unsmithing (Netherite/Trimmed Armor)"), x, (int) (baseY + 195 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFF);
+        this.textRenderer.drawTrimmed(new LiteralText("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"), x, (int) (baseY + 220 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)", textWidth) / 4d), textWidth, 0xFFFFFF);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        drawCenteredText(pGuiGraphics, this.textRenderer, new LiteralText("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF);
+        if (getMaxScroll() > 0) {
+            int scrollBarHeight = Math.max(10, (int) ((this.height - 70) * (this.height - 70) / (double) CONTENT_HEIGHT));
+            int scrollBarY = (int) (25 + (scrollAmount / getMaxScroll()) * (this.height - 70 - scrollBarHeight));
+            fill(pGuiGraphics, this.width - 6, scrollBarY, this.width, scrollBarY + scrollBarHeight, 0xFFAAAAAA);
+            fill(pGuiGraphics, this.width - 6, 25, this.width, this.height - 45, 0x44000000);
+        }
+
+        doneButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
     @Override

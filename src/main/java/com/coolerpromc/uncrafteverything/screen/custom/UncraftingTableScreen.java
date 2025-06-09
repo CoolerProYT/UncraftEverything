@@ -9,6 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -123,7 +124,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     public void render(MatrixStack context, int mouseX, int mouseY, float delta) {
         renderBackground(context);
 
-        this.clearChildren();
+        this.children.clear();
         this.init();
 
         String exp = "Experience " + this.handler.getExpType() + ": " + this.handler.getExpAmount();
@@ -141,31 +142,32 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             page = 0;
         }
 
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 600);
-        context.drawTexture(RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
-        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal(pageToDisplay + " of " + maxPageCount), x - 75, y + backgroundHeight - 18, 4210752);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(RECIPE_PANEL_TEXTURE);
+        drawTexture(context, x - 152, y, 0, 0, 152, 184, 152, 184);
+        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, new LiteralText("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
+        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, new LiteralText(pageToDisplay + " of " + maxPageCount), x - 75, y + backgroundHeight - 18, 4210752);
 
-        ButtonWidget prevButton = ButtonWidget.builder(Text.literal("<"), button -> {
+        ButtonWidget prevButton = new ButtonWidget(x - 152 + 5, y + backgroundHeight - 23, 16, 16, new LiteralText("<"), button -> {
             if (this.page > 0) {
                 this.page--;
             }
             else{
                 this.page = maxPageCount - 1;
             }
-        }).position(x - 152 + 5, y + backgroundHeight - 23).size(16, 16).build();
-        this.addDrawableChild(prevButton).render(context, mouseX, mouseY, delta);
+        });
+        this.addChild(prevButton).render(context, mouseX, mouseY, delta);
+        fill(context, x - 152 + 5, y + backgroundHeight - 23 + 15, x - 152 + 5 + 16, y + backgroundHeight - 23 + 16, prevButton.isHovered() || prevButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
-        ButtonWidget nextButton = ButtonWidget.builder(Text.literal(">"), button -> {
+        ButtonWidget nextButton = new ButtonWidget(x - 21, y + backgroundHeight - 23, 16, 16, new LiteralText(">"), button -> {
             if (this.page < maxPageCount - 1) {
                 this.page++;
             }
             else{
                 this.page = 0;
             }
-        }).position(x - 21, y + backgroundHeight - 23).size(16, 16).build();
-        this.addDrawableChild(nextButton).render(context, mouseX, mouseY, delta);
+        });
+        this.addChild(nextButton).render(context, mouseX, mouseY, delta);
+        fill(context, x - 21, y + backgroundHeight - 23 + 15, x - 21 + 16, y + backgroundHeight - 23 + 16, nextButton.isHovered() || nextButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
         int visibleCount = 0;
         for (int j = page * MAX_PAGE_SIZE; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
@@ -176,11 +178,13 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
 
             int finalJ = j;
-            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Text.literal(""), ignored -> selectedRecipe = finalJ);
+            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), new LiteralText(""), ignored -> selectedRecipe = finalJ);
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
-            this.addDrawableChild(button).render(context, mouseX, mouseY, delta);
+            this.addChild(button).render(context, mouseX, mouseY, delta);
+            fill(context, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX() + bounds.getWidth()), (int) (bounds.getY() + bounds.getHeight()),0xFFFFFFFF);
+            fill(context, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX()), (int) (bounds.getY() + bounds.getHeight()),0xFF8B8B8B);
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
@@ -210,7 +214,6 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             visibleCount++;
         }
-        context.getMatrices().pop();
 
         if (selectedRecipe >= recipes.size()) {
             selectedRecipe = 0;
@@ -311,7 +314,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
-    public void drawCenteredWordWrapWithoutShadow(DrawContext context, TextRenderer textRenderer, Text text, int centerX, int y, int color) {
+    public void drawCenteredWordWrapWithoutShadow(MatrixStack context, TextRenderer textRenderer, Text text, int centerX, int y, int color) {
         List<OrderedText> lines = textRenderer.wrapLines(text, 140);
 
         int lineHeight = textRenderer.fontHeight + 2;
@@ -322,7 +325,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             int lineX = centerX - lineWidth / 2;
             int lineY = y + (i * lineHeight);
 
-            context.drawText(textRenderer, line, lineX, lineY, color, false);
+            textRenderer.draw(context, line, lineX, lineY, color);
         }
     }
 }

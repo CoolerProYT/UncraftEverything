@@ -72,4 +72,7 @@ public class UEConfigPayload {
     public boolean allowUnsmithing() {
         return allowUnsmithing;
     }
+    public boolean allowDamaged() {
+        return allowDamaged;
+    }
 }
