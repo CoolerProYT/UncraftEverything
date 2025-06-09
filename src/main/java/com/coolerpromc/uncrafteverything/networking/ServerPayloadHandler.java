@@ -69,6 +69,7 @@ public class ServerPayloadHandler {
                 config.experienceType.set(payload.experienceType());
                 config.experience.set(payload.experience());
                 config.allowUnSmithing.set(payload.allowUnsmithing());
+                config.allowDamaged.set(payload.allowDamaged());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -88,6 +89,7 @@ public class ServerPayloadHandler {
                         config.experienceType.get(),
                         config.experience.get(),
                         config.allowUnSmithing.get(),
+                        config.allowDamaged.get(),
                         PerItemExpCostConfig.getPerItemExp()
                 );
                 ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> context.get().getSender()), configPayload);

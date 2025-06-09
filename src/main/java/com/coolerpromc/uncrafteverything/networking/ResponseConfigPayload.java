@@ -28,15 +28,17 @@ public class ResponseConfigPayload {
     public final UncraftEverythingConfig.ExperienceType experienceType;
     public final int experience;
     public final boolean allowUnsmithing;
+    public final boolean allowDamaged;
     public final Map<String, Integer> perItemExp;
 
-    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, Map<String, Integer> perItemExp){
+    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp){
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
         this.experienceType = experienceType;
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
+        this.allowDamaged = allowDamaged;
         this.perItemExp = perItemExp;
     }
 
@@ -52,6 +54,7 @@ public class ResponseConfigPayload {
         byteBuf.writeEnum(payload.experienceType);
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
+        byteBuf.writeBoolean(payload.allowDamaged);
         BufferUtil.writeMap(byteBuf, payload.perItemExp);
     }
 
@@ -62,9 +65,10 @@ public class ResponseConfigPayload {
         UncraftEverythingConfig.ExperienceType experienceType = byteBuf.readEnum(UncraftEverythingConfig.ExperienceType.class);
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
+        boolean allowDamaged = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = BufferUtil.readMap(byteBuf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
     }
 
     public static void register(){
@@ -99,6 +103,10 @@ public class ResponseConfigPayload {
 
     public boolean allowUnsmithing(){
         return allowUnsmithing;
+    }
+
+    public boolean allowDamaged(){
+        return allowDamaged;
     }
 
     public Map<String, Integer> perItemExp(){

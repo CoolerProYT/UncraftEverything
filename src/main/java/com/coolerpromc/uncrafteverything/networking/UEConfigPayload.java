@@ -26,14 +26,16 @@ public class UEConfigPayload{
     public final UncraftEverythingConfig.ExperienceType experienceType;
     public final int experience;
     public final boolean allowUnsmithing;
+    public final boolean allowDamaged;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing){
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged){
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
         this.experienceType = experienceType;
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
+        this.allowDamaged = allowDamaged;
     }
 
     private static int packetId = 0;
@@ -48,6 +50,7 @@ public class UEConfigPayload{
         byteBuf.writeEnum(payload.experienceType);
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
+        byteBuf.writeBoolean(payload.allowDamaged);
     }
 
     public static UEConfigPayload decode(PacketBuffer byteBuf){
@@ -57,8 +60,9 @@ public class UEConfigPayload{
         UncraftEverythingConfig.ExperienceType experienceType = byteBuf.readEnum(UncraftEverythingConfig.ExperienceType.class);
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
+        boolean allowDamaged = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
     }
 
     public static void register(){
@@ -93,5 +97,9 @@ public class UEConfigPayload{
 
     public boolean allowUnsmithing() {
         return allowUnsmithing;
+    }
+
+    public boolean allowDamaged() {
+        return allowDamaged;
     }
 }

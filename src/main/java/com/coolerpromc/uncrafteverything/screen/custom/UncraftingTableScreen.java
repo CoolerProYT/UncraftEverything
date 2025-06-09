@@ -3,9 +3,11 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
+import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.player.PlayerInventory;
@@ -15,7 +17,6 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
@@ -28,17 +29,14 @@ import java.util.Map;
 
 public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
+    private static final ResourceLocation RECIPE_PANEL_TEXTURE = new ResourceLocation(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
     private List<UncraftingTableRecipe> recipes = new ArrayList<>();
     private int selectedRecipe = 0;
-    private int hoveredRecipe = -1;
-    private final List<Rectangle2D> recipeBounds = new ArrayList<>();
 
-    private int scrollOffset = 0;
-    private int maxVisibleRecipes;
-    private boolean isScrolling = false;
     private static final int SCROLLBAR_WIDTH = 6;
     private static final int SCROLLBAR_PADDING = 2;
-    private Rectangle2D scrollBarBounds;
+    private int page = 0;
+    private final int MAX_PAGE_SIZE = 7;
 
     private Button configButton;
     private Button expConfigButton;
@@ -56,12 +54,9 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         this.imageHeight = 184;
         this.inventoryLabelY = this.imageHeight - 94;
 
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
-
         super.init();
 
-        this.leftPos = Math.max(x, (16 * 9) + SCROLLBAR_PADDING + SCROLLBAR_WIDTH);
+        this.leftPos = Math.max((width - imageWidth) / 2, (16 * 9) + SCROLLBAR_PADDING + SCROLLBAR_WIDTH);
 
         int buttonX = leftPos + (imageWidth - 64) - 20;
         int buttonY = topPos + 72;
@@ -120,6 +115,9 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
     public void render(MatrixStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
 
+        this.children.clear();
+        this.init();
+
         String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
 
         pGuiGraphics.pushPose();
@@ -128,86 +126,60 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         drawString(pGuiGraphics, this.font, exp, 0, 0, 0x00AA00);
         pGuiGraphics.popPose();
 
-        recipeBounds.clear();
 
         int x = this.leftPos;
         int y = this.topPos;
+        int maxPageCount = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE);
+        int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
 
-        // Calculate maximum number of visible recipes
-        maxVisibleRecipes = (imageHeight) / 16;  // Adjust based on your UI layout
-
-        // Ensure scrolling offset is valid
-        if (scrollOffset < 0) scrollOffset = 0;
-        int maxOffset = Math.max(0, recipes.size() - maxVisibleRecipes);
-        if (scrollOffset > maxOffset) scrollOffset = maxOffset;
-
-        if (!recipes.isEmpty()){
-            fill(pGuiGraphics, x - (16 * 9) - SCROLLBAR_PADDING, y + 5 - SCROLLBAR_PADDING, x, y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING, 0x15F8F9FA);
+        if (page > maxPageCount - 1) {
+            page = 0;
         }
 
-        // Setup scrollbar bounds
-        int scrollbarHeight;
-        if (recipes.size() > maxVisibleRecipes) {
-            int scrollAreaHeight = maxVisibleRecipes * 16;
-            scrollbarHeight = Math.max(20, maxVisibleRecipes * scrollAreaHeight / recipes.size());
-            int scrollY = y + 5 + (int)((scrollAreaHeight - scrollbarHeight) *
-                    ((float)scrollOffset / (recipes.size() - maxVisibleRecipes)));
+        this.getMinecraft().getTextureManager().bind(RECIPE_PANEL_TEXTURE);
+        blit(pGuiGraphics,x - 152, y, 0, 0, 152, 184, 152, 184);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new StringTextComponent("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new StringTextComponent(pageToDisplay + " of " + maxPageCount), x - 75, y + imageHeight - 18, 4210752);
 
-            // Draw scrollbar background
-            fill(
-                    pGuiGraphics,
-                    x - (16 * 9) - SCROLLBAR_PADDING,
-                    y + 5 - SCROLLBAR_PADDING,
-                    x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
-                    y + 5 + (maxVisibleRecipes * 16) + SCROLLBAR_PADDING,
-                    0x50F8F9FA);
+        Button prevButton = new Button(x - 152 + 5, y + imageHeight - 23, 16, 16, new StringTextComponent("<"), button -> {
+            if (this.page > 0) {
+                this.page--;
+            }
+            else{
+                this.page = maxPageCount - 1;
+            }
+        });
+        this.addWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        fill(pGuiGraphics, x - 152 + 5, y + imageHeight - 23 + 15, x - 152 + 5 + 16, y + imageHeight - 23 + 16, prevButton.isHovered() || prevButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
-            // Draw scrollbar handle
-            fill(
-                    pGuiGraphics,
-                    x - (16 * 9) - SCROLLBAR_PADDING,
-                    scrollY,
-                    x - (16 * 9) - SCROLLBAR_WIDTH - SCROLLBAR_PADDING,
-                    scrollY + scrollbarHeight,
-                    0xFFBBBBBB);
-
-            scrollBarBounds = new Rectangle2D.Double(
-                    0, y + 5,
-                    SCROLLBAR_WIDTH, maxVisibleRecipes * 16);
-        }
+        Button nextButton = new Button(x - 21, y + imageHeight - 23, 16, 16, new StringTextComponent(">"), button -> {
+            if (this.page < maxPageCount - 1) {
+                this.page++;
+            }
+            else{
+                this.page = 0;
+            }
+        });
+        this.addWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        fill(pGuiGraphics, x - 21, y + imageHeight - 23 + 15, x - 21 + 16, y + imageHeight - 23 + 16, nextButton.isHovered() || nextButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
         // Render visible recipes
         int visibleCount = 0;
-        for (int j = scrollOffset; j < recipes.size() && visibleCount < maxVisibleRecipes; j++) {
+        for (int j = page * MAX_PAGE_SIZE; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
             UncraftingTableRecipe recipe = recipes.get(j);
-            int displayIndex = visibleCount;  // Visual position index
+            int displayIndex = visibleCount;
 
-            int recipeWidth = 9 * 16;
-            Rectangle2D bounds = new Rectangle2D.Double(
-                    x - recipeWidth,
-                    y + (displayIndex * 16) + 5,
-                    recipeWidth, 16);
-            recipeBounds.add(bounds);
+            int recipeWidth = 9 * 16 + 5;
+            Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
 
+            int finalJ = j;
+            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), new StringTextComponent(""), ignored -> selectedRecipe = finalJ);
             if (selectedRecipe == j) {
-                fill(
-                        pGuiGraphics,
-                        (int) bounds.getX(),
-                        (int) bounds.getY(),
-                        (int) (bounds.getX() + bounds.getWidth()),
-                        (int) (bounds.getY() + bounds.getHeight()),
-                        0x80FFFFFF);
+                button.setFocused(true);
             }
-
-            if (hoveredRecipe == j) {
-                fill(
-                        pGuiGraphics,
-                        (int) bounds.getX(),
-                        (int) bounds.getY(),
-                        (int) (bounds.getX() + bounds.getWidth()),
-                        (int) (bounds.getY() + bounds.getHeight()),
-                        0x70FFFFFF);
-            }
+            this.addWidget(button).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            fill(pGuiGraphics, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX() + bounds.getWidth()), (int) (bounds.getY() + bounds.getHeight()),0xFFFFFFFF);
+            fill(pGuiGraphics, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX()), (int) (bounds.getY() + bounds.getHeight()),0xFF8B8B8B);
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
@@ -230,20 +202,19 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 if (inputComponents.containsKey(entry.getKey())){
                     itemStack.setTag(inputComponents.get(entry.getKey()));
                 }
-                itemRenderer.renderAndDecorateFakeItem(itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
-                itemRenderer.renderGuiItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16), y + (displayIndex * 16) + 5);
+                pGuiGraphics.pushPose();
+                itemRenderer.renderAndDecorateFakeItem(itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
+                itemRenderer.renderGuiItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
                 i++;
             }
 
             visibleCount++;
         }
 
-        // Ensure selection is valid
         if (selectedRecipe >= recipes.size()) {
             selectedRecipe = 0;
         }
 
-        // Show selected recipe outputs
         if (!recipes.isEmpty()) {
             UncraftingRecipeSelectionPayload.INSTANCE.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
 
@@ -291,7 +262,6 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
             List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(statusText), 54);
 
             switch (formattedText.size()){
-                case 1 : textY += 27; break;
                 case 2 : textY += 34; break;
                 case 3 : textY += 30; break;
                 case 4 : textY += 23; break;
@@ -323,70 +293,27 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Check if clicking on scrollbar
-        if (scrollBarBounds != null && scrollBarBounds.contains(mouseX, mouseY)) {
-            isScrolling = true;
-            mouseDragged(mouseX, mouseY, button, 0, 0); // Initial position
-            return true;
-        }
-
-        // Check if clicking on recipe
-        for (int i = 0; i < recipeBounds.size(); i++) {
-            if (recipeBounds.get(i).contains(mouseX, mouseY)) {
-                selectedRecipe = i + scrollOffset;
-                return true;
-            }
-        }
-
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public void mouseMoved(double mouseX, double mouseY) {
-        hoveredRecipe = -1;
-
-        for (int i = 0; i < recipeBounds.size(); i++) {
-            if (recipeBounds.get(i).contains(mouseX, mouseY)) {
-                hoveredRecipe = i + scrollOffset;
-                return;
-            }
-        }
-    }
-
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        isScrolling = false;
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (isScrolling && recipes.size() > maxVisibleRecipes) {
-            int x = this.leftPos;
-            int y = this.topPos;
-
-            // Calculate scroll position based on mouse Y position relative to scrollable area
-            int scrollAreaHeight = maxVisibleRecipes * 16;
-            float relativeY = (float)(mouseY - (y + 5)) / scrollAreaHeight;
-            relativeY = MathHelper.clamp(relativeY, 0.0F, 1.0F);
-
-            // Set scroll offset
-            scrollOffset = Math.round(relativeY * (recipes.size() - maxVisibleRecipes));
-            return true;
-        }
-
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
-        if (recipes.size() > maxVisibleRecipes) {
-            // Adjust scroll offset based on mouse wheel
-            scrollOffset = MathHelper.clamp(scrollOffset - (int) scrollDelta, 0, recipes.size() - maxVisibleRecipes);
-            return true;
+        if (scrollDelta == 1.0d && this.page > 0) {
+            this.page--;
+        } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
+            this.page++;
         }
-
         return super.mouseScrolled(mouseX, mouseY, scrollDelta);
+    }
+
+    public void drawCenteredWordWrapWithoutShadow(MatrixStack context, FontRenderer textRenderer, StringTextComponent text, int centerX, int y, int color) {
+        List<IReorderingProcessor> lines = textRenderer.split(text, 140);
+
+        int lineHeight = textRenderer.lineHeight + 2;
+
+        for (int i = 0; i < lines.size(); i++) {
+            IReorderingProcessor line = lines.get(i);
+            int lineWidth = textRenderer.width(line);
+            int lineX = centerX - lineWidth / 2;
+            int lineY = y + (i * lineHeight);
+
+            textRenderer.draw(context, line, lineX, lineY, color);
+        }
     }
 }

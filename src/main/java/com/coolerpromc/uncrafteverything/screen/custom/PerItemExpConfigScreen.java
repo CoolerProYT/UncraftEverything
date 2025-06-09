@@ -5,12 +5,14 @@ import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.PacketDistributor;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,12 +130,20 @@ public class PerItemExpConfigScreen extends Screen {
         drawCenteredString(guiGraphics, font, title, width / 2, 10, 0xFFFFFF);
         drawCenteredString(guiGraphics, font, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
 
+        int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+        int windowHeight = Minecraft.getInstance().getWindow().getHeight();
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor((width / 2 - 120) * scale, (windowHeight - 5 - ENTRIES_END_Y * scale), 240 * scale, (ENTRIES_END_Y + 5 - ENTRIES_START_Y) * scale);
+
         for (TextFieldWidget editBox : scrollableEditBoxes) {
             editBox.render(guiGraphics, mouseX, mouseY, delta);
         }
         for (Button button : scrollableButtons) {
             button.render(guiGraphics, mouseX, mouseY, delta);
         }
+
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         this.children.forEach(renderable -> {
             if (renderable instanceof Button && !scrollableButtons.contains(renderable)) {
