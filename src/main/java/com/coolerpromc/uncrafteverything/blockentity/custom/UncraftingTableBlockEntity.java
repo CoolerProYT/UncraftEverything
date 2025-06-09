@@ -14,10 +14,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.component.type.FireworksComponent;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.component.type.PotionContentsComponent;
+import net.minecraft.component.type.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -233,13 +230,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 .toList();
 
         if (this.getStack(inputSlots[0]).isEmpty()
-                || this.getStack(inputSlots[0]).getDamage() > 0
+                || (this.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged())
                 || UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))
                 || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
                 || (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && !inputStack.contains(DataComponentTypes.TRIM))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponentTypes.CONTAINER) != ContainerComponent.DEFAULT)
         ) {
-            if (this.getStack(inputSlots[0]).getDamage() > 0){
+            if (this.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged()){
                 this.status = DAMAGED_ITEM;
             }
 
@@ -402,6 +399,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
+                    Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultStack())) {
@@ -410,6 +408,31 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                                     new ItemStack(stack.getItem(), stack.getCount() + 1));
                         } else {
                             outputStack.addOutput(new ItemStack(item, 1));
+
+                        }
+                        allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
+                    }
+                    // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the output
+                    if (inputStack.isDamaged()){
+                        RepairableComponent repairableComponent = inputStack.get(DataComponentTypes.REPAIRABLE);
+                        if (repairableComponent != null){
+                            for (var x : allIngredients.entrySet()){
+                                if (repairableComponent.matches(new ItemStack(x.getKey(), x.getValue()))){
+                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
+                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                        if (outputStack.getOutputs().get(i).isOf(x.getKey())){
+                                            outputStack.setOutput(i, ItemStack.EMPTY);
+                                            damagedPercentage--;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            this.status = DAMAGED_ITEM;
+                            outputs.clear();
+                            return;
                         }
                     }
                     outputs.add(outputStack);
@@ -433,6 +456,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
+                    Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
                         if (item != Items.AIR) {
@@ -443,6 +467,30 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             } else {
                                 outputStack.addOutput(new ItemStack(item, 1));
                             }
+                            allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
+                        }
+                    }
+                    // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the output
+                    if (inputStack.isDamaged()){
+                        RepairableComponent repairableComponent = inputStack.get(DataComponentTypes.REPAIRABLE);
+                        if (repairableComponent != null){
+                            for (var x : allIngredients.entrySet()){
+                                if (repairableComponent.matches(new ItemStack(x.getKey(), x.getValue()))){
+                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamage() / inputStack.getMaxDamage() * x.getValue());
+                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                        if (outputStack.getOutputs().get(i).isOf(x.getKey())){
+                                            outputStack.setOutput(i, ItemStack.EMPTY);
+                                            damagedPercentage--;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            this.status = DAMAGED_ITEM;
+                            outputs.clear();
+                            return;
                         }
                     }
                     outputs.add(outputStack);
@@ -465,10 +513,21 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultStack())) {
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
-                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()),
-                                    new ItemStack(stack.getItem(), stack.getCount() + 1));
+                            if (item.getDefaultStack().isDamageable()){
+                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                            }
+                            stack.increment(1);
+                            outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
                         } else {
-                            outputStack.addOutput(new ItemStack(item, 1));
+                            ItemStack itemStack = new ItemStack(item, 1);
+                            // If the item is damageable, set the damage to the input stack's damage
+                            if (item.getDefaultStack().isDamageable()){
+                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
+                                if (itemStack.getOrDefault(DataComponentTypes.DAMAGE, 0) >= itemStack.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0)){
+                                    itemStack = ItemStack.EMPTY;
+                                }
+                            }
+                            outputStack.addOutput(itemStack);
                         }
                     }
                     outputs.add(outputStack);
@@ -505,6 +564,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultStack()));
                             if (item.getDefaultStack().isOf(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().getMatchingItems().toList().getFirst().value() : Items.AIR)){
                                 stack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                                stack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
                             }
                             stack.setCount(stack.getCount() + 1);
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultStack()), stack);
@@ -512,6 +572,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                             ItemStack itemStack = new ItemStack(item, 1);
                             if (item.getDefaultStack().isOf(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().getMatchingItems().toList().getFirst().value() : Items.AIR)){
                                 itemStack.set(DataComponentTypes.ENCHANTMENTS, itemEnchantments);
+                                itemStack.set(DataComponentTypes.DAMAGE, inputStack.get(DataComponentTypes.DAMAGE));
                             }
                             outputStack.addOutput(itemStack);
                         }
