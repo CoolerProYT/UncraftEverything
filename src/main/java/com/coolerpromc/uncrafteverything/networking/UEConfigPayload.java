@@ -14,7 +14,7 @@ import net.minecraftforge.network.SimpleChannel;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing){
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged){
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config");
     private static final int PROTOCOL_VERSION = 0;
     public static final StreamCodec<RegistryFriendlyByteBuf, UEConfigPayload> STREAM_CODEC = StreamCodec.composite(
@@ -30,6 +30,8 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
             UEConfigPayload::experience,
             ByteBufCodecs.BOOL,
             UEConfigPayload::allowUnsmithing,
+            ByteBufCodecs.BOOL,
+            UEConfigPayload::allowDamaged,
             UEConfigPayload::new
     );
     public static final SimpleChannel INSTANCE = ChannelBuilder
