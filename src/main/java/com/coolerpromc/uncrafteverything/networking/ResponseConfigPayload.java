@@ -39,7 +39,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = PacketCodecs.BOOL.decode(buf);
         Map<String, Integer> perItemExp = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
     }
 
 
