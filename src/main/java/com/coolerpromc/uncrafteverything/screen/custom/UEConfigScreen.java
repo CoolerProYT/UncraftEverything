@@ -66,8 +66,7 @@ public class UEConfigScreen extends Screen {
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        restrictionsInput = new EditBoxWidget(this.textRenderer, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88,
-                Text.literal("List of item to restrict for Whitelist/Blacklist"), Text.literal("Restrictions"));
+        restrictionsInput = EditBoxWidget.builder().x(x).y((int) (baseY + 25 - scrollAmount)).placeholder(Text.literal("List of item to restrict for Whitelist/Blacklist")).build(this.textRenderer, widgetWidth, 88, Text.literal("Restrictions"));
         restrictionsInput.setText(joined);
         this.addDrawableChild(restrictionsInput);
 
@@ -188,11 +187,11 @@ public class UEConfigScreen extends Screen {
         pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, format, x, (int) (baseY + 25 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 20), textWidth, 0xFFFFFFFF);
 
         // Format help text
-        pGuiGraphics.getMatrices().push();
-        pGuiGraphics.getMatrices().scale(0.65f, 0.65f, 0f);
-        pGuiGraphics.getMatrices().translate(x * 1.55, ((baseY + 25 - scrollAmount) * 1.6) + this.textRenderer.getWrappedLinesHeight(format, textWidth) * 2 - (this.textRenderer.fontHeight * 0.65) + 40, 0);
+        pGuiGraphics.getMatrices().pushMatrix();
+        pGuiGraphics.getMatrices().scale(0.65f, 0.65f);
+        pGuiGraphics.getMatrices().translate(x * 1.55f, (float) (((baseY + 25f - scrollAmount) * 1.6f) + this.textRenderer.getWrappedLinesHeight(format, textWidth) * 2f - (this.textRenderer.fontHeight * 0.65f) + 40f));
         pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, Text.literal("Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0, (int) (textWidth * 1.5), 0xFFAAAAAA);
-        pGuiGraphics.getMatrices().pop();
+        pGuiGraphics.getMatrices().popMatrix();
 
         Text allowEnchantedItem = Text.literal("Allow Enchanted Item to be Uncrafted (Enchanted Book will be given)");
         pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
@@ -209,7 +208,7 @@ public class UEConfigScreen extends Screen {
         pGuiGraphics.disableScissor();
 
         // Draw title and scroll indicator outside scissor area
-        pGuiGraphics.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF);
+        pGuiGraphics.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFFFF);
 
         // Draw scroll indicator if content overflows
         if (getMaxScroll() > 0) {

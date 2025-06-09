@@ -6,8 +6,8 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonCl
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -120,11 +120,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             page = 0;
         }
 
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 600);
-        context.drawTexture(RenderLayer::getGuiTextured, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
-        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal(pageToDisplay + " of " + maxPageCount), x - 75, y + backgroundHeight - 18, 4210752);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
+        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal("Uncrafting Recipes Selection"), x - 75, y + 7, 0xFF404040);
+        this.drawCenteredWordWrapWithoutShadow(context, textRenderer, Text.literal(pageToDisplay + " of " + maxPageCount), x - 75, y + backgroundHeight - 18, 0xFF404040);
 
         ButtonWidget prevButton = ButtonWidget.builder(Text.literal("<"), button -> {
             if (this.page > 0) {
@@ -159,7 +157,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
-            this.addDrawableChild(button).render(context, mouseX, mouseY, delta);
+            this.addSelectableChild(button).render(context, mouseX, mouseY, delta);
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
@@ -189,7 +187,6 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             visibleCount++;
         }
-        context.getMatrices().pop();
 
         if (selectedRecipe >= recipes.size()) {
             selectedRecipe = 0;
