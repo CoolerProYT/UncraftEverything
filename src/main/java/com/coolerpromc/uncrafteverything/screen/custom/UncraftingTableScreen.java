@@ -146,7 +146,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 this.page--;
             }
             else{
-                this.page = maxPageCount - 1;
+                this.page = Math.max(maxPageCount - 1, 0);
             }
         });
         this.addWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
@@ -205,6 +205,9 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 pGuiGraphics.pushPose();
                 itemRenderer.renderAndDecorateFakeItem(itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
                 itemRenderer.renderGuiItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
+                if (pMouseX >= x - recipeWidth + (i * 16) + 1 && pMouseX <= x - recipeWidth + (i * 16) + 17 && pMouseY >= y + (displayIndex * 18) + 31 && pMouseY <= y + (displayIndex * 18) + 31 + 16) {
+                    renderTooltip(pGuiGraphics, itemStack, pMouseX, pMouseY);
+                }
                 i++;
             }
 
