@@ -142,7 +142,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 this.page--;
             }
             else{
-                this.page = maxPageCount - 1;
+                this.page = Math.max(maxPageCount - 1, 0);
             }
         }).position(x - 152 + 5, y + backgroundHeight - 23).size(16, 16).build();
         this.addDrawableChild(prevButton).render(context, mouseX, mouseY, delta);
@@ -195,6 +195,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 }
                 context.drawItemWithoutEntity(itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
                 context.drawItemInSlot(this.textRenderer, itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
+                if (mouseX >= x - recipeWidth + (i * 16) + 1 && mouseX <= x - recipeWidth + (i * 16) + 17 && mouseY >= y + (displayIndex * 18) + 31 && mouseY <= y + (displayIndex * 18) + 31 + 16) {
+                    context.drawItemTooltip(this.textRenderer, itemStack, mouseX, mouseY);
+                }
                 i++;
             }
 
