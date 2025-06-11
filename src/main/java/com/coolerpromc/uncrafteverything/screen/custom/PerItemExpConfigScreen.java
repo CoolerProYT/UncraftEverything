@@ -31,7 +31,7 @@ public class PerItemExpConfigScreen extends Screen {
     private final List<Button> scrollableButtons = new ArrayList<>();
 
     public PerItemExpConfigScreen(Screen parent) {
-        super(Component.literal("Per Item Exp Config"));
+        super(Component.translatable("screen.uncrafteverything.per_item_xp_config"));
         this.parent = parent;
     }
 
@@ -67,13 +67,13 @@ public class PerItemExpConfigScreen extends Screen {
             }
         }
 
-        Button addButton = Button.builder(Component.literal("Add New Entry"), b -> {
+        Button addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
             this.init();
         }).bounds(width / 2 - 100, height - 60, 200, 20).build();
         addRenderableWidget(addButton);
 
-        Button saveButton = Button.builder(Component.literal("Save"), this::saveButtonPressed).bounds(width / 2 - 100, height - 30, 200, 20).build();
+        Button saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).bounds(width / 2 - 100, height - 30, 200, 20).build();
         addRenderableWidget(saveButton);
     }
 
@@ -121,8 +121,8 @@ public class PerItemExpConfigScreen extends Screen {
 
         guiGraphics.fill(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
-        guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFF);
-        guiGraphics.drawCenteredString(font, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
+        guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
+        guiGraphics.drawCenteredString(font, Component.translatable("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
 
         guiGraphics.enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
 
@@ -142,7 +142,7 @@ public class PerItemExpConfigScreen extends Screen {
         });
 
         if (maxScrollOffset > 0) {
-            guiGraphics.drawCenteredString(font, "Scroll to see more entries", width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
+            guiGraphics.drawCenteredString(font, Component.translatable("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
         }
     }
 
@@ -170,14 +170,14 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         void initWidgets(int x, int y) {
-            keyBox = new EditBox(font, x, y, 150, 20, Component.literal("Key"));
+            keyBox = new EditBox(font, x, y, 150, 20, Component.translatable("screen.uncrafteverything.key"));
             keyBox.setValue(currentKey);
 
-            valueBox = new EditBox(font, x + 160, y, 40, 20, Component.literal("Value"));
+            valueBox = new EditBox(font, x + 160, y, 40, 20, Component.translatable("screen.uncrafteverything.value"));
             valueBox.setValue(currentValue);
             valueBox.setFilter(s -> s.matches("\\d*"));
 
-            deleteButton = Button.builder(Component.literal("X"), b -> {
+            deleteButton = Button.builder(Component.translatable("screen.uncrafteverything.x"), b -> {
                 entries.remove(this);
                 init();
             }).bounds(x + 210, y, 20, 20).build();

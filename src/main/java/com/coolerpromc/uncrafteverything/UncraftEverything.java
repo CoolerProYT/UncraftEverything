@@ -46,6 +46,7 @@ public class UncraftEverything
         ResponseConfigPayload.register(modEventBus);
         UEConfigPayload.register(modEventBus);
         UEExpPayload.register(modEventBus);
+        UncraftingRecipeSelectionRequestPayload.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);

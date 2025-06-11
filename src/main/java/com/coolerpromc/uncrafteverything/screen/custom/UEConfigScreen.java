@@ -52,64 +52,63 @@ public class UEConfigScreen extends Screen {
         int widgetWidth = this.width - x - 10;
         int baseY = 40; // Start position, accounting for title and scroll
 
-        // Restriction Type Config
         Button restrictionTypeButton = Button.builder(
-                Component.literal("Restriction Type: " + restrictionType),
+                Component.translatable("screen.uncrafteverything.config.restriction_type_" + restrictionType.toString().toLowerCase()),
                 btn -> {
                     UncraftEverythingConfig.RestrictionType[] values = UncraftEverythingConfig.RestrictionType.values();
                     UncraftEverythingConfig.RestrictionType next = values[(restrictionType.ordinal() + 1) % values.length];
                     restrictionType = next;
-                    btn.setMessage(Component.literal("Restriction Type: " + next));
+                    btn.setMessage(Component.translatable("screen.uncrafteverything.config.restriction_type_" + next.toString().toLowerCase()));
                 }
         ).bounds(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(restrictionTypeButton);
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        MultiLineEditBox restrictionsInput = new MultiLineEditBox(this.font, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88, Component.literal("List of item to restrict for Whitelist/Blacklist"),Component.literal("Restrictions"));
+        restrictionsInput = new MultiLineEditBox(this.font, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
         restrictionsInput.setValue(joined);
         this.addRenderableWidget(restrictionsInput);
 
         // Toggle for allowEnchantedItems
-        Button toggleEnchantedBtn = Button.builder(Component.literal(getLabel(allowEnchantedItems)), btn -> {
+        Button toggleEnchantedBtn = Button.builder(Component.translatable(getLabel(allowEnchantedItems)), btn -> {
             allowEnchantedItems = !allowEnchantedItems;
-            btn.setMessage(Component.literal(getLabel(allowEnchantedItems)));
+            btn.setMessage(Component.translatable(getLabel(allowEnchantedItems)));
         }).bounds(x, (int) (baseY + 120 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnchantedBtn);
 
         // Toggle for experienceType
         Button toggleEnchantmentTypeBtn = Button.builder(
-                Component.literal("Experience Type: " + experienceType),
+                Component.translatable("screen.uncrafteverything.config.exp_type_" + experienceType.toString().toLowerCase()),
                 btn -> {
                     UncraftEverythingConfig.ExperienceType[] values = UncraftEverythingConfig.ExperienceType.values();
                     UncraftEverythingConfig.ExperienceType next = values[(experienceType.ordinal() + 1) % values.length];
                     experienceType = next;
-                    btn.setMessage(Component.literal("Experience Type: " + next));
+                    btn.setMessage(Component.translatable("screen.uncrafteverything.config.exp_type_" + next.toString().toLowerCase()));
                 }
         ).bounds(x, (int) (baseY + 145 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnchantmentTypeBtn);
 
         // Experience input box
-        experienceInput = new EditBox(this.font, x, (int) (baseY + 170 - scrollAmount), widgetWidth, 20, Component.literal("Experience Input"));
+        experienceInput = new EditBox(this.font, x, (int) (baseY + 170 - scrollAmount), widgetWidth, 20, Component.translatable("screen.uncrafteverything.blank"));
         experienceInput.setValue(Integer.toString(experience));
         experienceInput.setFilter(s -> s.matches("\\d*")); // only digits allowed
         this.addRenderableWidget(experienceInput);
 
         // Toggle for allowUnsmithing
-        Button toggleAllowUnsmithing = Button.builder(Component.literal(getUnsmithingLabel(allowUnsmithing)), btn -> {
+        Button toggleAllowUnsmithing = Button.builder(Component.translatable(getUnsmithingLabel(allowUnsmithing)), btn -> {
             allowUnsmithing = !allowUnsmithing;
-            btn.setMessage(Component.literal(getUnsmithingLabel(allowUnsmithing)));
+            btn.setMessage(Component.translatable(getUnsmithingLabel(allowUnsmithing)));
         }).bounds(x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowUnsmithing);
 
-        Button toggleAllowDamaged = Button.builder(Component.literal(getDamagedLabel(allowDamagedItems)), btn -> {
+        Button toggleAllowDamaged = Button.builder(Component.translatable(getDamagedLabel(allowDamagedItems)), btn -> {
                 allowDamagedItems = !allowDamagedItems;
-            btn.setMessage(Component.literal(getDamagedLabel(allowDamagedItems)));
+            btn.setMessage(Component.translatable(getDamagedLabel(allowDamagedItems)));
         }).bounds(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowDamaged);
 
         // Save button
-        saveButton = Button.builder(Component.literal("Done"), btn -> {
+        saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), btn -> {
             String[] entries = restrictionsInput.getValue().split("\n");
             List<String> restrictedItems = Arrays.stream(entries)
                     .map(String::trim)
@@ -155,15 +154,15 @@ public class UEConfigScreen extends Screen {
     }
 
     private String getLabel(boolean enabled) {
-        return "Allow Enchanted Items: " + (enabled ? "Yes" : "No");
+        return "screen.uncrafteverything.config.allow_enchanted_" + (enabled ? "yes" : "no");
     }
 
     private String getUnsmithingLabel(boolean enabled) {
-        return "Allow Unsmithing: " + (enabled ? "Yes" : "No");
+        return "screen.uncrafteverything.config.allow_unsmithing_" + (enabled ? "yes" : "no");
     }
 
     private String getDamagedLabel(boolean enabled) {
-        return "Allow Damaged Items: " + (enabled ? "Yes" : "No");
+        return "screen.uncrafteverything.config.allow_damaged_" + (enabled ? "yes" : "no");
     }
 
     @Override
@@ -181,33 +180,33 @@ public class UEConfigScreen extends Screen {
         int textWidth = this.width / 2 - 10;
         int baseY = 40;
 
-        pGuiGraphics.drawString(this.font, "Restriction Type", x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), 0xFFFFFFFF);
+        pGuiGraphics.drawString(this.font, Component.translatable("screen.uncrafteverything.config.restriction_type_label"), x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), 0xFFFFFFFF);
 
-        Component format = Component.literal("Restricted Items \n(Please write each item in new line)");
+        Component format = Component.translatable("screen.uncrafteverything.config.restricted_item_label");
         pGuiGraphics.drawWordWrap(this.font, format, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 20), textWidth,0xFFFFFFFF);
 
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().scale(0.65f, 0.65f, 0f);
         pGuiGraphics.pose().translate(x * 1.55, ((baseY + 25 - scrollAmount) * 1.6) + this.font.wordWrapHeight(format, textWidth) * 2 - (this.font.lineHeight * 0.65) + 40, 0);
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name"), 0, 0, (int) (textWidth * 1.5),0xFFAAAAAA);
+        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.format_label"), 0, 0, (int) (textWidth * 1.5),0xFFAAAAAA);
         pGuiGraphics.pose().popPose();
 
-        Component allowEnchantedItem = Component.literal("Allow Enchanted Item to be Uncrafted (Enchanted Book will be given)");
+        Component allowEnchantedItem = Component.translatable("screen.uncrafteverything.config.allow_enchanted_label");
         pGuiGraphics.drawWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Experience Type"), x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth,0xFFFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.exp_type_label"), x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth,0xFFFFFFFF);
 
-        Component expRequired = Component.literal("Experience Required \n(Level/Point based on previous config)");
+        Component expRequired = Component.translatable("screen.uncrafteverything.config.exp_required_label");
         pGuiGraphics.drawWordWrap(this.font, expRequired, x, (int) (baseY + 170 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4d), textWidth,0xFFFFFFFF);
 
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Allow Unsmithing (Netherite/Trimmed Armor)"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.drawWordWrap(this.font, Component.literal("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"), x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(Component.literal("Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"), textWidth) / 4d), textWidth, 0xFFFFFF);
+        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_damaged_label"), x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(Component.translatable("screen.uncrafteverything.config.allow_damaged_label"), textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
         // Draw title and scroll indicator outside scissor area
-        pGuiGraphics.drawCenteredString(this.font, Component.literal("Uncraft Everything Config").setStyle(Style.EMPTY.withUnderlined(true)), this.width / 2, 4, 0xFFFFFF);
+        pGuiGraphics.drawCenteredString(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config").setStyle(Style.EMPTY.withUnderlined(true)), this.width / 2, 4, 0xFFFFFFFF);
 
         // Draw scroll indicator if content overflows
         if (getMaxScroll() > 0) {

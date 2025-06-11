@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
@@ -70,6 +71,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
+    private ItemStack currentStack = ItemStack.EMPTY;
 
     private final ItemStackHandler inputHandler = new ItemStackHandler(1){
         @Override
@@ -77,10 +79,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             setChanged();
             getOutputStacks();
             if (level != null && !level.isClientSide()) {
+                if (currentStack.getItem() != getStackInSlot(0).getItem() && !getStackInSlot(0).isEmpty()){
+                    for (int i = 0; i < getOutputHandler().getSlots(); i++) {
+                        ItemStack outputStack = getOutputHandler().getStackInSlot(i);
+                        if (!outputStack.isEmpty()) {
+                            player.getInventory().placeItemBackInInventory(outputStack);
+                            getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
+                            setChanged();
+                        }
+                    }
+                }
+                currentStack = getStackInSlot(0);
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 10, level.dimension());
-                PacketDistributor.PacketTarget target = PacketDistributor.NEAR.with(targetPoint);
-                UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), getCurrentRecipes()), target);
+                PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(player);
+                UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(getCurrentRecipes())), target);
             }
         }
     };
@@ -349,8 +361,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             ItemEnchantments enchantments = inputStack.get(DataComponents.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             book.set(DataComponents.STORED_ENCHANTMENTS, enchantments);
+            ItemStack output = new ItemStack(inputStack.getItem(), 1);
+            output.setDamageValue(inputStack.getDamageValue());
 
-            outputStack.addOutput(new ItemStack(inputStack.getItem(), 1));
+            outputStack.addOutput(output);
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
@@ -573,7 +587,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         this.currentRecipes = outputs;
 
         if (!currentRecipes.isEmpty()) {
-            this.currentRecipe = outputs.getFirst();
+            PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(player);
+            UncraftingRecipeSelectionRequestPayload.INSTANCE.send(new UncraftingRecipeSelectionRequestPayload(), target);
             if(!hasRecipe()){
                 this.status = NO_SUITABLE_OUTPUT_SLOT;
             }
@@ -750,36 +765,47 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return true;
     }
 
-    public void handleButtonClick(){
-        if (hasRecipe() && hasEnoughExperience()) {
-            List<ItemStack> outputs = currentRecipe.getOutputs();
+    public void handleUncraftButtonClicked(boolean hasShiftDown){
+        if (hasShiftDown){
+            while (hasRecipe() && hasEnoughExperience()) {
+                processUncraft();
+            }
+        }
+        else{
+            if (hasRecipe() && hasEnoughExperience()) {
+                processUncraft();
+            }
+        }
+    }
 
-            for (int i = 0; i < outputs.size(); i++) {
-                ItemStack output = outputs.get(i);
-                if (i < outputHandler.getSlots()) {
-                    ItemStack slotStack = outputHandler.getStackInSlot(i);
+    private void processUncraft(){
+        List<ItemStack> outputs = currentRecipe.getOutputs();
 
-                    if (slotStack.isEmpty()) {
-                        outputHandler.setStackInSlot(i, output.copy());
-                    } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
-                        slotStack.grow(output.getCount());
-                        outputHandler.setStackInSlot(i, slotStack);
-                    }
+        for (int i = 0; i < outputs.size(); i++) {
+            ItemStack output = outputs.get(i);
+            if (i < outputHandler.getSlots()) {
+                ItemStack slotStack = outputHandler.getStackInSlot(i);
+
+                if (slotStack.isEmpty()) {
+                    outputHandler.setStackInSlot(i, output.copy());
+                } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
+                    slotStack.grow(output.getCount());
+                    outputHandler.setStackInSlot(i, slotStack);
                 }
             }
+        }
 
-            if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.POINT)){
-                player.giveExperiencePoints(-getExperience());
-            }
-            else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
-                player.giveExperienceLevels(-getExperience());
-            }
-            inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
-            setChanged();
+        if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.POINT)){
+            player.giveExperiencePoints(-getExperience());
+        }
+        else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+            player.giveExperienceLevels(-getExperience());
+        }
+        inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+        setChanged();
 
-            if (level != null && !level.isClientSide()) {
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-            }
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         }
     }
 

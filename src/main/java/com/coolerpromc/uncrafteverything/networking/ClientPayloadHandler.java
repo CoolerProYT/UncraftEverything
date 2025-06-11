@@ -29,5 +29,19 @@ public class ClientPayloadHandler {
         context.enqueueWork(() -> {
             payloadFromServer = payload;
         });
+        context.setPacketHandled(true);
+    }
+
+    public static void handleRecipeSelectionRequest(UncraftingRecipeSelectionRequestPayload payload, CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            Level level = minecraft.level;
+            Screen screen = minecraft.screen;
+
+            if (level != null && screen instanceof UncraftingTableScreen uncraftingTableScreen) {
+                uncraftingTableScreen.getRecipeSelection();
+            }
+        });
+        context.setPacketHandled(true);
     }
 }

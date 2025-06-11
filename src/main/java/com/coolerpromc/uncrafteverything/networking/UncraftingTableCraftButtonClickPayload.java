@@ -11,7 +11,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.network.*;
 import net.minecraftforge.network.SimpleChannel;
 
-public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
+public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) {
     private static final int PROTOCOL_VERSION = 0;
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_craft_button_click");
     public static final SimpleChannel INSTANCE = ChannelBuilder
@@ -27,7 +27,8 @@ public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
             .add();
 
     public static final Codec<UncraftingTableCraftButtonClickPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos)
+            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos),
+            Codec.BOOL.fieldOf("hasShiftDown").forGetter(UncraftingTableCraftButtonClickPayload::hasShiftDown)
     ).apply(instance, UncraftingTableCraftButtonClickPayload::new));
 
     private static int packetId = 0;
