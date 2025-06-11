@@ -22,13 +22,13 @@ public class ServerPayloadHandler {
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                    uncraftingTableBlockEntity.handleButtonClick(payload.data());
+                    uncraftingTableBlockEntity.handleUncraftButtonClicked(payload.hasShiftDown());
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
         }).exceptionally(e -> {
-            context.disconnect(Component.literal(e.getMessage()));
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -48,7 +48,7 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            context.disconnect(Component.literal(e.getMessage()));
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -67,7 +67,7 @@ public class ServerPayloadHandler {
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
-            context.disconnect(Component.literal(e.getMessage()));
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -89,7 +89,7 @@ public class ServerPayloadHandler {
                 PacketDistributor.sendToPlayer(player, configPayload);
             }
         }).exceptionally(e -> {
-            context.disconnect(Component.literal(e.getMessage()));
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -102,7 +102,7 @@ public class ServerPayloadHandler {
                 PerItemExpCostConfig.save();
             }
         }).exceptionally(e -> {
-            context.disconnect(Component.literal(e.getMessage()));
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
