@@ -13,9 +13,11 @@ import java.io.IOException;
 
 public class UncraftingTableCraftButtonClickPayload {
     private final BlockPos blockPos;
+    private final boolean hasShiftDown;
 
-    public UncraftingTableCraftButtonClickPayload(BlockPos blockPos){
+    public UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown){
         this.blockPos = blockPos;
+        this.hasShiftDown = hasShiftDown;
     }
 
     private static final String PROTOCOL_VERSION = "1";
@@ -27,7 +29,8 @@ public class UncraftingTableCraftButtonClickPayload {
     );
 
     public static final Codec<UncraftingTableCraftButtonClickPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos)
+            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos),
+            Codec.BOOL.fieldOf("hasShiftDown").forGetter(UncraftingTableCraftButtonClickPayload::hasShiftDown)
     ).apply(instance, UncraftingTableCraftButtonClickPayload::new));
 
     private static int packetId = 0;
@@ -54,6 +57,10 @@ public class UncraftingTableCraftButtonClickPayload {
 
     public BlockPos blockPos() {
         return blockPos;
+    }
+
+    public boolean hasShiftDown() {
+        return hasShiftDown;
     }
 
     public static void register(){

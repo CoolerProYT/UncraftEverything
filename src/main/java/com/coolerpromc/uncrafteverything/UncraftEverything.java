@@ -53,6 +53,7 @@ public class UncraftEverything
             ResponseConfigPayload.register();
             UEConfigPayload.register();
             UEExpPayload.register();
+            UncraftingRecipeSelectionRequestPayload.register();
         });
     }
 

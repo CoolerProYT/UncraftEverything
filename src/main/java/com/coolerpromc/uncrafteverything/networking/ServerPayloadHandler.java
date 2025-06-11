@@ -6,7 +6,7 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -25,13 +25,13 @@ public class ServerPayloadHandler {
                 TileEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity) {
                     UncraftingTableBlockEntity uncraftingTableBlockEntity = (UncraftingTableBlockEntity) blockEntity;
-                    uncraftingTableBlockEntity.handleButtonClick();
+                    uncraftingTableBlockEntity.handleUncraftButtonClicked(payload.hasShiftDown());
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(new StringTextComponent(e.getMessage()));
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -53,7 +53,7 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(new StringTextComponent(e.getMessage()));
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
         context.get().setPacketHandled(true);
@@ -73,7 +73,7 @@ public class ServerPayloadHandler {
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(new StringTextComponent(e.getMessage()));
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -95,7 +95,7 @@ public class ServerPayloadHandler {
                 ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> context.get().getSender()), configPayload);
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(new StringTextComponent(e.getMessage()));
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -108,7 +108,7 @@ public class ServerPayloadHandler {
                 PerItemExpCostConfig.save();
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(new StringTextComponent(e.getMessage()));
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }

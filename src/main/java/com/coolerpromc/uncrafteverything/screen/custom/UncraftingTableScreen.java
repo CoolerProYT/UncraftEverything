@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.button.Button;
@@ -19,7 +20,7 @@ import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -61,23 +62,23 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int buttonX = leftPos + (imageWidth - 64) - 20;
         int buttonY = topPos + 72;
 
-        this.addButton(new Button(buttonX, buttonY, 64, 20, new StringTextComponent("UnCraft"), this::onPressed));
+        this.addButton(new Button(buttonX, buttonY, 64, 20, new TranslationTextComponent("screen.uncrafteverything.uncraft"), this::onPressed));
 
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
-            configButton = new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, new StringTextComponent(""), this::openConfigScreen);
+            configButton = new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, new TranslationTextComponent("screen.uncrafteverything.blank"), this::openConfigScreen);
             this.addWidget(configButton);
-            expConfigButton = new Button(leftPos + imageWidth - 30, topPos + 3, 12, 12, new StringTextComponent(""), this::openExpScreen);
+            expConfigButton = new Button(leftPos + imageWidth - 30, topPos + 3, 12, 12, new TranslationTextComponent("screen.uncrafteverything.blank"), this::openExpScreen);
             this.addWidget(expConfigButton);
         }
     }
 
     private void onPressed(Button button) {
-        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos());
+        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShiftDown());
         UncraftingTableCraftButtonClickPayload.INSTANCE.sendToServer(payload);
     }
 
     private void openConfigScreen(Button button){
-        this.getMinecraft().setScreen(new UEConfigScreen(new StringTextComponent("Uncraft Everything Config"), this));
+        this.getMinecraft().setScreen(new UEConfigScreen(new TranslationTextComponent("screen.uncrafteverything.uncraft_everything_config"), this));
     }
 
     private void openExpScreen(Button button){
@@ -118,11 +119,13 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         this.children.clear();
         this.init();
 
-        String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
+        int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
 
+        TranslationTextComponent exp = new TranslationTextComponent("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
+        int expX = leftPos + (imageWidth - 64) - 20 + 16;
         pGuiGraphics.pushPose();
         pGuiGraphics.scale(0.75f, 0.75f, 0.75f);
-        pGuiGraphics.translate(this.leftPos * 1.3334 + 115, this.topPos * 1.3334 + 124, 0);
+        pGuiGraphics.translate(expX * 1.3334f, this.topPos * 1.3334f + 124, 0);
         drawString(pGuiGraphics, this.font, exp, 0, 0, 0x00AA00);
         pGuiGraphics.popPose();
 
@@ -138,10 +141,10 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
 
         this.getMinecraft().getTextureManager().bind(RECIPE_PANEL_TEXTURE);
         blit(pGuiGraphics,x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new StringTextComponent("Uncrafting Recipes Selection"), x - 75, y + 7, 4210752);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new StringTextComponent(pageToDisplay + " of " + maxPageCount), x - 75, y + imageHeight - 18, 4210752);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new TranslationTextComponent("screen.uncrafteverything.uncraft_recipe_selection"), x - 75, y + 7, 4210752);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, new TranslationTextComponent("screen.uncrafteverything.page", pageToDisplay, maxPageCount), x - 75, y + imageHeight - 18, 4210752);
 
-        Button prevButton = new Button(x - 152 + 5, y + imageHeight - 23, 16, 16, new StringTextComponent("<"), button -> {
+        Button prevButton = new Button(x - 152 + 5, y + imageHeight - 23, 16, 16, new TranslationTextComponent("screen.uncrafteverything.prev_button"), button -> {
             if (this.page > 0) {
                 this.page--;
             }
@@ -152,7 +155,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         this.addWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         fill(pGuiGraphics, x - 152 + 5, y + imageHeight - 23 + 15, x - 152 + 5 + 16, y + imageHeight - 23 + 16, prevButton.isHovered() || prevButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
-        Button nextButton = new Button(x - 21, y + imageHeight - 23, 16, 16, new StringTextComponent(">"), button -> {
+        Button nextButton = new Button(x - 21, y + imageHeight - 23, 16, 16, new TranslationTextComponent("screen.uncrafteverything.next_button"), button -> {
             if (this.page < maxPageCount - 1) {
                 this.page++;
             }
@@ -173,7 +176,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
             Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
 
             int finalJ = j;
-            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), new StringTextComponent(""), ignored -> selectedRecipe = finalJ);
+            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), new TranslationTextComponent("screen.uncrafteverything.blank"), ignored -> selectedRecipe = finalJ);
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
@@ -245,15 +248,15 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         if (status != -1){
             String statusText;
             switch (status){
-                case 0 : statusText = "No Recipe Found!"; break;
-                case 1 : statusText = "No Suitable Output Slot!"; break;
-                case 2 : statusText = "Not Enough Experience!"; break;
-                case 3 : statusText = "Not Enough Input Item!"; break;
-                case 4 : statusText = "Shulker Box is Not Empty!"; break;
-                case 5 : statusText = "Item Restricted by Config!"; break;
-                case 6 : statusText = "Item is Damaged!"; break;
-                case 7 : statusText = "Enchanted Item Not Allowed!"; break;
-                default : statusText = "";
+                case 0 : statusText = "screen.uncrafteverything.no_recipe_found"; break;
+                case 1 : statusText = "screen.uncrafteverything.no_suitable_output_slot"; break;
+                case 2 : statusText = "screen.uncrafteverything.not_enough_exp"; break;
+                case 3 : statusText = "screen.uncrafteverything.not_enough_input"; break;
+                case 4 : statusText = "screen.uncrafteverything.not_empty_shulker"; break;
+                case 5 : statusText = "screen.uncrafteverything.restricted_by_config"; break;
+                case 6 : statusText = "screen.uncrafteverything.damaged_item"; break;
+                case 7 : statusText = "screen.uncrafteverything.enchanted_item"; break;
+                default : statusText = "screen.uncrafteverything.blank";
             }
 
             int textY = y;
@@ -262,9 +265,10 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
             pGuiGraphics.translate(0, 0, 400);
             fill(pGuiGraphics, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
             pGuiGraphics.popPose();
-            List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(statusText), 54);
+            List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(new TranslationTextComponent(statusText).getString()), 54);
 
             switch (formattedText.size()){
+                case 1 : textY += 38; break;
                 case 2 : textY += 34; break;
                 case 3 : textY += 30; break;
                 case 4 : textY += 23; break;
@@ -284,11 +288,11 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
 
         if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
             if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                renderTooltip(pGuiGraphics, new StringTextComponent("Common Config"), pMouseX, pMouseY);
+                renderTooltip(pGuiGraphics, new TranslationTextComponent("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
             }
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                renderTooltip(pGuiGraphics, new StringTextComponent("Per Item Experience Config"), pMouseX, pMouseY);
+                renderTooltip(pGuiGraphics, new TranslationTextComponent("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
             }
         }
 
@@ -305,7 +309,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         return super.mouseScrolled(mouseX, mouseY, scrollDelta);
     }
 
-    public void drawCenteredWordWrapWithoutShadow(MatrixStack context, FontRenderer textRenderer, StringTextComponent text, int centerX, int y, int color) {
+    public void drawCenteredWordWrapWithoutShadow(MatrixStack context, FontRenderer textRenderer, TranslationTextComponent text, int centerX, int y, int color) {
         List<IReorderingProcessor> lines = textRenderer.split(text, 140);
 
         int lineHeight = textRenderer.lineHeight + 2;
@@ -317,6 +321,23 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
             int lineY = y + (i * lineHeight);
 
             textRenderer.draw(context, line, lineX, lineY, color);
+        }
+    }
+
+    public void getRecipeSelection(){
+        UncraftingTableRecipe recipe = null;
+        try{
+            if (!recipes.isEmpty()){
+                recipe = this.recipes.get(this.selectedRecipe);
+            }
+        }
+        catch (Exception ignored){
+
+        }
+        finally {
+            if (recipe != null){
+                UncraftingRecipeSelectionPayload.INSTANCE.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
+            }
         }
     }
 }

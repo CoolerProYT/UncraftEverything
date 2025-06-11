@@ -9,12 +9,13 @@ import net.minecraft.client.gui.widget.button.AbstractButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class RecipeSelectionButton extends AbstractButton {
     private static final ResourceLocation WIDGETS_LOCATION = new ResourceLocation(UncraftEverything.MODID,"textures/gui/widgets.png");
     protected final PressAction onPress;
 
-    public RecipeSelectionButton(int x, int y, int width, int height, StringTextComponent message, PressAction onPress) {
+    public RecipeSelectionButton(int x, int y, int width, int height, TranslationTextComponent message, PressAction onPress) {
         super(x, y, width, height, message);
         this.onPress = onPress;
     }

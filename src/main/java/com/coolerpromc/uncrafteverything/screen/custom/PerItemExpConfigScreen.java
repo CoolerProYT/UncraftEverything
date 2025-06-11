@@ -4,13 +4,12 @@ import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.network.PacketDistributor;
 import org.lwjgl.opengl.GL11;
 
@@ -18,9 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.mojang.blaze3d.systems.RenderSystem.disableScissor;
-import static com.mojang.blaze3d.systems.RenderSystem.enableScissor;
 
 public class PerItemExpConfigScreen extends Screen {
     private final Screen parent;
@@ -36,7 +32,7 @@ public class PerItemExpConfigScreen extends Screen {
     private final List<Button> scrollableButtons = new ArrayList<>();
 
     public PerItemExpConfigScreen(Screen parent) {
-        super(new StringTextComponent("Per Item Exp Config"));
+        super(new TranslationTextComponent("screen.uncrafteverything.per_item_xp_config"));
         this.parent = parent;
     }
 
@@ -72,14 +68,14 @@ public class PerItemExpConfigScreen extends Screen {
             }
         }
 
-        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, new StringTextComponent("Add New Entry"), button -> {
+        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, new TranslationTextComponent("screen.uncrafteverything.add_new_entry"), button -> {
             entries.add(new Entry("", 0));
             this.init();
         });
 
         addWidget(addButton);
 
-        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, new StringTextComponent("Save Changes"), this::saveButtonPressed);
+        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, new TranslationTextComponent("screen.uncrafteverything.save"), this::saveButtonPressed);
         addWidget(saveButton);
     }
 
@@ -128,7 +124,7 @@ public class PerItemExpConfigScreen extends Screen {
         fill(guiGraphics,width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
         drawCenteredString(guiGraphics, font, title, width / 2, 10, 0xFFFFFF);
-        drawCenteredString(guiGraphics, font, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
+        drawCenteredString(guiGraphics, font, new TranslationTextComponent("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xCCCCCC);
 
         int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
         int windowHeight = Minecraft.getInstance().getWindow().getHeight();
@@ -152,7 +148,7 @@ public class PerItemExpConfigScreen extends Screen {
         });
 
         if (maxScrollOffset > 0) {
-            drawCenteredString(guiGraphics, font, "Scroll to see more entries", width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
+            drawCenteredString(guiGraphics, font, new TranslationTextComponent("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
         }
     }
 
@@ -180,14 +176,14 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         void initWidgets(int x, int y) {
-            keyBox = new TextFieldWidget(font, x, y, 150, 20, new StringTextComponent("Key"));
+            keyBox = new TextFieldWidget(font, x, y, 150, 20, new TranslationTextComponent("screen.uncrafteverything.key"));
             keyBox.setValue(currentKey);
 
-            valueBox = new TextFieldWidget(font, x + 160, y, 40, 20, new StringTextComponent("Value"));
+            valueBox = new TextFieldWidget(font, x + 160, y, 40, 20, new TranslationTextComponent("screen.uncrafteverything.value"));
             valueBox.setValue(currentValue);
             valueBox.setFilter(s -> s.matches("\\d*"));
 
-            deleteButton = new Button(x + 210, y, 20, 20, new StringTextComponent("X"),  b -> {
+            deleteButton = new Button(x + 210, y, 20, 20, new TranslationTextComponent("screen.uncrafteverything.x"),  b -> {
                 entries.remove(this);
                 init();
             });
