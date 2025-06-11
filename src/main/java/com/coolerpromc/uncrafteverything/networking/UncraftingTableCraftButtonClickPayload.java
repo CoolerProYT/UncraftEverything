@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
-public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
+public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) {
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_craft_button_click");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -19,7 +19,8 @@ public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos) {
     );
 
     public static final Codec<UncraftingTableCraftButtonClickPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos)
+            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos),
+            Codec.BOOL.fieldOf("hasShiftDown").forGetter(UncraftingTableCraftButtonClickPayload::hasShiftDown)
     ).apply(instance, UncraftingTableCraftButtonClickPayload::new));
 
     private static int packetId = 0;

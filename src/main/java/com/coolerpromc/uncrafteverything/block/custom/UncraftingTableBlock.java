@@ -18,6 +18,8 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+
 public class UncraftingTableBlock extends BaseEntityBlock {
     public UncraftingTableBlock(Properties properties) {
         super(properties);
@@ -43,7 +45,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
                 blockEntity.getOutputStacks();
                 if (!pLevel.isClientSide()) {
                     pLevel.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-                    UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
+                    UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
                 }
             }
             else {

@@ -24,13 +24,13 @@ public class ServerPayloadHandler {
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                    uncraftingTableBlockEntity.handleButtonClick();
+                    uncraftingTableBlockEntity.handleUncraftButtonClicked(payload.hasShiftDown());
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -51,7 +51,7 @@ public class ServerPayloadHandler {
                 }
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
         context.get().setPacketHandled(true);
@@ -71,7 +71,7 @@ public class ServerPayloadHandler {
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -93,7 +93,7 @@ public class ServerPayloadHandler {
                 ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> context.get().getSender()), configPayload);
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
@@ -106,7 +106,7 @@ public class ServerPayloadHandler {
                 PerItemExpCostConfig.save();
             }
         }).exceptionally(e -> {
-            context.get().getNetworkManager().disconnect(Component.literal(e.getMessage()));
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
         });
     }
