@@ -60,19 +60,19 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int buttonY = topPos + 72;
 
         this.addRenderableWidget(Button
-                .builder(Component.literal("UnCraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
+                .builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
                 .build());
 
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
             SpriteIconButton configButton = SpriteIconButton
-                    .builder(Component.literal(""), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
+                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
                     .build();
             configButton.setX(leftPos + imageWidth - 16);
             configButton.setY(topPos + 3);
             this.addRenderableWidget(configButton);
 
             SpriteIconButton expButton = SpriteIconButton
-                    .builder(Component.literal(""), this::openExpScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp"), 8, 8)
+                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openExpScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp"), 8, 8)
                     .build();
             expButton.setX(leftPos + imageWidth - 30);
             expButton.setY(topPos + 3);
@@ -86,7 +86,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     private void openConfigScreen(Button button){
-        this.getMinecraft().setScreen(new UEConfigScreen(Component.literal("Uncraft Everything Config"), this));
+        this.getMinecraft().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this));
     }
 
     private void openExpScreen(Button button){
@@ -108,12 +108,12 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.clearWidgets();
         this.init();
 
-        String exp = "Experience " + this.menu.getExpType() + ": " + this.menu.getExpAmount();
-
+        Component exp = Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
+        int expX = leftPos + (imageWidth - 64) - 20 + 32;
         pGuiGraphics.pose().pushMatrix();
         pGuiGraphics.pose().scale(0.75f, 0.75f);
-        pGuiGraphics.pose().translate(this.leftPos * 1.3334f + 115, this.topPos * 1.3334f + 121);
-        pGuiGraphics.drawString(this.font, exp, 0, 0, 0xFF00AA00, false);
+        pGuiGraphics.pose().translate(expX * 1.3334f, this.topPos * 1.3334f + 121);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, this.font, exp, 0, 0, 0xFF00AA00);
         pGuiGraphics.pose().popMatrix();
 
 
@@ -127,10 +127,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         }
 
         pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.literal("Uncrafting Recipes Selection"), x - 75, y + 7, 0xFF404040);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.literal(pageToDisplay + " of " + maxPageCount), x - 75, y + imageHeight - 18, 0xFF404040);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), x - 75, y + 7, 0xFF404040);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), x - 75, y + imageHeight - 18, 0xFF404040);
 
-        Button prevButton = Button.builder(Component.literal("<"), button -> {
+        Button prevButton = Button.builder(Component.translatable("screen.uncrafteverything.prev_button"), button -> {
             if (this.page > 0) {
                 this.page--;
             }
@@ -140,7 +140,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         }).pos(x - 152 + 5, y + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
-        Button nextButton = Button.builder(Component.literal(">"), button -> {
+        Button nextButton = Button.builder(Component.translatable("screen.uncrafteverything.next_button"), button -> {
             if (this.page < maxPageCount - 1) {
                 this.page++;
             }
@@ -160,7 +160,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
 
             int finalJ = j;
-            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Component.literal(""), ignored -> selectedRecipe = finalJ);
+            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Component.translatable("screen.uncrafteverything.blank"), ignored -> selectedRecipe = finalJ);
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
@@ -228,17 +228,17 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int status = this.menu.getStatus();
 
         if (status != -1){
-            String statusText = switch (status){
-                case 0 -> "No Recipe Found!";
-                case 1 -> "No Suitable Output Slot!";
-                case 2 -> "Not Enough Experience!";
-                case 3 -> "Not Enough Input Item!";
-                case 4 -> "Shulker Box is Not Empty!";
-                case 5 -> "Item Restricted by Config!";
-                case 6 -> "Item is Damaged!";
-                case 7 -> "Enchanted Item Not Allowed!";
-                default -> "";
-            };
+            Component statusText = Component.translatable(switch (status){
+                case 0 -> "screen.uncrafteverything.no_recipe_found";
+                case 1 -> "screen.uncrafteverything.no_suitable_output_slot";
+                case 2 -> "screen.uncrafteverything.not_enough_exp";
+                case 3 -> "screen.uncrafteverything.not_enough_input";
+                case 4 -> "not_empty_shulker";
+                case 5 -> "screen.uncrafteverything.restricted_by_config";
+                case 6 -> "screen.uncrafteverything.damaged_item";
+                case 7 -> "screen.uncrafteverything.enchanted_item";
+                default -> "screen.uncrafteverything.blank";
+            });
 
             int textY = y;
 
@@ -246,9 +246,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             pGuiGraphics.pose().translate(0, 0);
             pGuiGraphics.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
             pGuiGraphics.pose().popMatrix();
-            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText), 54);
+            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), 54);
 
             switch (formattedText.size()){
+                case 1 -> textY += 38;
                 case 2 -> textY += 34;
                 case 3 -> textY += 30;
                 case 4 -> textY += 23;
@@ -268,11 +269,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
             if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.literal("Common Config"), pMouseX, pMouseY);
+                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
             }
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.literal("Per Item Experience Config"), pMouseX, pMouseY);
+                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
             }
         }
 
