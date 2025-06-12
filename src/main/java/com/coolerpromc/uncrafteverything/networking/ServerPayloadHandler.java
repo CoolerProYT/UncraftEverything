@@ -22,7 +22,7 @@ public class ServerPayloadHandler {
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                    uncraftingTableBlockEntity.handleButtonClick(payload.data());
+                    uncraftingTableBlockEntity.handleUncraftButtonClicked(payload.hasShiftDown());
                     blockEntity.setChanged();
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }

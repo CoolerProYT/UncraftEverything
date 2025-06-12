@@ -82,7 +82,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     private void onPressed(Button button) {
-        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), "Craft");
+        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShiftDown());
         PacketDistributor.sendToServer(payload);
     }
 
@@ -308,6 +308,23 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             int lineY = y + (i * lineHeight);
 
             context.drawString(textRenderer, line, lineX, lineY, color, false);
+        }
+    }
+
+    public void getRecipeSelection(){
+        UncraftingTableRecipe recipe = null;
+        try{
+            if (!recipes.isEmpty()){
+                recipe = this.recipes.get(this.selectedRecipe);
+            }
+        }
+        catch (Exception ignored){
+
+        }
+        finally {
+            if (recipe != null){
+                PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
+            }
         }
     }
 }

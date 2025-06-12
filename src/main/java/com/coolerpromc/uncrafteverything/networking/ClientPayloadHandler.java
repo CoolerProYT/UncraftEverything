@@ -29,4 +29,16 @@ public class ClientPayloadHandler {
             payloadFromServer = payload;
         });
     }
+
+    public static void handleRecipeSelectionRequest(UncraftingRecipeSelectionRequestPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            Level level = minecraft.level;
+            Screen screen = minecraft.screen;
+
+            if (level != null && screen instanceof UncraftingTableScreen uncraftingTableScreen) {
+                uncraftingTableScreen.getRecipeSelection();
+            }
+        });
+    }
 }
