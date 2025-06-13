@@ -2,9 +2,11 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
@@ -14,6 +16,7 @@ import net.minecraft.util.IIntArray;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.IntArray;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -88,6 +91,11 @@ public class UncraftingTableMenu extends Container {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(pPlayer, sourceStack);
+        blockEntity.getOutputStacks();
+        if (player instanceof ServerPlayerEntity){
+            ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+            UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
+        }
         return copyOfSourceStack;
     }
 
