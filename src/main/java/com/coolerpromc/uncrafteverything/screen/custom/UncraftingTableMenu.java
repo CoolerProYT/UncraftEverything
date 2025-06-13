@@ -2,8 +2,10 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
@@ -12,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.network.PacketDistributor;
 
 public class UncraftingTableMenu extends AbstractContainerMenu {
     public final UncraftingTableBlockEntity blockEntity;
@@ -84,6 +87,10 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(pPlayer, sourceStack);
+        blockEntity.getOutputStacks();
+        if (player instanceof ServerPlayer serverPlayer){
+            UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
+        }
         return copyOfSourceStack;
     }
 
