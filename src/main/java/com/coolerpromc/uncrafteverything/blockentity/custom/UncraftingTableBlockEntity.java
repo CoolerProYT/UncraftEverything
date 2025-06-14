@@ -165,15 +165,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     protected void saveAdditional(ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
 
-        NonNullList<ItemStack> itemStacks = NonNullList.withSize(inputHandler.getSlots() + outputHandler.getSlots(), ItemStack.EMPTY);
-        for (int i = 0; i < inputHandler.getSlots(); i++) {
-            itemStacks.set(i, inputHandler.getStackInSlot(i));
-        }
-
-        for (int i = inputHandler.getSlots(); i < outputHandler.getSlots(); i++) {
-            itemStacks.set(i, outputHandler.getStackInSlot(i));
-        }
-        ContainerHelper.saveAllItems(valueOutput, itemStacks);
+        inputHandler.serialize(valueOutput.child("input"));
+        outputHandler.serialize(valueOutput.child("output"));
 
         ValueOutput.TypedOutputList<UncraftingTableRecipe> recipeListAppender = valueOutput.list("current_recipes", UncraftingTableRecipe.CODEC);
         for (UncraftingTableRecipe recipe : currentRecipes) {
@@ -191,15 +184,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     protected void loadAdditional(ValueInput valueInput) {
         super.loadAdditional(valueInput);
 
-        NonNullList<ItemStack> itemStacks = NonNullList.withSize(inputHandler.getSlots() + outputHandler.getSlots(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(valueInput, itemStacks);
-        for (int i = 0; i < inputHandler.getSlots(); i++) {
-            inputHandler.setStackInSlot(i, itemStacks.get(i));
-        }
+        inputHandler.deserialize(valueInput.childOrEmpty("input"));
+        outputHandler.deserialize(valueInput.childOrEmpty("output"));
 
-        for (int i = inputHandler.getSlots(); i < outputHandler.getSlots(); i++) {
-            outputHandler.setStackInSlot(i, itemStacks.get(i));
-        }
         for (UncraftingTableRecipe recipe : valueInput.listOrEmpty("current_recipes", UncraftingTableRecipe.CODEC)) {
             currentRecipes.add(recipe);
         }
