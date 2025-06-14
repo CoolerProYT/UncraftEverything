@@ -43,7 +43,7 @@ public class UncraftEverything implements ModInitializer {
 				BlockEntity blockEntity = level.getBlockEntity(pos, UEBlockEntities.UNCRAFTING_TABLE_BE).orElse(null);
 
 				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
-					uncraftingTableBlockEntity.handleButtonClick();
+					uncraftingTableBlockEntity.handleUncraftButtonClicked(uncraftingTableCraftButtonClickPayload.hasShiftDown());
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}

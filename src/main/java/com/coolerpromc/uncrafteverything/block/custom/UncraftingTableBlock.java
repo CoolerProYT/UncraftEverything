@@ -23,6 +23,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+
 @SuppressWarnings("deprecation")
 public class UncraftingTableBlock extends BlockWithEntity {
     public UncraftingTableBlock(Settings properties) {
@@ -47,7 +49,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
                 player.openHandledScreen(blockEntity);
                 blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
-                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()), PacketByteBufs.create()));
+                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(blockEntity.getPos(), new ArrayList<>(blockEntity.getCurrentRecipes())), PacketByteBufs.create()));
             }
             else {
                 throw new IllegalStateException("Container provider is missing");

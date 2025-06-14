@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ImplementedInventory;
@@ -75,6 +76,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
+    private ItemStack currentStack = ItemStack.EMPTY;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(10, ItemStack.EMPTY);
     private final int[] inputSlots = {0};
@@ -115,8 +117,19 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         ImplementedInventory.super.setStack(slot, stack);
         getOutputStacks();
         if (world != null && !world.isClient() && slot == inputSlots[0]) {
+            if (currentStack.getItem() != this.getStack(0).getItem() && !this.getStack(0).isEmpty()){
+                for (int outputSlot : outputSlots) {
+                    ItemStack outputStack = this.getStack(outputSlot);
+                    if (!outputStack.isEmpty()) {
+                        player.getInventory().offerOrDrop(outputStack);
+                        this.setStack(outputSlot, ItemStack.EMPTY);
+                        markDirty();
+                    }
+                }
+            }
+            currentStack = this.getStack(0);
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.pos, this.getCurrentRecipes()), PacketByteBufs.create()));
+            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.pos, new ArrayList<>(this.getCurrentRecipes())), PacketByteBufs.create()));
 
         }
     }
@@ -362,8 +375,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             Map<Enchantment, Integer> enchantments = EnchantmentHelper.get(inputStack);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             EnchantmentHelper.set(enchantments, book);
+            ItemStack output = new ItemStack(inputStack.getItem(), 1);
+            output.setDamage(inputStack.getDamage());
 
-            outputStack.addOutput(new ItemStack(inputStack.getItem(), 1));
+            outputStack.addOutput(output);
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
@@ -580,7 +595,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         this.currentRecipes = outputs;
 
         if (!currentRecipes.isEmpty()) {
-            this.currentRecipe = outputs.get(0);
+            ServerPlayNetworking.send(player, UncraftingRecipeSelectionRequestPayload.ID, UncraftingRecipeSelectionRequestPayload.encode(new UncraftingRecipeSelectionRequestPayload()));
             if(!hasRecipe()){
                 this.status = NO_SUITABLE_OUTPUT_SLOT;
             }
@@ -765,40 +780,49 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         return true;
     }
 
-    public void handleButtonClick(){
-        if (hasRecipe() && hasEnoughExperience()){
-            List<ItemStack> outputs = currentRecipe.getOutputs();
+    public void handleUncraftButtonClicked(boolean hasShiftDown){
+        if (hasShiftDown){
+            while (hasRecipe() && hasEnoughExperience()) {
+                processUncraft();
+            }
+        }
+        else{
+            if (hasRecipe() && hasEnoughExperience()) {
+                processUncraft();
+            }
+        }
+    }
 
-            for (int i = 0; i < outputs.size(); i++) {
-                ItemStack output = outputs.get(i);
-                if (i < outputSlots.length) {
-                    ItemStack slotStack = this.getStack(outputSlots[i]);
+    private void processUncraft(){
+        List<ItemStack> outputs = currentRecipe.getOutputs();
 
-                    if (slotStack.isEmpty()) {
-                        this.setStack(outputSlots[i], output.copy());
-                    } else if (ItemStack.areItemsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
-                        slotStack.increment(output.getCount());
-                        this.setStack(outputSlots[i], slotStack);
-                    }
+        for (int i = 0; i < outputs.size(); i++) {
+            ItemStack output = outputs.get(i);
+            if (i < outputSlots.length) {
+                ItemStack slotStack = this.getStack(outputSlots[i]);
+
+                if (slotStack.isEmpty()) {
+                    this.setStack(outputSlots[i], output.copy());
+                } else if (ItemStack.areItemsAndComponentsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
+                    slotStack.increment(output.getCount());
+                    this.setStack(outputSlots[i], slotStack);
                 }
             }
+        }
 
-            if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
-                player.addExperience(-getExperience());
-            }
-            else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
-                player.addExperienceLevels(-getExperience());
-            }
-            this.removeStack(0, this.currentRecipe.getInput().getCount());
-            markDirty();
+        if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+            player.addExperience(-getExperience());
+        }
+        else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+            player.addExperienceLevels(-getExperience());
+        }
+        this.removeStack(0, this.currentRecipe.getInput().getCount());
+        markDirty();
 
-            getOutputStacks();
-            if (world != null && !world.isClient()) {
-                world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-                for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(getPos().getX(), getPos().getY(), getPos().getZ()), 10)){
-                    ServerPlayNetworking.send(playerEntity, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.getPos(), this.getCurrentRecipes()), PacketByteBufs.create()));
-                }
-            }
+        getOutputStacks();
+        if (world != null && !world.isClient()) {
+            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
+            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.getPos(), this.getCurrentRecipes()), PacketByteBufs.create()));
         }
     }
 
