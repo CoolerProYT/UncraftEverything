@@ -6,7 +6,6 @@ import com.coolerpromc.uncrafteverything.util.BufferUtil;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class UEConfigPayload {

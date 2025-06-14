@@ -2,7 +2,10 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,7 +17,11 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+
+import java.io.IOException;
 
 public class UncraftingTableMenu extends ScreenHandler {
     public final UncraftingTableBlockEntity blockEntity;
@@ -69,6 +76,17 @@ public class UncraftingTableMenu extends ScreenHandler {
             } else {
                 slot.markDirty();
             }
+        }
+        blockEntity.getOutputStacks();
+        if (player instanceof ServerPlayerEntity){
+            ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+            PacketByteBuf buf = PacketByteBufs.create();
+            try {
+                buf.encode(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, buf);
         }
         return newStack;
     }

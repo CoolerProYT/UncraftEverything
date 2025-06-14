@@ -10,14 +10,17 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.opengl.GL11;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.RowFilter.Entry;
 
 public class PerItemExpConfigScreen extends Screen {
     private final Screen parent;
@@ -33,7 +36,7 @@ public class PerItemExpConfigScreen extends Screen {
     private final List<ButtonWidget> scrollableButtons = new ArrayList<>();
 
     public PerItemExpConfigScreen(Screen parent) {
-        super(new LiteralText("Per Item Exp Config"));
+        super(new TranslatableText("screen.uncrafteverything.per_item_xp_config"));
         this.parent = parent;
     }
 
@@ -69,14 +72,14 @@ public class PerItemExpConfigScreen extends Screen {
             }
         }
 
-        ButtonWidget addButton = new ButtonWidget(width / 2 - 100, height - 60, 200, 20, new LiteralText("Add New Entry"), button -> {
+        ButtonWidget addButton = new ButtonWidget(width / 2 - 100, height - 60, 200, 20, new TranslatableText("screen.uncrafteverything.add_new_entry"), button -> {
             entries.add(new Entry("", 0));
             this.init();
         });
 
         addChild(addButton);
 
-        ButtonWidget saveButton = new ButtonWidget(width / 2 - 100, height - 30, 200, 20, new LiteralText("Save Changes"), this::saveButtonPressed);
+        ButtonWidget saveButton = new ButtonWidget(width / 2 - 100, height - 30, 200, 20, new TranslatableText("screen.uncrafteverything.save"), this::saveButtonPressed);
         addChild(saveButton);
     }
 
@@ -125,7 +128,7 @@ public class PerItemExpConfigScreen extends Screen {
         fill(guiGraphics,width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
         drawCenteredText(guiGraphics, textRenderer, title, width / 2, 10, 0xFFFFFF);
-        drawCenteredString(guiGraphics, textRenderer, "Entries: " + entries.size(), width / 2, 25, 0xCCCCCC);
+        drawCenteredString(guiGraphics, textRenderer, new TranslatableText("screen.uncrafteverything.entries", entries.size()).getString(), width / 2, 25, 0xCCCCCC);
         int scale = (int) MinecraftClient.getInstance().getWindow().getScaleFactor();
         int windowHeight = MinecraftClient.getInstance().getWindow().getHeight();
 
@@ -148,7 +151,7 @@ public class PerItemExpConfigScreen extends Screen {
         });
 
         if (maxScrollOffset > 0) {
-            drawCenteredString(guiGraphics, textRenderer, "Scroll to see more entries", width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
+            drawCenteredString(guiGraphics, textRenderer, new TranslatableText("screen.uncrafteverything.scroll_to_see_more").getString(), width / 2, ENTRIES_END_Y + 10, 0xAAAAAA);
         }
     }
 
@@ -176,14 +179,14 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         void initWidgets(int x, int y) {
-            keyBox = new TextFieldWidget(textRenderer, x, y, 150, 20, new LiteralText("Key"));
+            keyBox = new TextFieldWidget(textRenderer, x, y, 150, 20, new TranslatableText("screen.uncrafteverything.key"));
             keyBox.setText(currentKey);
 
-            valueBox = new TextFieldWidget(textRenderer, x + 160, y, 40, 20, new LiteralText("Value"));
+            valueBox = new TextFieldWidget(textRenderer, x + 160, y, 40, 20, new TranslatableText("screen.uncrafteverything.value"));
             valueBox.setText(currentValue);
             valueBox.setTextPredicate(s -> s.matches("\\d*"));
 
-            deleteButton = new ButtonWidget(x + 210, y, 20, 20, new LiteralText("X"),  b -> {
+            deleteButton = new ButtonWidget(x + 210, y, 20, 20, new TranslatableText("screen.uncrafteverything.x"),  b -> {
                 entries.remove(this);
                 init();
             });
