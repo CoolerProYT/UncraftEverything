@@ -306,9 +306,19 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     public void getRecipeSelection(){
-        if (!recipes.isEmpty()){
-            UncraftingTableRecipe recipe = this.recipes.get(this.selectedRecipe);
-            PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
+        UncraftingTableRecipe recipe = null;
+        try{
+            if (!recipes.isEmpty()){
+                recipe = this.recipes.get(this.selectedRecipe);
+            }
+        }
+        catch (Exception ignored){
+
+        }
+        finally {
+            if (recipe != null){
+                PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
+            }
         }
     }
 }
