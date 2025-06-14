@@ -122,11 +122,11 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
 
         TranslationTextComponent exp = new TranslationTextComponent("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
-        int expX = leftPos + (imageWidth - 64) - 20 + 16;
+        int expX = leftPos + (imageWidth - 64) - 20 + 32;
         pGuiGraphics.pushPose();
         pGuiGraphics.scale(0.75f, 0.75f, 0.75f);
-        pGuiGraphics.translate(expX * 1.3334f, this.topPos * 1.3334f + 124, 0);
-        drawString(pGuiGraphics, this.font, exp, 0, 0, 0x00AA00);
+        pGuiGraphics.translate(expX * 1.3334f, this.topPos * 1.3334f + 124, 1);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, this.font, exp, 0, 0, 0x00AA00);
         pGuiGraphics.popPose();
 
 
