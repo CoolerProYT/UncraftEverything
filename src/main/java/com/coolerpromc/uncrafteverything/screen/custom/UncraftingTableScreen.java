@@ -323,7 +323,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         }
         finally {
             if (recipe != null){
-                ClientPlayNetworking.send(new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), recipe));
+                PacketByteBuf packetByteBuf = PacketByteBufs.create();
+                packetByteBuf.encodeAsJson(UncraftingRecipeSelectionPayload.CODEC, new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), recipe));
+                ClientPlayNetworking.send(UncraftingRecipeSelectionPayload.ID, packetByteBuf);
             }
         }
     }

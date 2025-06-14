@@ -10,7 +10,6 @@ import com.coolerpromc.uncrafteverything.util.ImplementedInventory;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags;
@@ -49,7 +48,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -595,7 +593,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         this.currentRecipes = outputs;
 
         if (!currentRecipes.isEmpty()) {
-            ServerPlayNetworking.send(player, UncraftingRecipeSelectionRequestPayload.ID, UncraftingRecipeSelectionRequestPayload.encode(new UncraftingRecipeSelectionRequestPayload()));
+            ServerPlayNetworking.send(player, UncraftingRecipeSelectionRequestPayload.TYPE, PacketByteBufs.create());
             if(!hasRecipe()){
                 this.status = NO_SUITABLE_OUTPUT_SLOT;
             }
@@ -803,7 +801,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
                 if (slotStack.isEmpty()) {
                     this.setStack(outputSlots[i], output.copy());
-                } else if (ItemStack.areItemsAndComponentsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
+                } else if (ItemStack.areItemsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
                     slotStack.increment(output.getCount());
                     this.setStack(outputSlots[i], slotStack);
                 }
