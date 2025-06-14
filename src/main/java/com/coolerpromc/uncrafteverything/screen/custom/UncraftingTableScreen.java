@@ -128,12 +128,12 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         this.init();
 
         Text exp = new TranslatableText("screen.uncrafteverything.exp_" + this.handler.getExpType().toLowerCase() + "_required",this.handler.getExpAmount());
-        int expX = x + (backgroundWidth - 64) - 20 + 16;
+        int expX = x + (backgroundWidth - 64) - 20 + 32;
 
         context.push();
         context.scale(0.75f, 0.75f, 0.75f);
-        context.translate(expX * 1.3334, this.y * 1.3334 + 124, 0);
-        drawStringWithShadow(context, this.textRenderer, exp.getString(), 0, 0, 0xFF00AA00);
+        context.translate(0, this.y * 1.3334 + 124, 1f);
+        this.drawCenteredWordWrapWithoutShadow(context, this.textRenderer, exp, (int) (expX * 1.3334f), 0, 0xFF00AA00);
         context.pop();
 
         int maxPageCount = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE);
