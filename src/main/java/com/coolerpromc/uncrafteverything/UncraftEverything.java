@@ -39,6 +39,7 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(RequestConfigPayload.TYPE, RequestConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -47,7 +48,7 @@ public class UncraftEverything implements ModInitializer {
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
 				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
-					uncraftingTableBlockEntity.handleButtonClick(uncraftingTableCraftButtonClickPayload.data());
+					uncraftingTableBlockEntity.handleUncraftButtonClicked(uncraftingTableCraftButtonClickPayload.hasShiftDown());
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}
