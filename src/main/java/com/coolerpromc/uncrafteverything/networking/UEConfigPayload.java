@@ -17,23 +17,29 @@ import java.util.List;
 public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged){
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config");
     private static final int PROTOCOL_VERSION = 0;
-    public static final StreamCodec<RegistryFriendlyByteBuf, UEConfigPayload> STREAM_CODEC = StreamCodec.composite(
-            UncraftEverythingConfig.RestrictionType.STREAM_CODEC,
-            UEConfigPayload::restrictionType,
-            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()),
-            UEConfigPayload::restrictedItems,
-            ByteBufCodecs.BOOL,
-            UEConfigPayload::allowEnchantedItem,
-            UncraftEverythingConfig.ExperienceType.STREAM_CODEC,
-            UEConfigPayload::experienceType,
-            ByteBufCodecs.INT,
-            UEConfigPayload::experience,
-            ByteBufCodecs.BOOL,
-            UEConfigPayload::allowUnsmithing,
-            ByteBufCodecs.BOOL,
-            UEConfigPayload::allowDamaged,
-            UEConfigPayload::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, UEConfigPayload> STREAM_CODEC = StreamCodec.of(UEConfigPayload::encode, UEConfigPayload::decode);
+
+    private static void encode(RegistryFriendlyByteBuf buf, UEConfigPayload payload) {
+        UncraftEverythingConfig.RestrictionType.STREAM_CODEC.encode(buf, payload.restrictionType);
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedItems);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowEnchantedItem);
+        UncraftEverythingConfig.ExperienceType.STREAM_CODEC.encode(buf, payload.experienceType);
+        ByteBufCodecs.INT.encode(buf, payload.experience);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowUnsmithing);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
+    }
+
+    private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
+        UncraftEverythingConfig.RestrictionType restrictionType = UncraftEverythingConfig.RestrictionType.STREAM_CODEC.decode(buf);
+        List<String> restrictedItems = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
+        boolean allowEnchantedItem = ByteBufCodecs.BOOL.decode(buf);
+        UncraftEverythingConfig.ExperienceType experienceType = UncraftEverythingConfig.ExperienceType.STREAM_CODEC.decode(buf);
+        int experience = ByteBufCodecs.INT.decode(buf);
+        boolean allowUnsmithing = ByteBufCodecs.BOOL.decode(buf);
+        boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
+
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+    }
     public static final SimpleChannel INSTANCE = ChannelBuilder
             .named(TYPE)
             .networkProtocolVersion(PROTOCOL_VERSION)

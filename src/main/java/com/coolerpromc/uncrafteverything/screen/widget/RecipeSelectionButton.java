@@ -1,15 +1,14 @@
 package com.coolerpromc.uncrafteverything.screen.widget;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,11 +22,15 @@ public class RecipeSelectionButton extends AbstractButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        Minecraft minecraftClient = Minecraft.getInstance();
-        context.blitSprite(RenderType::guiTextured, TEXTURES.get(this.active, this.isFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
-        int i = this.active ? 16777215 : 10526880;
-        this.renderString(context, minecraftClient.font, i | Mth.ceil(this.alpha * 255.0F) << 24);
+    protected void renderWidget(GuiGraphics pGuiGraphics, int mouseX, int mouseY, float deltaTicks) {
+        Minecraft minecraft = Minecraft.getInstance();
+        pGuiGraphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
+        RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
+        pGuiGraphics.blitSprite(TEXTURES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        pGuiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        int i = this.getFGColor();
+        this.renderString(pGuiGraphics, minecraft.font, i | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
     @Override

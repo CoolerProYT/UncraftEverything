@@ -69,14 +69,14 @@ public class UncraftingTableRecipe {
     }
 
     public static UncraftingTableRecipe deserializeNbt(CompoundTag tag, HolderLookup.Provider provider) {
-        ItemStack input = ItemStack.parse(provider, tag.getCompoundOrEmpty("input")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY);
+        ItemStack input = ItemStack.parse(provider, tag.getCompound("input")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY);
         List<ItemStack> outputs = new ArrayList<>();
 
         if (tag.contains("outputs")) {
-            ListTag listTag = tag.getListOrEmpty("outputs");
+            ListTag listTag = tag.getList("outputs", CompoundTag.TAG_LIST);
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompoundOrEmpty(i);
-                outputs.add(ItemStack.parse(provider, itemTag.getCompoundOrEmpty("output")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY));
+                CompoundTag itemTag = listTag.getCompound(i);
+                outputs.add(ItemStack.parse(provider, itemTag.getCompound("output")).filter(itemStack -> itemStack.getItem() != Items.STRUCTURE_VOID).orElse(ItemStack.EMPTY));
             }
         }
 

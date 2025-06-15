@@ -11,6 +11,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -29,19 +30,20 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.armortrim.TrimMaterial;
+import net.minecraft.world.item.armortrim.TrimPattern;
+import net.minecraft.world.item.armortrim.TrimPatterns;
 import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
-import net.minecraft.world.item.enchantment.Repairable;
-import net.minecraft.world.item.equipment.trim.ArmorTrim;
-import net.minecraft.world.item.equipment.trim.TrimMaterial;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +55,7 @@ import java.util.stream.Collectors;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings({"unused"})
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
     public static final int NO_RECIPE = 0;
     public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
@@ -183,20 +185,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
 
-        inputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("input"));
-        outputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("output"));
+        inputHandler.deserializeNBT(registries, tag.getCompound("input"));
+        outputHandler.deserializeNBT(registries, tag.getCompound("output"));
         if (tag.contains("current_recipes")){
-            ListTag listTag = tag.getListOrEmpty("current_recipes");
+            ListTag listTag = tag.getList("current_recipes", CompoundTag.TAG_LIST);
             for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag recipeTag = listTag.getCompoundOrEmpty(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompoundOrEmpty("recipe"), registries));
+                CompoundTag recipeTag = listTag.getCompound(i);
+                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe"), registries));
             }
         }
         if (tag.contains("current_recipe")){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompoundOrEmpty("current_recipe"), registries);
+            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompound("current_recipe"), registries);
         }
-        experience = tag.getIntOr("experience", 0);
-        experienceType = tag.getIntOr("experienceType", 0);
+        experience = tag.getInt("experience");
+        experienceType = tag.getInt("experienceType");
     }
 
     @Override
@@ -275,7 +277,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return;
         }
 
-        List<RecipeHolder<?>> recipes = serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
+        List<RecipeHolder<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
@@ -296,8 +298,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
             }
 
-            if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
-                return transmuteRecipe.result.item().value() == inputStack.getItem();
+            if(recipeHolder.value() instanceof ShulkerBoxColoring transmuteRecipe){
+                return inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX);
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
@@ -307,7 +309,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
                     return false;
                 }
-                return inputStack.is(smithingTransformRecipe.result.item().value());
+                return inputStack.is(smithingTransformRecipe.result.getItem());
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
@@ -316,8 +318,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
                 ArmorTrim armorTrim = inputStack.get(DataComponents.TRIM);
                 if (armorTrim != null){
-                    Optional<Ingredient> ingredient = smithingTrimRecipe.additionIngredient();
-                    if (ingredient.isPresent() && armorTrim.pattern().equals(smithingTrimRecipe.pattern)){
+                    Ingredient ingredient = smithingTrimRecipe.addition;
+                    Optional<Holder.Reference<TrimPattern>> trimPatternReference = TrimPatterns.getFromTemplate(this.level.registryAccess(), Arrays.stream(smithingTrimRecipe.template.getItems()).toList().getFirst());
+                    if (ingredient != Ingredient.EMPTY && trimPatternReference.isPresent() && armorTrim.pattern().equals(trimPatternReference.get())){
                         return true;
                     }
                 }
@@ -371,13 +374,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (RecipeHolder<?> r : recipes) {
-            if (r.value() instanceof TransmuteRecipe transmuteRecipe){
-                List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
+            if (r.value() instanceof ShulkerBoxColoring transmuteRecipe && inputStack.is(Tags.Items.SHULKER_BOXES) && !inputStack.is(Items.SHULKER_BOX)) {
+                List<Ingredient> ingredients = new ArrayList<>();
+
+                Ingredient shulkerBoxIngredient = Ingredient.of(Tags.Items.SHULKER_BOXES);
+                ingredients.add(shulkerBoxIngredient);
+
+                Ingredient dyeIngredient = Ingredient.of(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) inputStack.getItem()).getBlock()).getColor())));
+                ingredients.add(dyeIngredient);
+
                 List<List<Item>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
                 ItemContainerContents itemContainerContents = inputStack.get(DataComponents.CONTAINER);
 
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
@@ -419,25 +429,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
                     }
                     if (inputStack.isDamaged()){
-                        Repairable repairableComponent = inputStack.get(DataComponents.REPAIRABLE);
-                        if (repairableComponent != null){
-                            for (var x : allIngredients.entrySet()){
-                                if (repairableComponent.isValidRepairItem(new ItemStack(x.getKey(), x.getValue()))){
-                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).is(x.getKey())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
-                                            damagedPercentage--;
-                                        }
+                        for (var x : allIngredients.entrySet()){
+                            if (inputStack.getItem().isValidRepairItem(inputStack, new ItemStack(x.getKey(), x.getValue()))){
+                                int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
+                                for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                    if (outputStack.getOutputs().get(i).is(x.getKey())){
+                                        outputStack.setOutput(i, ItemStack.EMPTY);
+                                        damagedPercentage--;
                                     }
-                                    break;
                                 }
+                                break;
                             }
-                        }
-                        else{
-                            this.status = DAMAGED_ITEM;
-                            outputs.clear();
-                            return;
                         }
                     }
                     outputs.add(outputStack);
@@ -474,25 +476,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     }
                     // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the outputAdd commentMore actions
                     if (inputStack.isDamaged()){
-                        Repairable repairableComponent = inputStack.get(DataComponents.REPAIRABLE);
-                        if (repairableComponent != null){
-                            for (var x : allIngredients.entrySet()){
-                                if (repairableComponent.isValidRepairItem(new ItemStack(x.getKey(), x.getValue()))){
-                                    int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).is(x.getKey())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
-                                            damagedPercentage--;
-                                        }
+                        for (var x : allIngredients.entrySet()){
+                            if (inputStack.getItem().isValidRepairItem(inputStack, new ItemStack(x.getKey(), x.getValue()))){
+                                int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
+                                for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
+                                    if (outputStack.getOutputs().get(i).is(x.getKey())){
+                                        outputStack.setOutput(i, ItemStack.EMPTY);
+                                        damagedPercentage--;
                                     }
-                                    break;
                                 }
+                                break;
                             }
-                        }
-                        else{
-                            this.status = DAMAGED_ITEM;
-                            outputs.clear();
-                            return;
                         }
                     }
                     outputs.add(outputStack);
@@ -500,17 +494,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if (r.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
-                List<Optional<Ingredient>> ingredients = new ArrayList<>();
+                NonNullList<Ingredient> ingredients = NonNullList.create();
 
-                ingredients.add(Optional.of(smithingTransformRecipe.baseIngredient()));
-                ingredients.add(smithingTransformRecipe.additionIngredient());
-                ingredients.add(smithingTransformRecipe.templateIngredient());
+                ingredients.add(smithingTransformRecipe.base);
+                ingredients.add(smithingTransformRecipe.addition);
+                ingredients.add(smithingTransformRecipe.template);
 
                 List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.item().value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.getItem(), 1));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
@@ -538,21 +532,21 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             if (r.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
                 ArmorTrim armorTrim = inputStack.get(DataComponents.TRIM);
-                Optional<Ingredient> additionIngredient = smithingTrimRecipe.additionIngredient();
+                Ingredient additionIngredient = smithingTrimRecipe.addition;
 
-                List<Optional<Ingredient>> ingredients = new ArrayList<>();
-                smithingTrimRecipe.baseIngredient().items().filter(itemHolder -> inputStack.is(itemHolder.value())).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.of(itemHolder.value()))));
-                ingredients.add(smithingTrimRecipe.templateIngredient());
-                if (additionIngredient.isPresent() && armorTrim != null){
-                    additionIngredient.get().items().filter(itemHolder -> {
-                        ResourceKey<Item> itemResourceKey = itemHolder.unwrapKey().orElse(null);
-                        ResourceKey<TrimMaterial> armorTrimKey = armorTrim.material().unwrapKey().orElse(null);
-                        if (itemResourceKey != null && armorTrimKey != null){
-                            return itemResourceKey.location().getPath().contains(armorTrimKey.location().getPath());
+                NonNullList<Ingredient> ingredients = NonNullList.create();
+                Arrays.stream(smithingTrimRecipe.base.getItems()).filter(itemStack -> itemStack.is(inputStack.getItem())).forEach(itemStack -> ingredients.add(Ingredient.of(itemStack)));
+                ingredients.add(smithingTrimRecipe.template);
+                Arrays.stream(smithingTrimRecipe.addition.getItems()).filter(itemStack -> {
+                    if (armorTrim != null){
+                        Optional<ResourceKey<TrimMaterial>> armorTrimKey = armorTrim.material().unwrapKey();
+                        Optional<ResourceKey<Item>> itemResourceKey =  itemStack.getItemHolder().unwrapKey();
+                        if (itemResourceKey.isPresent() && armorTrimKey.isPresent()){
+                            return itemResourceKey.get().location().getPath().contains(armorTrimKey.get().location().getPath());
                         }
-                        return false;
-                    }).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.of(itemHolder.value()))));
-                }
+                    }
+                    return false;
+                }).forEach(itemStack -> ingredients.add(Ingredient.of(itemStack)));
 
                 List<List<Item>> allIngredientCombinations = getAllIngredientCombinations(ingredients);
                 ItemEnchantments itemEnchantments = inputStack.get(DataComponents.ENCHANTMENTS);
@@ -564,7 +558,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
                             ItemStack stack = outputStack.getOutputs().get(outputStack.getOutputs().indexOf(item.getDefaultInstance()));
-                            if (item.getDefaultInstance().is(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().items().toList().getFirst().value() : Items.AIR)){
+                            if (item.getDefaultInstance().is(ingredients.getFirst().getItems()[0].getItem())){
                                 stack.set(DataComponents.ENCHANTMENTS, itemEnchantments);
                                 stack.set(DataComponents.DAMAGE, inputStack.get(DataComponents.DAMAGE));
                             }
@@ -572,7 +566,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             outputStack.setOutput(outputStack.getOutputs().indexOf(item.getDefaultInstance()), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item, 1);
-                            if (item.getDefaultInstance().is(ingredients.getFirst().isPresent() ? ingredients.getFirst().get().items().toList().getFirst().value() : Items.AIR)){
+                            if (item.getDefaultInstance().is(ingredients.getFirst().getItems()[0].getItem())){
                                 itemStack.set(DataComponents.ENCHANTMENTS, itemEnchantments);
                                 itemStack.set(DataComponents.DAMAGE, inputStack.get(DataComponents.DAMAGE));
                             }
@@ -610,8 +604,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         // Handle tag ingredients
         try {
-            items = ingredient.items()
-                    .map(Holder::value)
+            items = Arrays.stream(ingredient.getItems())
+                    .map(ItemStack::getItem)
                     .distinct()
                     .toList();
         } catch (IllegalStateException e) {
@@ -625,18 +619,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     if (item.getDescriptionId().contains("shulker_box")){
                         return item == Items.SHULKER_BOX;
                     }
-                    return item.getCraftingRemainder(item.getDefaultInstance()) == ItemStack.EMPTY || item.getCraftingRemainder(item.getDefaultInstance()).getItem() != item.getDefaultInstance().getItem();
+                    return item.getCraftingRemainingItem(item.getDefaultInstance()) == ItemStack.EMPTY || item.getCraftingRemainingItem(item.getDefaultInstance()).getItem() != item.getDefaultInstance().getItem();
                 })
                 .sorted(Comparator.comparing(Item::getDescriptionId))
                 .toList();
     }
 
     // Helper method to get all possible combinations of ingredients for shaped recipes
-    private List<List<Item>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients) {
+    private List<List<Item>> getAllIngredientCombinations(NonNullList<Ingredient> ingredients) {
         Map<String, Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {
-            Optional<Ingredient> optIngredient = ingredients.get(i);
+            Optional<Ingredient> optIngredient = Optional.of(ingredients.get(i));
             List<Item> items = optIngredient.map(ingredient -> {
                         List<Item> ingredientItems = getItemsFromIngredient(ingredient);
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;

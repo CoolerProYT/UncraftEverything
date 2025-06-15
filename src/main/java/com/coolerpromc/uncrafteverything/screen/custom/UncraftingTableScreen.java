@@ -101,7 +101,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int x = this.leftPos;
         int y = this.topPos;
 
-        pGuiGraphics.blit(RenderType::guiTextured, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
+        pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate(0, 0, 600);
-        pGuiGraphics.blit(RenderType::guiTextured, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
+        pGuiGraphics.blit(RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), x - 75, y + 7, 0xFF404040);
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page", pageToDisplay, maxPageCount), x - 75, y + imageHeight - 18, 0xFF404040);
 

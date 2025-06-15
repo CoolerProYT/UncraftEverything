@@ -21,9 +21,7 @@ import java.util.function.Supplier;
 public class UEBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, UncraftEverything.MODID);
 
-    public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTING_TABLE).setId(
-            ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table"))
-    )));
+    public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTING_TABLE)));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier){
         RegistryObject<T> block = BLOCKS.register(name, blockSupplier);
@@ -32,7 +30,7 @@ public class UEBlocks {
     }
 
     private static <T extends Block> void registerBlockItem(String name, RegistryObject<T> block){
-        UEItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().useBlockDescriptionPrefix().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, name)))));
+        UEItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
     public static void register(IEventBus eventBus){

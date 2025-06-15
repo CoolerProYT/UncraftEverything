@@ -167,7 +167,7 @@ public class UEConfigScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.renderBlurredBackground(pPartialTick);
 
         // Enable scissor test to clip content outside the scrollable area
         int scissorTop = 25;
