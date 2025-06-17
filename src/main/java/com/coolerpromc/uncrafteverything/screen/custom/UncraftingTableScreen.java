@@ -242,7 +242,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             int textY = y;
 
             pGuiGraphics.pose().pushPose();
-            pGuiGraphics.pose().translate(0, 0, 400);
+            pGuiGraphics.pose().translate(0, 0, 390);
             pGuiGraphics.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
             pGuiGraphics.pose().popPose();
             List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), 54);
@@ -259,7 +259,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 int textWidth = font.width(formattedcharsequence);
                 int centeredX = x + 97 + (54 - textWidth) / 2;
                 pGuiGraphics.pose().pushPose();
-                pGuiGraphics.pose().translate(centeredX, textY, 400);
+                pGuiGraphics.pose().translate(centeredX, textY, 390);
                 pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xAA0000, false);
                 pGuiGraphics.pose().popPose();
                 textY += 9;
@@ -285,6 +285,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             this.page--;
         } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
             this.page++;
+        }
+        else if (scrollDelta == 1.0d && this.page == 0 && !recipes.isEmpty()) {
+            this.page = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE) - 1;
+        } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipes.size()) {
+            this.page = 0;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollDelta);
     }
