@@ -287,6 +287,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
             this.page++;
         }
+        else if (scrollDelta == 1.0d && this.page == 0 && !recipes.isEmpty()) {
+            this.page = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE) - 1;
+        } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipes.size()) {
+            this.page = 0;
+        }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
     }
 
