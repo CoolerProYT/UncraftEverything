@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,6 +17,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 @Mod(UncraftEverything.MODID)
@@ -41,6 +43,12 @@ public class UncraftEverything
     public void onServerStarting(ServerStartingEvent event)
     {
     }
+
+    @SubscribeEvent
+    public void onOnDatapackSync(OnDatapackSyncEvent event) {
+        event.sendRecipes(RecipeType.CRAFTING, RecipeType.SMITHING);
+    }
+
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
