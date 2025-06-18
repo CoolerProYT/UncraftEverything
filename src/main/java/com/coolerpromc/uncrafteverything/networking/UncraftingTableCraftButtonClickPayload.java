@@ -15,7 +15,7 @@ public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean 
             PacketCodec.tuple(
                     BlockPos.PACKET_CODEC,
                     UncraftingTableCraftButtonClickPayload::blockPos,
-                    PacketCodecs.BOOLEAN,
+                    PacketCodecs.BOOL,
                     UncraftingTableCraftButtonClickPayload::hasShiftDown,
                     UncraftingTableCraftButtonClickPayload::new
             );
