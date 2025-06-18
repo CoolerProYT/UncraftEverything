@@ -1,0 +1,147 @@
+package com.coolerpromc.uncrafteverything.compat.rei;
+
+import com.coolerpromc.uncrafteverything.block.UEBlocks;
+import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
+import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
+import me.shedaniel.math.Rectangle;
+import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
+import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
+import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.client.registry.screen.ExclusionZones;
+import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
+import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
+import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.EnchantmentLevelEntry;
+import net.minecraft.item.*;
+import net.minecraft.item.trim.*;
+import net.minecraft.potion.PotionUtil;
+import net.minecraft.potion.Potions;
+import net.minecraft.recipe.*;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.collection.DefaultedList;
+
+import java.util.*;
+
+public class UEREIPlugin implements REIClientPlugin {
+    @Override
+    public void registerCategories(CategoryRegistry registry) {
+        registry.add(new UncraftingRecipeCategory(), configuration -> configuration.addWorkstations(EntryStacks.of(UEBlocks.UNCRAFTING_TABLE)));
+    }
+
+    @Override
+    public void registerDisplays(DisplayRegistry registry) {
+        RecipeManager recipeManager = MinecraftClient.getInstance().world.getRecipeManager();
+        List<JEIUncraftingTableRecipe> entries = new ArrayList<>();
+
+        // Add Shulker Boxes (Prevent duplication, only normal shulker box will be outputted)
+        Ingredient shulkerBoxIngredient = Ingredient.fromTag(ConventionalItemTags.SHULKER_BOXES);
+        Arrays.stream(shulkerBoxIngredient.getMatchingStacks()).forEach(itemStack -> {
+            if (!itemStack.getItem().equals(Items.SHULKER_BOX)){
+                entries.add(new JEIUncraftingTableRecipe(itemStack, List.of(Ingredient.ofItems(Blocks.SHULKER_BOX), Ingredient.ofItems(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) itemStack.getItem()).getBlock()).getColor()))))));
+            }
+        });
+
+        // Add Tipped Arrows
+        BasicDisplay.registryAccess().getOptional(RegistryKeys.POTION).stream()
+                .flatMap(Registry::stream)
+                .forEach(potion -> {
+                    if (potion != Potions.WATER) {
+                        ItemStack tippedArrow = PotionUtil.setPotion(Items.TIPPED_ARROW.getDefaultStack(), potion);
+                        List<Ingredient> output = new ArrayList<>();
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofStacks(PotionUtil.setPotion(new ItemStack(Items.LINGERING_POTION), potion)));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+                        output.add(Ingredient.ofItems(Items.ARROW));
+
+                        entries.add(new JEIUncraftingTableRecipe(tippedArrow, output));
+                    }
+                });
+
+        // Add Enchanted BooksAdd commentMore actions
+        BasicDisplay.registryAccess().getOptional(RegistryKeys.ENCHANTMENT).stream()
+                .flatMap(Registry::stream)
+                .forEach(enchantment -> {
+                    if (enchantment != null) {
+                        ItemStack enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
+                        ItemStack dirt = new ItemStack(Items.DIAMOND_SWORD);
+                        EnchantedBookItem.addEnchantment(enchantedBook, new EnchantmentLevelEntry(enchantment, enchantment.getMaxLevel()));
+                        EnchantmentHelper.set(Map.of(enchantment, enchantment.getMaxLevel()), dirt);
+                        List<Ingredient> output = new ArrayList<>();
+                        output.add(Ingredient.ofStacks(new ItemStack(Items.DIAMOND_SWORD)));
+                        output.add(Ingredient.ofStacks(enchantedBook));
+
+                        entries.add(new JEIUncraftingTableRecipe(dirt, output));
+                    }
+                });
+
+        // Add all items that can be uncrafted
+        recipeManager.values().forEach(recipeHolder -> {
+            if (recipeHolder instanceof ShapedRecipe shapedRecipe){
+                entries.add(new JEIUncraftingTableRecipe(shapedRecipe.output, shapedRecipe.getIngredients()));
+            }
+
+            if (recipeHolder instanceof ShapelessRecipe shapelessRecipe){
+                entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.output, shapelessRecipe.getIngredients()));
+            }
+
+            if (recipeHolder instanceof SmithingTransformRecipe smithingTransformRecipe){
+                DefaultedList<Ingredient> ingredients = DefaultedList.of();
+
+                ingredients.add(smithingTransformRecipe.base);
+                ingredients.add(smithingTransformRecipe.addition);
+                ingredients.add(smithingTransformRecipe.template);
+                entries.add(new JEIUncraftingTableRecipe(smithingTransformRecipe.result, ingredients));
+            }
+
+            if (recipeHolder instanceof SmithingTrimRecipe smithingTrimRecipe){
+                DynamicRegistryManager registryAccess = MinecraftClient.getInstance().world.getRegistryManager();
+                List<Ingredient> output = new ArrayList<>();
+                output.add(0, smithingTrimRecipe.base);
+                output.add(1, smithingTrimRecipe.addition);
+                output.add(smithingTrimRecipe.template);
+                Arrays.stream(smithingTrimRecipe.base.getMatchingStacks()).forEach(itemStack -> {
+                    output.set(0, Ingredient.ofStacks(itemStack));
+                    Arrays.stream(smithingTrimRecipe.addition.getMatchingStacks()).forEach(itemStack1 -> {
+                        output.set(1, Ingredient.ofStacks(itemStack1));
+                        Optional<RegistryEntry.Reference<ArmorTrimMaterial>> trimMaterialReference = ArmorTrimMaterials.get(registryAccess, smithingTrimRecipe.addition.getMatchingStacks()[0]);
+                        Optional<RegistryEntry.Reference<ArmorTrimPattern>> trimPatternReference = ArmorTrimPatterns.get(registryAccess, smithingTrimRecipe.template.getMatchingStacks()[0]);
+                        if (trimPatternReference.isPresent() && trimMaterialReference.isPresent()){
+                            ArmorTrim.apply(registryAccess, itemStack, new ArmorTrim(trimMaterialReference.get(), trimPatternReference.get()));
+                            entries.add(new JEIUncraftingTableRecipe(itemStack, output));
+                        }
+                    });
+                });
+            }
+        });
+
+        entries.forEach(jeiUncraftingTableRecipe -> {
+            registry.add(new UncraftingRecipeDisplay(List.of(EntryIngredients.of(jeiUncraftingTableRecipe.getInput())), EntryIngredients.ofIngredients(jeiUncraftingTableRecipe.getOutputs())));
+        });
+    }
+
+    @Override
+    public void registerScreens(ScreenRegistry registry) {
+        registry.registerClickArea(screen -> new Rectangle(((screen.width - 176) / 2) + 59, ((screen.height - 166) / 2) + 27, 22, 15), UncraftingTableScreen.class, UncraftingRecipeDisplay.CATEGORY_IDENTIFIER);
+    }
+
+    @Override
+    public void registerExclusionZones(ExclusionZones zones) {
+        zones.register(UncraftingTableScreen.class, screen -> List.of(
+            new Rectangle(0, 0, screen.getX(), screen.height)
+        ));
+    }
+}
