@@ -272,7 +272,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             int textY = y;
 
             context.push();
-            context.translate(0,0,400);
+            context.translate(0,0,390);
             fill(context, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
             context.pop();
             List<OrderedText> formattedText = textRenderer.wrapLines(StringVisitable.plain(statusText.getString()), 54);
@@ -289,7 +289,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 int textWidth = textRenderer.getWidth(formattedcharsequence);
                 int centeredX = x + 97 + (54 - textWidth) / 2;
                 context.push();
-                context.translate(centeredX,textY,400);
+                context.translate(centeredX,textY, 390);
                 textRenderer.draw(context, formattedcharsequence, 0, 0, 0xFFAA0000);
                 context.pop();
                 textY += 9;
@@ -355,5 +355,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 ClientPlayNetworking.send(UncraftingRecipeSelectionPayload.ID, packetByteBuf);
             }
         }
+    }
+
+    public int getX() {
+        return this.x;
     }
 }
