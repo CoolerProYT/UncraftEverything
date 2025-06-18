@@ -29,7 +29,7 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-//            property 'eventbus.api.strictRuntimeChecks', 'true'
+            property 'eventbus.api.strictRuntimeChecks', 'true'
         }
 
         client {
