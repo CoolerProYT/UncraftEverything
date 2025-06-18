@@ -307,4 +307,8 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             }
         }
     }
+
+    public int getX() {
+        return this.x;
+    }
 }

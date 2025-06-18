@@ -8,13 +8,23 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import com.google.common.collect.Lists;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class UncraftEverything implements ModInitializer {
 	public static final String MODID = "uncrafteverything";
@@ -40,6 +50,7 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -104,5 +115,14 @@ public class UncraftEverything implements ModInitializer {
 				PerItemExpCostConfig.save();
 			}
 		});
+
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
+            ServerRecipeManager recipeManager = serverPlayerEntity.getWorld().getRecipeManager();
+            List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
+            recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING));
+            recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));
+            List<List<RecipeEntry<?>>> recipes = Lists.partition(recipeEntries, 100);
+            recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
+        });
 	}
 }
