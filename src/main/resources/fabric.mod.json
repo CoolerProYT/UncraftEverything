@@ -19,6 +19,9 @@
 		],
 		"client": [
 			"com.coolerpromc.uncrafteverything.UncraftEverythingClient"
+		],
+		"rei_client": [
+			"com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
 		]
 	},
 	"depends": {
