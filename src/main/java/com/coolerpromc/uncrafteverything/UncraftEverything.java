@@ -10,8 +10,10 @@ import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -40,6 +42,7 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -103,6 +106,11 @@ public class UncraftEverything implements ModInitializer {
 				PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
 				PerItemExpCostConfig.save();
 			}
+		});
+
+		ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler, packetSender, minecraftServer) -> {
+			ServerRecipeManager recipeManager = minecraftServer.getRecipeManager();
+			ServerPlayNetworking.send(serverPlayNetworkHandler.player, new RecipeSyncPayload(recipeManager.values().stream().toList()));
 		});
 	}
 }

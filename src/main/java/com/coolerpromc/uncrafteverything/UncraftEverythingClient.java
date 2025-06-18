@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.networking.RecipeSyncPayload;
 import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
@@ -11,10 +12,14 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class UncraftEverythingClient implements ClientModInitializer {
     public static ResponseConfigPayload payloadFromServer;
+    public static List<RecipeEntry<?>> recipesFromServer;
 
     @Override
     public void onInitializeClient() {
@@ -44,6 +49,12 @@ public class UncraftEverythingClient implements ClientModInitializer {
             if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen) {
                 uncraftingTableScreen.getRecipeSelection();
             }
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayload.TYPE, (recipeSyncPayload, context) -> {
+            context.client().execute(() -> {
+                recipesFromServer = recipeSyncPayload.recipes();
+            });
         });
     }
 }

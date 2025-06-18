@@ -22,6 +22,9 @@
 		],
 		"fabric-datagen": [
 			"com.coolerpromc.uncrafteverything.UncraftEverythingDataGenerator"
+		],
+		"rei_client": [
+			"com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
 		]
 	},
 	"depends": {
