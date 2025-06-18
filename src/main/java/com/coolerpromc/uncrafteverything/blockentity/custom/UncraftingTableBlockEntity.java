@@ -11,6 +11,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -42,6 +44,8 @@ import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -160,43 +164,55 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput valueOutput) {
+        super.saveAdditional(valueOutput);
 
-        tag.put("input", inputHandler.serializeNBT(registries));
-        tag.put("output", outputHandler.serializeNBT(registries));
-        ListTag listTag = new ListTag();
+        NonNullList<ItemStack> inputStacks = NonNullList.withSize(inputHandler.getSlots(), ItemStack.EMPTY);
+        for (int i = 0; i < inputHandler.getSlots(); i++) {
+            inputStacks.set(i, inputHandler.getStackInSlot(i));
+        }
+        NonNullList<ItemStack> outputStacks = NonNullList.withSize(outputHandler.getSlots(), ItemStack.EMPTY);
+        for (int i = 0; i < outputHandler.getSlots(); i++) {
+            outputStacks.set(i, outputHandler.getStackInSlot(i));
+        }
+        ContainerHelper.saveAllItems(valueOutput.child("input"), inputStacks);
+        ContainerHelper.saveAllItems(valueOutput.child("output"), outputStacks);
+
+        ValueOutput.TypedOutputList<UncraftingTableRecipe> recipeListAppender = valueOutput.list("current_recipes", UncraftingTableRecipe.CODEC);
         for (UncraftingTableRecipe recipe : currentRecipes) {
-            CompoundTag recipeTag = new CompoundTag();
-            recipeTag.put("recipe", recipe.serializeNbt(registries));
-            listTag.add(recipeTag);
+            recipeListAppender.add(recipe);
         }
-        tag.put("current_recipes", listTag);
+
         if (currentRecipe != null) {
-            tag.put("current_recipe", currentRecipe.serializeNbt(registries));
+            valueOutput.store("current_recipe", UncraftingTableRecipe.CODEC, currentRecipe);
         }
-        tag.putInt("experience", experience);
-        tag.putInt("experienceType", experienceType);
+        valueOutput.putInt("experience", experience);
+        valueOutput.putInt("experienceType", experienceType);
     }
 
     @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput valueInput) {
+        super.loadAdditional(valueInput);
 
-        inputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("input"));
-        outputHandler.deserializeNBT(registries, tag.getCompoundOrEmpty("output"));
-        if (tag.contains("current_recipes")){
-            ListTag listTag = tag.getListOrEmpty("current_recipes");
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag recipeTag = listTag.getCompoundOrEmpty(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompoundOrEmpty("recipe"), registries));
-            }
+        NonNullList<ItemStack> inputStacks = NonNullList.withSize(inputHandler.getSlots(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(valueInput.childOrEmpty("input"), inputStacks);
+        for (int i = 0; i < inputHandler.getSlots(); i++) {
+            inputHandler.setStackInSlot(i, inputStacks.get(i));
         }
-        if (tag.contains("current_recipe")){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompoundOrEmpty("current_recipe"), registries);
+        NonNullList<ItemStack> outputStacks = NonNullList.withSize(outputHandler.getSlots(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(valueInput.childOrEmpty("output"), outputStacks);
+        for (int i = 0; i < outputHandler.getSlots(); i++) {
+            outputHandler.setStackInSlot(i, outputStacks.get(i));
         }
-        experience = tag.getIntOr("experience", 0);
-        experienceType = tag.getIntOr("experienceType", 0);
+
+        for (UncraftingTableRecipe recipe : valueInput.listOrEmpty("current_recipes", UncraftingTableRecipe.CODEC)) {
+            currentRecipes.add(recipe);
+        }
+
+        currentRecipe = valueInput.read("current_recipe", UncraftingTableRecipe.CODEC).orElse(null);
+
+        experience = valueInput.getIntOr("experience", 0);
+        experienceType = valueInput.getIntOr("experienceType", 0);
     }
 
     @Override
@@ -227,12 +243,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         this.status = -1;
 
         ItemStack inputStack = this.inputHandler.getStackInSlot(0);
-
-        List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.restrictions.get();
-        List<Pattern> wildcardBlacklist = blacklist.stream()
-                .filter(s -> s.contains("*"))
-                .map(s -> Pattern.compile(s.replace("*", ".*")))
-                .toList();
 
         if (inputHandler.getStackInSlot(0).isEmpty()
                 || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())

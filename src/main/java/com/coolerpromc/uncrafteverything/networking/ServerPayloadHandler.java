@@ -17,7 +17,7 @@ public class ServerPayloadHandler {
     public static void handleButtonClick(UncraftingTableCraftButtonClickPayload payload, CustomPayloadEvent.Context context) {
         context.enqueueWork(() -> {
             if (context.getSender() instanceof ServerPlayer player) {
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = player.level();
                 BlockPos pos = payload.blockPos();
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -36,7 +36,7 @@ public class ServerPayloadHandler {
     public static void handleRecipeSelection(UncraftingRecipeSelectionPayload payload, CustomPayloadEvent.Context context) {
         context.enqueueWork(() -> {
             if (context.getSender() instanceof ServerPlayer player) {
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = player.level();
                 BlockPos pos = payload.blockPos();
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);

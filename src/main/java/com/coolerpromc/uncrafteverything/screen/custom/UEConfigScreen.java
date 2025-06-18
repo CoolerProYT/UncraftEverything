@@ -65,7 +65,10 @@ public class UEConfigScreen extends Screen {
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        restrictionsInput = new MultiLineEditBox(this.font, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
+        restrictionsInput = MultiLineEditBox.builder()
+                .setX(x)
+                .setY((int) (baseY + 25 - scrollAmount))
+                .build(this.font, widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"));
         restrictionsInput.setValue(joined);
         this.addRenderableWidget(restrictionsInput);
 
@@ -167,8 +170,6 @@ public class UEConfigScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
         // Enable scissor test to clip content outside the scrollable area
         int scissorTop = 25;
         int scissorBottom = this.height - 45;
@@ -185,11 +186,12 @@ public class UEConfigScreen extends Screen {
         Component format = Component.translatable("screen.uncrafteverything.config.restricted_item_label");
         pGuiGraphics.drawWordWrap(this.font, format, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 20), textWidth,0xFFFFFFFF);
 
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().scale(0.65f, 0.65f, 0f);
-        pGuiGraphics.pose().translate(x * 1.55, ((baseY + 25 - scrollAmount) * 1.6) + this.font.wordWrapHeight(format, textWidth) * 2 - (this.font.lineHeight * 0.65) + 40, 0);
+        pGuiGraphics.pose().pushMatrix();
+        pGuiGraphics.pose().scale(0.65f, 0.65f);
+        pGuiGraphics.pose().translate((float) (x * 1.55), (float) (((baseY + 25 - scrollAmount) * 1.6f) + this.font.wordWrapHeight(format, textWidth) * 2 - (this.font.lineHeight * 0.65) + 40));
         pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.format_label"), 0, 0, (int) (textWidth * 1.5),0xFFAAAAAA);
-        pGuiGraphics.pose().popPose();
+        pGuiGraphics.pose().popMatrix();
+
 
         Component allowEnchantedItem = Component.translatable("screen.uncrafteverything.config.allow_enchanted_label");
         pGuiGraphics.drawWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);

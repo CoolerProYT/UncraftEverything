@@ -6,9 +6,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.network.*;
+import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.SimpleChannel;
 
 public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) {
@@ -26,26 +27,24 @@ public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean 
             .consumer(ServerPayloadHandler::handleButtonClick)
             .add();
 
-    public static final Codec<UncraftingTableCraftButtonClickPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableCraftButtonClickPayload::blockPos),
-            Codec.BOOL.fieldOf("hasShiftDown").forGetter(UncraftingTableCraftButtonClickPayload::hasShiftDown)
-    ).apply(instance, UncraftingTableCraftButtonClickPayload::new));
-
     private static int packetId = 0;
     private static int nextId() {
         return packetId++;
     }
 
     public static void encode(UncraftingTableCraftButtonClickPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+        byteBuf.writeBlockPos(payload.blockPos);
+        byteBuf.writeBoolean(payload.hasShiftDown);
     }
 
     public static UncraftingTableCraftButtonClickPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+        BlockPos blockPos = byteBuf.readBlockPos();
+        boolean hasShiftDown = byteBuf.readBoolean();
+        return new UncraftingTableCraftButtonClickPayload(blockPos, hasShiftDown);
     }
 
-    public static void register(IEventBus bus) {
+    public static void register(BusGroup bus) {
         // nothing special on setup, channel is built statically
-        bus.addListener((FMLCommonSetupEvent e) -> { /* no-op */ });
+        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
     }
 }

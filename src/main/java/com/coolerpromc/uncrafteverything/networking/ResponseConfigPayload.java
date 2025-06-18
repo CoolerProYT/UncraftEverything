@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.ChannelBuilder;
@@ -57,8 +57,8 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         return packetId++;
     }
 
-    public static void register(IEventBus bus) {
+    public static void register(BusGroup bus) {
         // nothing special on setup, channel is built statically
-        bus.addListener((FMLCommonSetupEvent e) -> { /* no-op */ });
+        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
     }
 }

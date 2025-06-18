@@ -5,11 +5,10 @@ import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.ChannelBuilder;
@@ -94,8 +93,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         return new UncraftingTableDataPayload(pos, recipes);
     }
 
-    public static void register(IEventBus bus) {
+    public static void register(BusGroup bus) {
         // nothing special on setup, channel is built statically
-        bus.addListener((FMLCommonSetupEvent e) -> { /* no-op */ });
+        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
     }
 }

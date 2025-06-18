@@ -6,15 +6,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 public class RecipeSelectionButton extends AbstractButton {
-    private static final WidgetSprites TEXTURES = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "widget/button_disabled"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button_highlighted"));
+    private static final WidgetSprites SPRITES = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "widget/button_disabled"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button_highlighted"));
     protected final PressAction onPress;
 
     public RecipeSelectionButton(int x, int y, int width, int height, Component message, PressAction onPress) {
@@ -24,10 +23,10 @@ public class RecipeSelectionButton extends AbstractButton {
 
     @Override
     protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        Minecraft minecraftClient = Minecraft.getInstance();
-        context.blitSprite(RenderType::guiTextured, TEXTURES.get(this.active, this.isFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
-        int i = this.active ? 16777215 : 10526880;
-        this.renderString(context, minecraftClient.font, i | Mth.ceil(this.alpha * 255.0F) << 24);
+        Minecraft minecraft = Minecraft.getInstance();
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, SPRITES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+        int i = this.getFGColor();
+        this.renderString(context, minecraft.font, i);
     }
 
     @Override
