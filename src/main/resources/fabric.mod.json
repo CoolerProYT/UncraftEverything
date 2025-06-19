@@ -20,7 +20,7 @@
 		"client": [
 			"com.coolerpromc.uncrafteverything.UncraftEverythingClient"
 		],
-		"rei_plugin": [
+		"rei_plugins": [
 			"com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
 		]
 	},

@@ -6,12 +6,13 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
 import com.coolerpromc.uncrafteverything.util.UETags;
 import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.EntryStack;
-import me.shedaniel.rei.api.RecipeHelper;
+import me.shedaniel.rei.api.*;
 import me.shedaniel.rei.api.plugins.REIPluginV0;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentLevelEntry;
@@ -28,9 +29,22 @@ import java.util.*;
 public class UEREIPlugin implements REIPluginV0 {
     @Override
     public void registerPluginCategories(RecipeHelper recipeHelper) {
-        recipeHelper.registerContainerClickArea(screen -> new Rectangle(((screen.width - 176) / 2) + 59, ((screen.height - 166) / 2) + 27, 22, 15), UncraftingTableScreen.class, UncraftingRecipeCategory.ID);
         recipeHelper.registerCategories(new UncraftingRecipeCategory());
+    }
+
+    @Override
+    public void registerOthers(RecipeHelper recipeHelper) {
+        recipeHelper.registerClickArea(screen -> new Rectangle(((screen.width - 176) / 2) + 59, ((screen.height - 166) / 2) + 27, 22, 15), UncraftingTableScreen.class, UncraftingRecipeCategory.ID);
         recipeHelper.registerWorkingStations(UncraftingRecipeCategory.ID, EntryStack.create(UEBlocks.UNCRAFTING_TABLE));
+    }
+
+    @Override
+    public void registerBounds(DisplayHelper displayHelper) {
+        BaseBoundsHandler baseBoundsHandler = BaseBoundsHandler.getInstance();
+        baseBoundsHandler.registerExclusionZones(UncraftingTableScreen.class, () -> {
+            UncraftingTableScreen screen = (UncraftingTableScreen) REIHelper.getInstance().getPreviousContainerScreen();
+            return new ArrayList<>(Collections.singleton(new Rectangle(0, 0, screen.getX(), screen.height)));
+        });
     }
 
     @Override

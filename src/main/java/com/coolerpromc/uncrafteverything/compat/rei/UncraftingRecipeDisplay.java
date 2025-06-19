@@ -5,6 +5,7 @@ import me.shedaniel.rei.api.RecipeDisplay;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 public class UncraftingRecipeDisplay implements RecipeDisplay {
@@ -18,12 +19,12 @@ public class UncraftingRecipeDisplay implements RecipeDisplay {
 
     @Override
     public @NotNull List<List<EntryStack>> getInputEntries() {
-        return outputs;
+        return Collections.singletonList(inputs);
     }
 
     @Override
-    public @NotNull List<EntryStack> getOutputEntries() {
-        return inputs;
+    public @NotNull List<List<EntryStack>> getResultingEntries() {
+        return outputs;
     }
 
     @Override

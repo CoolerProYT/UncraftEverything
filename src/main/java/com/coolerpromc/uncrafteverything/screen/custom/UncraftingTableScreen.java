@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -37,6 +38,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     private static final Identifier TEXTURE = new Identifier(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
     private static final Identifier RECIPE_PANEL_TEXTURE = new Identifier(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
     private List<UncraftingTableRecipe> recipes = new ArrayList<>();
+    private final List<Element> myWidgets = new ArrayList<>();
     private int selectedRecipe = 0;
 
     private static final int SCROLLBAR_WIDTH = 6;
@@ -124,14 +126,14 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     public void render(MatrixStack context, int mouseX, int mouseY, float delta) {
         renderBackground(context);
 
-        this.children.clear();
+        this.children.removeAll(myWidgets);
         this.init();
 
         Text exp = new TranslatableText("screen.uncrafteverything.exp_" + this.handler.getExpType().toLowerCase() + "_required",this.handler.getExpAmount());
         int expX = x + (backgroundWidth - 64) - 20 + 32;
 
         context.push();
-        context.scale(0.75f, 0.75f, 0.75f);
+        context.scale(0.75f, 0.75f, 0);
         context.translate(0, this.y * 1.3334 + 124, 1f);
         this.drawCenteredWordWrapWithoutShadow(context, this.textRenderer, exp, (int) (expX * 1.3334f), 0, 0xFF00AA00);
         context.pop();
@@ -156,6 +158,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 this.page = Math.max(maxPageCount - 1, 0);
             }
         });
+        myWidgets.add(prevButton);
         this.addChild(prevButton).render(context, mouseX, mouseY, delta);
         fill(context, x - 152 + 5, y + backgroundHeight - 23 + 15, x - 152 + 5 + 16, y + backgroundHeight - 23 + 16, prevButton.isHovered() || prevButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
@@ -167,6 +170,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 this.page = 0;
             }
         });
+        myWidgets.add(nextButton);
         this.addChild(nextButton).render(context, mouseX, mouseY, delta);
         fill(context, x - 21, y + backgroundHeight - 23 + 15, x - 21 + 16, y + backgroundHeight - 23 + 16, nextButton.isHovered() || nextButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
@@ -183,6 +187,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
+            myWidgets.add(button);
             this.addChild(button).render(context, mouseX, mouseY, delta);
             fill(context, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX() + bounds.getWidth()), (int) (bounds.getY() + bounds.getHeight()),0xFFFFFFFF);
             fill(context, (int) bounds.getX() + 1, (int) (bounds.getY() + bounds.getHeight() - 1), (int) (bounds.getX()), (int) (bounds.getY() + bounds.getHeight()),0xFF8B8B8B);
@@ -265,7 +270,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 case 4 : statusText = new TranslatableText("screen.uncrafteverything.not_empty_shulker"); break;
                 case 5 : statusText = new TranslatableText("screen.uncrafteverything.restricted_by_config"); break;
                 case 6 : statusText = new TranslatableText("screen.uncrafteverything.damaged_item"); break;
-                case 7 : statusText = new TranslatableText("Enchanted Item Not Allowed!"); break;
+                case 7 : statusText = new TranslatableText("screen.uncrafteverything.enchanted_item"); break;
                 default : statusText = new TranslatableText("screen.uncrafteverything.blank");
             }
 
@@ -315,6 +320,11 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             this.page--;
         } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
             this.page++;
+        }
+        else if (amount == 1.0d && this.page == 0 && !recipes.isEmpty()) {
+            this.page = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE) - 1;
+        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipes.size()) {
+            this.page = 0;
         }
         return super.mouseScrolled(mouseX, mouseY, amount);
     }

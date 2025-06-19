@@ -8,6 +8,7 @@ import me.shedaniel.rei.api.EntryStack;
 import me.shedaniel.rei.api.RecipeCategory;
 import me.shedaniel.rei.api.widgets.Widgets;
 import me.shedaniel.rei.gui.widget.Widget;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UncraftingRecipeCategory implements RecipeCategory<UncraftingRecipeDisplay> {
-    public static Identifier ID = new Identifier(UncraftEverything.MODID, "uncrafting_table");
+    public static Identifier ID = new Identifier(UncraftEverything.MODID, "plugins/uncrafting_table");
 
     @Override
     public @NotNull EntryStack getLogo() {
@@ -35,7 +36,7 @@ public class UncraftingRecipeCategory implements RecipeCategory<UncraftingRecipe
 
     @Override
     public @NotNull String getCategoryName() {
-        return "";
+        return new TranslatableText("block.uncrafteverything.uncrafting_table").getString();
     }
 
     @Override
@@ -48,15 +49,15 @@ public class UncraftingRecipeCategory implements RecipeCategory<UncraftingRecipe
         List<Widget> widgets = new LinkedList<>();
         widgets.add(Widgets.createCategoryBase(new Rectangle(bounds.x, bounds.y, 135, 64)));
         widgets.add(Widgets.createArrow(new Point(bounds.x + 35, bounds.y + 24)));
-        bounds.setSize(135, 56);
+        bounds.setSize(146, 56);
         widgets.add(Widgets.createSlotBackground(new Point(bounds.x + 10, bounds.y + 24)));
         for (int i = 0; i < 9; i ++){
             widgets.add(Widgets.createSlotBackground(new Point(bounds.x + 72 + 18 * (i % 3), bounds.y + 6 + (i / 3) * 18)));
         }
-        widgets.add(Widgets.createSlot(new Point(bounds.x + 10, bounds.y + 24)).entries(Collections.singleton(display.getOutputEntries().get(0))).markInput());
-        for (int i = 0; i < display.getInputEntries().size(); i ++){
-            if (display.getInputEntries().get(i) != null){
-                widgets.add(Widgets.createSlot(new Point(bounds.x + 72 + 18 * (i % 3), bounds.y + 6 + (i / 3) * 18)).entries(display.getInputEntries().get(i)).markOutput());
+        widgets.add(Widgets.createSlot(new Point(bounds.x + 10, bounds.y + 24)).entries(Collections.singleton(display.getInputEntries().get(0).get(0))).markInput());
+        for (int i = 0; i < display.getResultingEntries().size(); i ++){
+            if (display.getResultingEntries().get(i) != null){
+                widgets.add(Widgets.createSlot(new Point(bounds.x + 72 + 18 * (i % 3), bounds.y + 6 + (i / 3) * 18)).entries(display.getResultingEntries().get(i)).markOutput());
             }
         }
         return widgets;
