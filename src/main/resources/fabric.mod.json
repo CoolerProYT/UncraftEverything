@@ -20,12 +20,12 @@
 		"client": [
 			"com.coolerpromc.uncrafteverything.UncraftEverythingClient"
 		],
-		"rei_client": [
+		"rei_plugins": [
 			"com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.16.14",
+		"fabricloader": ">=0.12.12",
 		"minecraft": "1.16.5",
 		"java": ">=8",
 		"fabric": "*"
