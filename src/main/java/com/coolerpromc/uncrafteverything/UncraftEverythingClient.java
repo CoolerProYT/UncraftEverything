@@ -15,11 +15,12 @@ import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UncraftEverythingClient implements ClientModInitializer {
     public static ResponseConfigPayload payloadFromServer;
-    public static List<RecipeEntry<?>> recipesFromServer;
+    public static List<RecipeEntry<?>> recipesFromServer = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
@@ -53,7 +54,10 @@ public class UncraftEverythingClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayload.TYPE, (recipeSyncPayload, context) -> {
             context.client().execute(() -> {
-                recipesFromServer = recipeSyncPayload.recipes();
+                if (recipesFromServer.size() >= recipeSyncPayload.totalRecipe()){
+                    recipesFromServer.clear();
+                }
+                recipesFromServer.addAll(recipeSyncPayload.recipes());
             });
         });
     }
