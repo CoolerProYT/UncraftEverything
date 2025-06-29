@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -40,6 +41,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.enchantment.Repairable;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -293,6 +295,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
                     return false;
                 }
+                Equippable component = inputStack.get(DataComponents.EQUIPPABLE);
+                if (component != null && component.slot() == EquipmentSlot.CHEST){
+                    if (component.assetId().isPresent()){
+                        ResourceLocation assetId = component.assetId().get().location();
+                        if (assetId.getNamespace().equals("elytra_chestplate")){
+                            return false;
+                        }
+                    }
+                }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
@@ -316,6 +327,21 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
                 if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
                     return false;
+                }
+                Equippable component = inputStack.get(DataComponents.EQUIPPABLE);
+                if (component != null && component.slot() == EquipmentSlot.CHEST) {
+                    if (component.assetId().isPresent()) {
+                        ResourceLocation assetId = component.assetId().get().location();
+                        if (!assetId.getNamespace().equals("elytra_chestplate")
+                                && smithingTransformRecipe.templateIngredient().isEmpty()) {
+                            return false;
+                        }
+                        if (inputStack.is(Items.NETHERITE_CHESTPLATE)
+                                && smithingTransformRecipe.templateIngredient().isPresent()
+                                && assetId.getNamespace().equals("elytra_chestplate")) {
+                            return false;
+                        }
+                    }
                 }
                 return inputStack.is(smithingTransformRecipe.result.item().value());
             }
