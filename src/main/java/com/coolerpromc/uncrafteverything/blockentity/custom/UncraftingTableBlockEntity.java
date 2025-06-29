@@ -16,6 +16,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.*;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -285,6 +286,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT){
                     return false;
                 }
+                EquippableComponent component = inputStack.get(DataComponentTypes.EQUIPPABLE);
+                if (component != null && component.slot() == EquipmentSlot.CHEST){
+                    if (component.assetId().isPresent()){
+                        Identifier assetId = component.assetId().get().getValue();
+                        if (assetId.getNamespace().equals("elytra_chestplate")){
+                            return false;
+                        }
+                    }
+                }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
             }
 
@@ -308,6 +318,18 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 }
                 if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT){
                     return false;
+                }
+                EquippableComponent component = inputStack.get(DataComponentTypes.EQUIPPABLE);
+                if (component != null && component.slot() == EquipmentSlot.CHEST){
+                    if (component.assetId().isPresent()){
+                        Identifier assetId = component.assetId().get().getValue();
+                        if (!assetId.getNamespace().equals("elytra_chestplate") && smithingTransformRecipe.template().isEmpty()){
+                            return false;
+                        }
+                        if (inputStack.isOf(Items.NETHERITE_CHESTPLATE) && smithingTransformRecipe.template().isPresent() && assetId.getNamespace().equals("elytra_chestplate")){
+                            return false;
+                        }
+                    }
                 }
                 return inputStack.isOf(smithingTransformRecipe.result.itemEntry().value());
             }
