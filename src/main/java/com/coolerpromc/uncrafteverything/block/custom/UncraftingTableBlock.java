@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +60,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             }
         }
         else{
-            PacketDistributor.sendToServer(new RequestConfigPayload());
+            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
         }
 
         return InteractionResult.SUCCESS;

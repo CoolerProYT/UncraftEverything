@@ -9,7 +9,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -89,8 +89,8 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         UEExpPayload configPayload = new UEExpPayload(newConfig);
-        PacketDistributor.sendToServer(configPayload);
-        PacketDistributor.sendToServer(new RequestConfigPayload());
+        ClientPacketDistributor.sendToServer(configPayload);
+        ClientPacketDistributor.sendToServer(new RequestConfigPayload());
         this.getMinecraft().setScreen(parent);
     }
 

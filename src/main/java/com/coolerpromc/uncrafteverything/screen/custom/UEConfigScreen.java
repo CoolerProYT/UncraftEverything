@@ -12,7 +12,7 @@ import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -126,8 +126,8 @@ public class UEConfigScreen extends Screen {
             }
 
             UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems);
-            PacketDistributor.sendToServer(configPayload);
-            PacketDistributor.sendToServer(new RequestConfigPayload());
+            ClientPacketDistributor.sendToServer(configPayload);
+            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
             this.getMinecraft().setScreen(parent);
         }).bounds(this.width / 2 - 100, this.height - 23, 200, 20).build();
         this.addRenderableWidget(saveButton);
@@ -222,7 +222,7 @@ public class UEConfigScreen extends Screen {
 
     @Override
     public void onClose() {
-        PacketDistributor.sendToServer(new RequestConfigPayload());
+        ClientPacketDistributor.sendToServer(new RequestConfigPayload());
         this.getMinecraft().setScreen(parent);
     }
 }

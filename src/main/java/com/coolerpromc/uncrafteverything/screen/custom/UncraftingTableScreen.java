@@ -20,7 +20,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Rectangle2D;
@@ -82,7 +82,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     private void onPressed(Button button) {
         UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShiftDown());
-        PacketDistributor.sendToServer(payload);
+        ClientPacketDistributor.sendToServer(payload);
     }
 
     private void openConfigScreen(Button button){
@@ -203,7 +203,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         }
 
         if (!recipes.isEmpty()) {
-            PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(
+            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(
                     this.menu.blockEntity.getBlockPos(),
                     this.recipes.get(selectedRecipe)));
 
@@ -317,7 +317,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         }
         finally {
             if (recipe != null){
-                PacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
+                ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
             }
         }
     }

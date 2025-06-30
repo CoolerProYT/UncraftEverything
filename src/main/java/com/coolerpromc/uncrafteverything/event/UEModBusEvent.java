@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@EventBusSubscriber(modid = UncraftEverything.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = UncraftEverything.MODID)
 public class UEModBusEvent {
     @SubscribeEvent
     public static void registerPayloads(final RegisterPayloadHandlersEvent event) {
