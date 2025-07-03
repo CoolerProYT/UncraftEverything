@@ -103,23 +103,25 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
         drawTexture(context, x, y, 0, 0, backgroundWidth, backgroundHeight);
 
-        configButton.render(context, mouseX, mouseY, delta);
-        expConfigButton.render(context, mouseX, mouseY, delta);
+        if (this.handler.player.isCreative() || this.handler.player.hasPermissionLevel(4)) {
+            configButton.render(context, mouseX, mouseY, delta);
+            expConfigButton.render(context, mouseX, mouseY, delta);
 
-        fill(context, x + backgroundWidth - 15, y + 3 + 11, x + backgroundWidth - 17 + 12, y + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
-        fill(context, x + backgroundWidth - 29, y + 3 + 11, x + backgroundWidth - 31 + 12, y + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+            fill(context, x + backgroundWidth - 15, y + 3 + 11, x + backgroundWidth - 17 + 12, y + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+            fill(context, x + backgroundWidth - 29, y + 3 + 11, x + backgroundWidth - 31 + 12, y + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
-        this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
-        context.push();
-        context.translate(x + backgroundWidth - 16 + 2, y + 5, 400);
-        drawTexture(context, 0, 0, 0, 0,8, 8, 8, 8);
-        context.pop();
+            this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
+            context.push();
+            context.translate(x + backgroundWidth - 16 + 2, y + 5, 400);
+            drawTexture(context, 0, 0, 0, 0, 8, 8, 8, 8);
+            context.pop();
 
-        this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
-        context.push();
-        context.translate(x + backgroundWidth - 30 + 2, y + 5, 400);
-        drawTexture(context, 0, 0, 0, 0,8, 8, 8, 8);
-        context.pop();
+            this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
+            context.push();
+            context.translate(x + backgroundWidth - 30 + 2, y + 5, 400);
+            drawTexture(context, 0, 0, 0, 0, 8, 8, 8, 8);
+            context.pop();
+        }
     }
 
     @Override
