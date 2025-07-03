@@ -93,23 +93,25 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
         int y = this.topPos;
         blit(pGuiGraphics, x, y, 0, 0, imageWidth, imageHeight);
 
-        configButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
-        expConfigButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
+        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
+            configButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
+            expConfigButton.render(pGuiGraphics, mouseX, mouseY, partialTick);
 
-        fill(pGuiGraphics, leftPos + imageWidth - 15, topPos + 3 + 11, leftPos + imageWidth - 17 + 12, topPos + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
-        fill(pGuiGraphics, leftPos + imageWidth - 29, topPos + 3 + 11, leftPos + imageWidth - 31 + 12, topPos + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+            fill(pGuiGraphics, leftPos + imageWidth - 15, topPos + 3 + 11, leftPos + imageWidth - 17 + 12, topPos + 3 + 12, configButton.isHovered() || configButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+            fill(pGuiGraphics, leftPos + imageWidth - 29, topPos + 3 + 11, leftPos + imageWidth - 31 + 12, topPos + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
-        this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
-        pGuiGraphics.pushPose();
-        pGuiGraphics.translate(leftPos + imageWidth - 16 + 2, topPos + 5, 400);
-        blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
-        pGuiGraphics.popPose();
+            this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"));
+            pGuiGraphics.pushPose();
+            pGuiGraphics.translate(leftPos + imageWidth - 16 + 2, topPos + 5, 400);
+            blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
+            pGuiGraphics.popPose();
 
-        this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
-        pGuiGraphics.pushPose();
-        pGuiGraphics.translate(leftPos + imageWidth - 30 + 2, topPos + 5, 400);
-        blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
-        pGuiGraphics.popPose();
+            this.getMinecraft().getTextureManager().bind(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
+            pGuiGraphics.pushPose();
+            pGuiGraphics.translate(leftPos + imageWidth - 30 + 2, topPos + 5, 400);
+            blit(pGuiGraphics, 0, 0, 0, 0,8, 8, 8, 8);
+            pGuiGraphics.popPose();
+        }
     }
 
     @Override
