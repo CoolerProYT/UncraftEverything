@@ -115,7 +115,9 @@ public class UncraftEverythingConfig {
 
     public static void shutdown() {
         try {
-            FileWatcher.defaultInstance().removeWatch(CONFIG_PATH);
+            FileWatcher fileWatcher = FileWatcher.defaultInstance();
+            fileWatcher.removeWatch(CONFIG_PATH);
+            fileWatcher.stop();
             System.out.println("[UncraftEverything] Config file watcher removed");
         } catch (Exception e) {
             System.err.println("[UncraftEverything] Failed to remove config file watcher: " + e.getMessage());
