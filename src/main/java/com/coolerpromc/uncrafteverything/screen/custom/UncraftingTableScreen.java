@@ -103,8 +103,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
         this.clearWidgets();
         this.init();
 
