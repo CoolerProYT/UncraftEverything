@@ -62,27 +62,49 @@ public class PerItemExpCostConfig {
             configDir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
 
             watchThread = new Thread(() -> {
-                try{
-                    while (true){
-                        WatchKey key = watchService.take();
-                        for (WatchEvent<?> event : key.pollEvents()){
+                try {
+                    while (true) {
+                        WatchKey key;
+                        try {
+                            key = watchService.take();
+                        } catch (ClosedWatchServiceException e) {
+                            System.out.println("[UncraftEverything] Watch service closed, exiting watcher thread.");
+                            break; // Exit loop on service close
+                        }
+
+                        for (WatchEvent<?> event : key.pollEvents()) {
                             Path changed = (Path) event.context();
-                            if (changed.toString().equals(CONFIG_FILE.getName())){
+                            if (changed.toString().equals(CONFIG_FILE.getName())) {
                                 System.out.println("[UncraftEverything] Per item exp config file changed, reloading...");
                                 load();
                             }
                         }
                         key.reset();
                     }
-                }
-                catch (Exception e){
-                    System.out.println("Error watching config file: " + e.getMessage());
+                } catch (InterruptedException e) {
+                    System.out.println("[UncraftEverything] Watcher thread interrupted, exiting.");
+                } catch (Exception e) {
+                    System.out.println("[UncraftEverything] Error in config watcher: " + e.getMessage());
                 }
             }, "PerItemExpConfig Watcher");
             watchThread.setDaemon(true);
             watchThread.start();
+
         } catch (Exception e) {
             System.out.println("Error hot reloading per item exp config: " + e.getMessage());
+        }
+    }
+
+    public static void stopWatcher() {
+        if (watchService != null) {
+            try {
+                watchService.close(); // This will throw in the thread, now handled
+            } catch (Exception e) {
+                System.out.println("Error closing watch service: " + e.getMessage());
+            }
+        }
+        if (watchThread != null && watchThread.isAlive()) {
+            watchThread.interrupt(); // Safe to do; just in case it's in a take() call
         }
     }
 }
