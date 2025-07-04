@@ -124,5 +124,10 @@ public class UncraftEverything implements ModInitializer {
             List<List<RecipeEntry<?>>> recipes = Lists.partition(recipeEntries, 100);
             recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
         });
+
+		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
+			UncraftEverythingConfig.shutdown();
+			PerItemExpCostConfig.stopWatcher();
+		});
 	}
 }
