@@ -10,6 +10,7 @@ import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -105,6 +106,11 @@ public class UncraftEverything implements ModInitializer {
 			PerItemExpCostConfig.getPerItemExp().clear();
 			PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
 			PerItemExpCostConfig.save();
+		});
+
+		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
+			UncraftEverythingConfig.shutdown();
+			PerItemExpCostConfig.stopWatcher();
 		});
 	}
 }
