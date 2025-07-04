@@ -100,8 +100,6 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-
         this.clearChildren();
         this.init();
 
