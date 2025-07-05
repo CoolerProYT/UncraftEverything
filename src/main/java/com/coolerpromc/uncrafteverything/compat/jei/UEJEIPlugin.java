@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
 import com.coolerpromc.uncrafteverything.util.UETags;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -14,6 +15,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Rectangle2d;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -147,6 +149,12 @@ public class UEJEIPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addRecipeClickArea(UncraftingTableScreen.class, 59, 35, 22, 15, UncraftingRecipeCategory.UID);
+        registration.addGuiContainerHandler(UncraftingTableScreen.class, new IGuiContainerHandler<UncraftingTableScreen>() {
+            @Override
+            public List<Rectangle2d> getGuiExtraAreas(UncraftingTableScreen containerScreen) {
+                return Collections.singletonList(new Rectangle2d(containerScreen.getGuiLeft() - 152, containerScreen.getGuiTop(),140, 184));
+            }
+        });
     }
 
     @Override
