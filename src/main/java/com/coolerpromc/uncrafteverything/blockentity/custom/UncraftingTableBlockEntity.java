@@ -40,6 +40,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -87,6 +88,28 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes)));
             }
         }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
+            String fieldName = "defaultStackSize";
+            try{
+                Class<?> handlerConfigClass = Class.forName("com.dplayend.stackableitems.handler.HandlerConfig");
+
+                Field serverField = handlerConfigClass.getDeclaredField("SERVER");
+                serverField.setAccessible(true);
+                Object serverInstance = serverField.get(null); // because it's static
+
+                Class<?> serverClass = serverField.getType();
+                Field defaultStackSizeField = serverClass.getDeclaredField("defaultStackSize");
+                defaultStackSizeField.setAccessible(true);
+                Object value = defaultStackSizeField.get(serverInstance);
+
+                return (int) value;
+            } catch (Exception e) {
+                return super.getSlotLimit(slot);
+            }
+        }
     };
 
     private final ItemStackHandler outputHandler = new ItemStackHandler(9){
@@ -104,6 +127,28 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             return false;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
+            String fieldName = "defaultStackSize";
+            try{
+                Class<?> handlerConfigClass = Class.forName("com.dplayend.stackableitems.handler.HandlerConfig");
+
+                Field serverField = handlerConfigClass.getDeclaredField("SERVER");
+                serverField.setAccessible(true);
+                Object serverInstance = serverField.get(null); // because it's static
+
+                Class<?> serverClass = serverField.getType();
+                Field defaultStackSizeField = serverClass.getDeclaredField("defaultStackSize");
+                defaultStackSizeField.setAccessible(true);
+                Object value = defaultStackSizeField.get(serverInstance);
+
+                return (int) value;
+            } catch (Exception e) {
+                return super.getSlotLimit(slot);
+            }
         }
     };
 
