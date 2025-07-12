@@ -98,6 +98,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 PacketDistributor.sendToPlayersNear((ServerLevel) level, null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 10, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes)));
             }
         }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return getStackInSlot(slot).getMaxStackSize();
+        }
     };
 
     private final ItemStackHandler outputHandler = new ItemStackHandler(9){
@@ -115,6 +120,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             return false;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return getStackInSlot(slot).getMaxStackSize();
         }
     };
 
