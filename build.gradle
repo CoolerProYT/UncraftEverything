@@ -57,6 +57,9 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 dependencies {

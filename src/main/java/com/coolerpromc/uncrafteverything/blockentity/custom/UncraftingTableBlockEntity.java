@@ -15,7 +15,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -53,6 +52,7 @@ import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -101,6 +101,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(getCurrentRecipes())), target);
             }
         }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
+            String fieldName = "defaultStackSize";
+            try{
+                Class<?> handlerConfigClass = Class.forName("com.dplayend.stackableitems.handler.HandlerConfig");
+
+                Field serverField = handlerConfigClass.getDeclaredField("SERVER");
+                serverField.setAccessible(true);
+                Object serverInstance = serverField.get(null); // because it's static
+
+                Class<?> serverClass = serverField.getType();
+                Field defaultStackSizeField = serverClass.getDeclaredField("defaultStackSize");
+                defaultStackSizeField.setAccessible(true);
+                Object value = defaultStackSizeField.get(serverInstance);
+
+                return (int) value;
+            } catch (Exception e) {
+                return super.getSlotLimit(slot);
+            }
+        }
     };
 
     private final ItemStackHandler outputHandler = new ItemStackHandler(9){
@@ -118,6 +140,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             return false;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
+            String fieldName = "defaultStackSize";
+            try{
+                Class<?> handlerConfigClass = Class.forName("com.dplayend.stackableitems.handler.HandlerConfig");
+
+                Field serverField = handlerConfigClass.getDeclaredField("SERVER");
+                serverField.setAccessible(true);
+                Object serverInstance = serverField.get(null); // because it's static
+
+                Class<?> serverClass = serverField.getType();
+                Field defaultStackSizeField = serverClass.getDeclaredField("defaultStackSize");
+                defaultStackSizeField.setAccessible(true);
+                Object value = defaultStackSizeField.get(serverInstance);
+
+                return (int) value;
+            } catch (Exception e) {
+                return super.getSlotLimit(slot);
+            }
         }
     };
 
