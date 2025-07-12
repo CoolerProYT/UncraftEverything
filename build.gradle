@@ -79,8 +79,8 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-//    implementation "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
-
+    implementation "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    implementation "curse.maven:stackable-items-1245736:6559853"
     implementation "dev.architectury:architectury-neoforge:${architectury_version}"
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
