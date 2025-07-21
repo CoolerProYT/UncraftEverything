@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,6 +28,7 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.BooleanValue allowEnchantedItems;
     public final ForgeConfigSpec.BooleanValue allowUnSmithing;
     public final ForgeConfigSpec.BooleanValue allowDamaged;
+    public final ForgeConfigSpec.BooleanValue preventModdedIngredientsFromVanillaItems;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -60,6 +60,11 @@ public class UncraftEverythingConfig {
         builder.push("AllowDamaged");
         allowDamaged = builder.comment("Allow uncrafting of damaged items. [true/false]").define("allowDamaged", true);
         builder.pop();
+
+        builder.push("PreventModdedIngredientsFromVanillaItems");
+        preventModdedIngredientsFromVanillaItems = builder.comment("Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes. This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]")
+                .define("preventModdedIngredientsFromVanillaItems", true);
+        builder.pop();
     }
 
     public int getExperience() {
@@ -76,6 +81,10 @@ public class UncraftEverythingConfig {
 
     public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
         return allowEnchantedItems.get() || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
+    }
+
+    public boolean preventModdedIngredientRecipes(){
+        return preventModdedIngredientsFromVanillaItems.get();
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
