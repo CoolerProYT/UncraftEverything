@@ -37,6 +37,8 @@
   "screen.uncrafteverything.config.allow_damaged_no": "Allow Damaged Items: NO",
   "screen.uncrafteverything.config.allow_unsmithing_no": "Allow Unsmithing Items: NO",
   "screen.uncrafteverything.config.allow_unsmithing_yes": "Allow Unsmithing Items: YES",
+  "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_no": "Prevent Modded Ingredients: NO",
+  "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_yes": "Prevent Modded Ingredients: YES",
   "screen.uncrafteverything.config.restriction_type_label": "Restriction Type",
   "screen.uncrafteverything.config.restricted_item_label": "Restricted Items \n(Please write each item in new line)",
   "screen.uncrafteverything.config.format_label": "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name",
@@ -44,5 +46,6 @@
   "screen.uncrafteverything.config.exp_type_label": "Experience Type",
   "screen.uncrafteverything.config.exp_required_label": "Experience Required \n(Level/Point based on previous config)",
   "screen.uncrafteverything.config.allow_unsmithing_label": "Allow Unsmithing (Netherite/Trimmed Armor)",
-  "screen.uncrafteverything.config.allow_damaged_label": "Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)"
+  "screen.uncrafteverything.config.allow_damaged_label": "Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)",
+  "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label": "Prevent Modded Ingredients from Vanilla Items (To avoid potential duplication)"
 }
