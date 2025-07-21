@@ -32,16 +32,18 @@ public class UEConfigScreen extends Screen {
     private boolean allowEnchantedItems = config.allowEnchantedItem();
     private boolean allowUnsmithing = config.allowUnsmithing();
     private boolean allowDamagedItems = config.allowDamaged();
+    private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
 
     // Scroll variables
     private double scrollAmount = 0.0;
-    private final int CONTENT_HEIGHT = 240;
+    private final int CONTENT_HEIGHT = 265;
 
     private ButtonWidget restrictionTypeButton;
     private ButtonWidget toggleEnchantedBtn;
     private ButtonWidget toggleEnchantmentTypeBtn;
     private ButtonWidget toggleAllowUnsmithing;
     private ButtonWidget toggleAllowDamaged;
+    private ButtonWidget togglePreventModdedIngredientsFromVanillaItems;
     private ButtonWidget doneButton;
 
     private MultiLineEditBox restrictionsInput;
@@ -113,6 +115,12 @@ public class UEConfigScreen extends Screen {
         });
         this.addChild(toggleAllowDamaged);
 
+        togglePreventModdedIngredientsFromVanillaItems = new ButtonWidget(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20, new TranslatableText(getPreventModdedIngredientsFromVanillaItemsLabel(preventModdedIngredientsFromVanillaItems)), btn -> {
+            preventModdedIngredientsFromVanillaItems = !preventModdedIngredientsFromVanillaItems;
+            btn.setMessage(new TranslatableText(getPreventModdedIngredientsFromVanillaItemsLabel(preventModdedIngredientsFromVanillaItems)));
+        });
+        this.addChild(togglePreventModdedIngredientsFromVanillaItems);
+
         doneButton = new ButtonWidget(this.width / 2 - 100, this.height - 23, 200, 20, new TranslatableText("screen.uncrafteverything.save"), btn -> {
             String[] entries = restrictionsInput.getText().split("\n");
             List<String> restrictedItems = Arrays.stream(entries)
@@ -127,7 +135,7 @@ public class UEConfigScreen extends Screen {
                 System.out.println("Invalid experience value, using default: " + this.experience);
             }
 
-            UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems);
+            UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems);
             ClientPlayNetworking.send(UEConfigPayload.TYPE, UEConfigPayload.encode(PacketByteBufs.create(), configPayload));
             ClientPlayNetworking.send(RequestConfigPayload.TYPE, RequestConfigPayload.encode(PacketByteBufs.create(), new RequestConfigPayload()));
             this.client.openScreen(parent);
@@ -172,6 +180,10 @@ public class UEConfigScreen extends Screen {
         return "screen.uncrafteverything.config.allow_damaged_" + (enabled ? "yes" : "no");
     }
 
+    private String getPreventModdedIngredientsFromVanillaItemsLabel(boolean enabled) {
+        return "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_" + (enabled ? "yes" : "no");
+    }
+
     @Override
     public void render(MatrixStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
@@ -194,6 +206,7 @@ public class UEConfigScreen extends Screen {
         this.toggleEnchantmentTypeBtn.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.toggleAllowUnsmithing.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.toggleAllowDamaged.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.togglePreventModdedIngredientsFromVanillaItems.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.doneButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int x = 10;
@@ -211,6 +224,7 @@ public class UEConfigScreen extends Screen {
         this.textRenderer.drawTrimmed(expRequired, x, (int) (baseY + 170 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(expRequired.getString(), textWidth) / 4d), textWidth, 0xFFFFFF);
         this.textRenderer.drawTrimmed(new TranslatableText("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFF);
         this.textRenderer.drawTrimmed(new TranslatableText("screen.uncrafteverything.config.allow_damaged_label"), x, (int) (baseY + 220 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(new TranslatableText("screen.uncrafteverything.config.allow_damaged_label").getString(), textWidth) / 4d), textWidth, 0xFFFFFF);
+        this.textRenderer.drawTrimmed(new TranslatableText("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label"), x, (int) (baseY + 245 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(new TranslatableText("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label").getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         drawCenteredText(pGuiGraphics, this.textRenderer, new TranslatableText("screen.uncrafteverything.uncraft_everything_config").setStyle(Style.EMPTY.withUnderline(true)), this.width / 2, 4, 0xFFFFFF);
         if (getMaxScroll() > 0) {

@@ -6,7 +6,6 @@ import com.coolerpromc.uncrafteverything.util.BufferUtil;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +19,10 @@ public class ResponseConfigPayload {
     public final int experience;
     public final boolean allowUnsmithing;
     public final boolean allowDamaged;
+    public final boolean preventModdedIngredientsFromVanillaItems;
     public final Map<String, Integer> perItemExp;
 
-    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp){
+    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp){
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -30,6 +30,7 @@ public class ResponseConfigPayload {
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
         this.allowDamaged = allowDamaged;
+        this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
         this.perItemExp = perItemExp;
     }
 
@@ -41,6 +42,7 @@ public class ResponseConfigPayload {
         buf.writeInt(payload.experience);
         buf.writeBoolean(payload.allowUnsmithing);
         buf.writeBoolean(payload.allowDamaged);
+        buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         BufferUtil.writeMap(buf, payload.perItemExp);
 
         return buf;
@@ -54,9 +56,10 @@ public class ResponseConfigPayload {
         int experience = buf.readInt();
         boolean allowUnsmithing = buf.readBoolean();
         boolean allowDamaged = buf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
         Map<String, Integer> perItemExp = BufferUtil.readMap(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
     }
 
     public UncraftEverythingConfig.RestrictionType restrictionType() {
@@ -82,5 +85,8 @@ public class ResponseConfigPayload {
     }
     public Map<String, Integer> perItemExp() {
         return perItemExp;
+    }
+    public boolean preventModdedIngredientsFromVanillaItems() {
+        return preventModdedIngredientsFromVanillaItems;
     }
 }

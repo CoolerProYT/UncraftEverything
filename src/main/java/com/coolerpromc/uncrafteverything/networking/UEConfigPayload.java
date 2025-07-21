@@ -18,8 +18,9 @@ public class UEConfigPayload {
     public final int experience;
     public final boolean allowUnsmithing;
     public final boolean allowDamaged;
+    public final boolean preventModdedIngredientsFromVanillaItems;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) {
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) {
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -27,6 +28,7 @@ public class UEConfigPayload {
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
         this.allowDamaged = allowDamaged;
+        this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
     }
 
     public static PacketByteBuf encode(PacketByteBuf buf, UEConfigPayload payload) {
@@ -37,6 +39,7 @@ public class UEConfigPayload {
         buf.writeInt(payload.experience);
         buf.writeBoolean(payload.allowUnsmithing);
         buf.writeBoolean(payload.allowDamaged);
+        buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
 
         return buf;
     }
@@ -49,8 +52,9 @@ public class UEConfigPayload {
         int experience = buf.readInt();
         boolean allowUnsmithing = buf.readBoolean();
         boolean allowDamaged = buf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
     }
 
     public UncraftEverythingConfig.RestrictionType restrictionType() {
@@ -73,5 +77,8 @@ public class UEConfigPayload {
     }
     public boolean allowDamaged() {
         return allowDamaged;
+    }
+    public boolean preventModdedIngredientsFromVanillaItems() {
+        return preventModdedIngredientsFromVanillaItems;
     }
 }

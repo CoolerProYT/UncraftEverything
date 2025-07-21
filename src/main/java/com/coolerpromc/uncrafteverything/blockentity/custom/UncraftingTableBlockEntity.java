@@ -375,6 +375,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             outputs.add(outputStack);
         }
 
+        boolean isVanillaInput = Registry.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft");
+
+        if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+            recipes = recipes.stream()
+                    .filter(UncraftingTableBlockEntity::isVanillaIngredientRecipe)
+                    .collect(Collectors.toList());
+        }
+
         for (Recipe<?> r : recipes) {
             if (r instanceof ShulkerBoxColoringRecipe && inputStack.getItem().isIn(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX)){
                 List<Ingredient> ingredients = new ArrayList<>();
@@ -702,17 +710,34 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         return result;
     }
 
-    private boolean isSameItemCombination(List<Item> combination) {
-        Item firstItem = null;
-        for (Item item : combination) {
-            if (item != Items.AIR) {
-                if (firstItem == null) {
-                    firstItem = item;
-                } else if (item != firstItem) {
+    public static boolean isVanillaIngredientRecipe(Recipe<?> recipe) {
+        List<Ingredient> ingredients;
+
+        if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe shaped = (ShapedRecipe) recipe;
+            ingredients = shaped.getPreviewInputs();
+        } else if (recipe instanceof ShapelessRecipe) {
+            ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
+            ingredients = shapeless.getPreviewInputs();
+        } else if (recipe instanceof SmithingRecipe){
+            SmithingRecipe smithingTransformRecipe = (SmithingRecipe) recipe;
+            List<Ingredient> list = new ArrayList<>();
+            list.add(smithingTransformRecipe.base);
+            list.add(smithingTransformRecipe.addition);
+            ingredients = list;
+        } else {
+            return true; // skip filtering for other types
+        }
+
+        for (Ingredient ingredient : ingredients) {
+            for (ItemStack stack : ingredient.getMatchingStacksClient()) {
+                Identifier id = Registry.ITEM.getId(stack.getItem());
+                if (!id.getNamespace().equals("minecraft")) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 

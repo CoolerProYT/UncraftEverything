@@ -31,6 +31,7 @@ public class UncraftEverythingConfig {
     public static boolean allowEnchantedItems;
     public static boolean allowUnSmithing;
     public static boolean allowDamaged;
+    public static boolean preventModdedIngredientsFromVanillaItems;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -84,6 +85,8 @@ public class UncraftEverythingConfig {
         allowUnSmithing = configFile.getOrElse("AllowUnSmithing.allowUnSmithing", true);
 
         allowDamaged = configFile.getOrElse("AllowDamaged.allowDamaged", true);
+
+        preventModdedIngredientsFromVanillaItems = configFile.getOrElse("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", true);
     }
 
     public static void save() {
@@ -112,6 +115,9 @@ public class UncraftEverythingConfig {
         configFile.set("AllowDamaged.allowDamaged", allowDamaged);
         configFile.setComment("AllowDamaged.allowDamaged", "Allow uncrafting of damaged items. [true/false]");
 
+        configFile.set("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", preventModdedIngredientsFromVanillaItems);
+        configFile.setComment("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", "Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes. This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]");
+
         configFile.save();
     }
 
@@ -136,6 +142,10 @@ public class UncraftEverythingConfig {
 
     public static boolean allowUnSmithing() {
         return allowUnSmithing;
+    }
+    
+    public static boolean preventModdedIngredientRecipes(){
+        return preventModdedIngredientsFromVanillaItems;
     }
 
     public static boolean isEnchantedItemsAllowed(ItemStack itemStack) {
