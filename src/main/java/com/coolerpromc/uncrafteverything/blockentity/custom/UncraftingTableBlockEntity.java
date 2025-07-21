@@ -29,6 +29,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -406,6 +407,14 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             outputs.add(outputStack);
         }
 
+        boolean isVanillaInput = Registry.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
+
+        if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+            recipes = recipes.stream()
+                    .filter(r -> isVanillaIngredientRecipe(r))
+                    .collect(Collectors.toList());
+        }
+
         for (IRecipe<?> r : recipes) {
             if (r instanceof ShulkerBoxColoringRecipe && inputStack.getItem().is(UETags.Items.SHULKER_BOXES) && !inputStack.getItem().equals(Items.SHULKER_BOX)) {
                 List<Ingredient> ingredients = new ArrayList<>();
@@ -729,17 +738,34 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         return result;
     }
 
-    private boolean isSameItemCombination(List<Item> combination) {
-        Item firstItem = null;
-        for (Item item : combination) {
-            if (item != Items.AIR) {
-                if (firstItem == null) {
-                    firstItem = item;
-                } else if (item != firstItem) {
+    public static boolean isVanillaIngredientRecipe(IRecipe<?> recipe) {
+        List<Ingredient> ingredients;
+
+        if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe shaped = (ShapedRecipe) recipe;
+            ingredients = shaped.getIngredients();
+        } else if (recipe instanceof ShapelessRecipe) {
+            ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
+            ingredients = shapeless.ingredients;
+        } else if (recipe instanceof SmithingRecipe){
+            SmithingRecipe smithingTransformRecipe = (SmithingRecipe) recipe;
+            List<Ingredient> list = new ArrayList<>();
+            list.add(smithingTransformRecipe.base);
+            list.add(smithingTransformRecipe.addition);
+            ingredients = list;
+        } else {
+            return true; // skip filtering for other types
+        }
+
+        for (Ingredient ingredient : ingredients) {
+            for (ItemStack stack : ingredient.getItems()) {
+                ResourceLocation id = Registry.ITEM.getKey(stack.getItem());
+                if (!id.getNamespace().equals("minecraft")) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 

@@ -27,8 +27,9 @@ public class UEConfigPayload{
     public final int experience;
     public final boolean allowUnsmithing;
     public final boolean allowDamaged;
+    public final boolean preventModdedIngredientsFromVanillaItems;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged){
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems){
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -36,6 +37,7 @@ public class UEConfigPayload{
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
         this.allowDamaged = allowDamaged;
+        this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
     }
 
     private static int packetId = 0;
@@ -51,6 +53,7 @@ public class UEConfigPayload{
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
         byteBuf.writeBoolean(payload.allowDamaged);
+        byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
     }
 
     public static UEConfigPayload decode(PacketBuffer byteBuf){
@@ -61,8 +64,9 @@ public class UEConfigPayload{
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
         boolean allowDamaged = byteBuf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
     }
 
     public static void register(){
@@ -101,5 +105,9 @@ public class UEConfigPayload{
 
     public boolean allowDamaged() {
         return allowDamaged;
+    }
+
+    public boolean preventModdedIngredientsFromVanillaItems() {
+        return preventModdedIngredientsFromVanillaItems;
     }
 }

@@ -29,9 +29,10 @@ public class ResponseConfigPayload {
     public final int experience;
     public final boolean allowUnsmithing;
     public final boolean allowDamaged;
+    public final boolean preventModdedIngredientsFromVanillaItems;
     public final Map<String, Integer> perItemExp;
 
-    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp){
+    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp){
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -39,6 +40,7 @@ public class ResponseConfigPayload {
         this.experience = experience;
         this.allowUnsmithing = allowUnsmithing;
         this.allowDamaged = allowDamaged;
+        this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
         this.perItemExp = perItemExp;
     }
 
@@ -55,6 +57,7 @@ public class ResponseConfigPayload {
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
         byteBuf.writeBoolean(payload.allowDamaged);
+        byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         BufferUtil.writeMap(byteBuf, payload.perItemExp);
     }
 
@@ -66,9 +69,10 @@ public class ResponseConfigPayload {
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
         boolean allowDamaged = byteBuf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = BufferUtil.readMap(byteBuf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
     }
 
     public static void register(){
@@ -107,6 +111,10 @@ public class ResponseConfigPayload {
 
     public boolean allowDamaged(){
         return allowDamaged;
+    }
+
+    public boolean preventModdedIngredientsFromVanillaItems(){
+        return preventModdedIngredientsFromVanillaItems;
     }
 
     public Map<String, Integer> perItemExp(){

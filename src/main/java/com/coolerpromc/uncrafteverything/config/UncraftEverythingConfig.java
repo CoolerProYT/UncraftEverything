@@ -26,6 +26,7 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.BooleanValue allowEnchantedItems;
     public final ForgeConfigSpec.BooleanValue allowUnSmithing;
     public final ForgeConfigSpec.BooleanValue allowDamaged;
+    public final ForgeConfigSpec.BooleanValue preventModdedIngredientsFromVanillaItems;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -61,6 +62,11 @@ public class UncraftEverythingConfig {
         builder.push("AllowDamaged");
         allowDamaged = builder.comment("Allow uncrafting of damaged items. [true/false]").define("allowDamaged", true);
         builder.pop();
+
+        builder.push("PreventModdedIngredientsFromVanillaItems");
+        preventModdedIngredientsFromVanillaItems = builder.comment("Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes. This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]")
+                .define("preventModdedIngredientsFromVanillaItems", true);
+        builder.pop();
     }
 
     public int getExperience() {
@@ -77,6 +83,10 @@ public class UncraftEverythingConfig {
 
     public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
         return allowEnchantedItems.get() || EnchantmentHelper.getEnchantments(itemStack).isEmpty();
+    }
+
+    public boolean preventModdedIngredientRecipes(){
+        return preventModdedIngredientsFromVanillaItems.get();
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
