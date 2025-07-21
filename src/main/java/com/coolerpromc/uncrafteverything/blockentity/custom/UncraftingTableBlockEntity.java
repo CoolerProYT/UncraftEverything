@@ -11,7 +11,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +23,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -439,6 +437,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputs.add(outputStack);
         }
 
+        boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
+
+        if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+            recipes = recipes.stream()
+                    .filter(r -> isVanillaIngredientRecipe(r.value()))
+                    .toList();
+        }
+
         for (RecipeHolder<?> r : recipes) {
             if (r.value() instanceof TransmuteRecipe transmuteRecipe){
                 List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
@@ -827,17 +833,34 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return result;
     }
 
-    private boolean isSameItemCombination(List<Item> combination) {
-        Item firstItem = null;
-        for (Item item : combination) {
-            if (item != Items.AIR) {
-                if (firstItem == null) {
-                    firstItem = item;
-                } else if (item != firstItem) {
-                    return false;
+    public static boolean isVanillaIngredientRecipe(Recipe<?> recipe) {
+        List<Optional<Ingredient>> ingredients;
+
+        if (recipe instanceof ShapedRecipe shaped) {
+            ingredients = shaped.getIngredients();
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
+            ingredients = shapeless.ingredients.stream().map(Optional::of).toList();
+        } else if (recipe instanceof SmithingTransformRecipe smithingTransformRecipe){
+            ingredients = List.of(
+                Optional.of(smithingTransformRecipe.baseIngredient()),
+                smithingTransformRecipe.additionIngredient(),
+                smithingTransformRecipe.templateIngredient()
+            );
+        } else {
+            return true; // skip filtering for other types
+        }
+
+        for (Optional<Ingredient> ingredient : ingredients) {
+            if (ingredient.isPresent()){
+                for (Holder<Item> stack : ingredient.get().getValues()) {
+                    ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.value());
+                    if (!id.getNamespace().equals("minecraft")) {
+                        return false;
+                    }
                 }
             }
         }
+
         return true;
     }
 
