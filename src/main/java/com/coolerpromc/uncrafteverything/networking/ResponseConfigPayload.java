@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) {
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "response_config");
 
     public static PacketByteBuf encode(PacketByteBuf buf, ResponseConfigPayload payload) {
@@ -20,6 +20,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         buf.writeInt(payload.experience);
         buf.writeBoolean(payload.allowUnsmithing);
         buf.writeBoolean(payload.allowDamaged);
+        buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         buf.writeMap(payload.perItemExp, PacketByteBuf::writeString, PacketByteBuf::writeVarInt);
 
         return buf;
@@ -33,8 +34,9 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         int experience = buf.readInt();
         boolean allowUnsmithing = buf.readBoolean();
         boolean allowDamaged = buf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
         Map<String, Integer> perItemExp = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readVarInt);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
     }
 }

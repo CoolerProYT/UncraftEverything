@@ -8,7 +8,7 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) {
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) {
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "ue_config");
 
     public static PacketByteBuf encode(PacketByteBuf buf, UEConfigPayload payload) {
@@ -19,6 +19,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         buf.writeInt(payload.experience);
         buf.writeBoolean(payload.allowUnsmithing);
         buf.writeBoolean(payload.allowDamaged);
+        buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
 
         return buf;
     }
@@ -31,7 +32,8 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         int experience = buf.readInt();
         boolean allowUnsmithing = buf.readBoolean();
         boolean allowDamaged = buf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
     }
 }
