@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) {
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "response_config");
     private static final String PROTOCOL_VERSION = "1";
 
@@ -34,6 +34,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         byteBuf.writeInt(payload.experience);
         byteBuf.writeBoolean(payload.allowUnsmithing);
         byteBuf.writeBoolean(payload.allowDamaged);
+        byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         byteBuf.writeMap(payload.perItemExp, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeVarInt);
     }
 
@@ -45,9 +46,10 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         int experience = byteBuf.readInt();
         boolean allowUnsmithing = byteBuf.readBoolean();
         boolean allowDamaged = byteBuf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = byteBuf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readVarInt);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
     }
 
     public static void register(){

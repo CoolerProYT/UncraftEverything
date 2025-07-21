@@ -68,6 +68,7 @@ public class ServerPayloadHandler {
                 config.experience.set(payload.experience());
                 config.allowUnSmithing.set(payload.allowUnsmithing());
                 config.allowDamaged.set(payload.allowDamaged());
+                config.preventModdedIngredientsFromVanillaItems.set(payload.preventModdedIngredientsFromVanillaItems());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -88,6 +89,7 @@ public class ServerPayloadHandler {
                         config.experience.get(),
                         config.allowUnSmithing.get(),
                         config.allowDamaged.get(),
+                        config.preventModdedIngredientsFromVanillaItems.get(),
                         PerItemExpCostConfig.getPerItemExp()
                 );
                 ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> context.get().getSender()), configPayload);
