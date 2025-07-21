@@ -77,10 +77,11 @@ accessTransformers {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
-
+    implementation "curse.maven:l2library-620203:6478950"
+    implementation "curse.maven:l2-complements-758349:6774101"
+    implementation "curse.maven:minecraft-dungeons-weapons-837311:6540819"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     implementation "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
-    implementation "curse.maven:stackable-items-1245736:6559853"
     implementation "dev.architectury:architectury-neoforge:${architectury_version}"
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"

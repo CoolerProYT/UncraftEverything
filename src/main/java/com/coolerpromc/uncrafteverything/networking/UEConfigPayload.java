@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) implements CustomPacketPayload {
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<UEConfigPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UEConfigPayload> STREAM_CODEC = StreamCodec.of(UEConfigPayload::encode, UEConfigPayload::decode);
@@ -23,6 +23,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         ByteBufCodecs.INT.encode(buf, payload.experience);
         ByteBufCodecs.BOOL.encode(buf, payload.allowUnsmithing);
         ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
+        ByteBufCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
     }
 
     private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -33,8 +34,9 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         int experience = ByteBufCodecs.INT.decode(buf);
         boolean allowUnsmithing = ByteBufCodecs.BOOL.decode(buf);
         boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
+        boolean preventModdedIngredientsFromVanillaItems = ByteBufCodecs.BOOL.decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
     }
 
     @Override
