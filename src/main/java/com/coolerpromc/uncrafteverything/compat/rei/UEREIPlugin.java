@@ -2,6 +2,8 @@ package com.coolerpromc.uncrafteverything.compat.rei;
 
 import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
 import me.shedaniel.math.Rectangle;
@@ -101,20 +103,32 @@ public class UEREIPlugin implements REIClientPlugin {
         // Add all items that can be uncrafted
         UncraftEverythingClient.recipesFromServer.forEach(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result, shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
+                boolean isVanillaInput = Registries.ITEM.getId(shapedRecipe.result.getItem()).getNamespace().equals("minecraft");
+
+                if (!isVanillaInput || !UncraftEverythingConfig.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(shapedRecipe)) {
+                    entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result, shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
+                }
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result, shapelessRecipe.ingredients));
+                boolean isVanillaInput = Registries.ITEM.getId(shapelessRecipe.result.getItem()).getNamespace().equals("minecraft");
+
+                if (!isVanillaInput || !UncraftEverythingConfig.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(shapelessRecipe)) {
+                    entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result, shapelessRecipe.ingredients));
+                }
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
-                DefaultedList<Ingredient> ingredients = DefaultedList.of();
+                boolean isVanillaInput = Registries.ITEM.getId(smithingTransformRecipe.result.itemEntry().value()).getNamespace().equals("minecraft");
 
-                ingredients.add(smithingTransformRecipe.base());
-                ingredients.add(smithingTransformRecipe.addition().get());
-                ingredients.add(smithingTransformRecipe.template().get());
-                entries.add(new JEIUncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.itemEntry(), 1, smithingTransformRecipe.result.components()), ingredients));
+                if (!isVanillaInput || !UncraftEverythingConfig.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(smithingTransformRecipe)) {
+                    DefaultedList<Ingredient> ingredients = DefaultedList.of();
+
+                    ingredients.add(smithingTransformRecipe.base());
+                    ingredients.add(smithingTransformRecipe.addition().get());
+                    ingredients.add(smithingTransformRecipe.template().get());
+                    entries.add(new JEIUncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.itemEntry(), 1, smithingTransformRecipe.result.components()), ingredients));
+                }
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe){

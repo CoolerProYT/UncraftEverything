@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) implements CustomPayload {
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) implements CustomPayload {
     public static final Id<UEConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "ue_config"));
 
     public static final PacketCodec<RegistryByteBuf, UEConfigPayload> STREAM_CODEC = PacketCodec.tuple(
@@ -28,6 +28,8 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
             UEConfigPayload::allowUnsmithing,
             PacketCodecs.BOOLEAN,
             UEConfigPayload::allowDamaged,
+            PacketCodecs.BOOLEAN,
+            UEConfigPayload::preventModdedIngredientsFromVanillaItems,
             UEConfigPayload::new
     );
 
