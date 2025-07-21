@@ -29,10 +29,11 @@ public class UEConfigScreen extends Screen {
     private boolean allowEnchantedItems = config.allowEnchantedItem();
     private boolean allowUnsmithing = config.allowUnsmithing();
     private boolean allowDamagedItems = config.allowDamaged();
+    private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
 
     // Scroll variablesAdd commentMore actions
     private double scrollAmount = 0.0;
-    private final int CONTENT_HEIGHT = 240;
+    private final int CONTENT_HEIGHT = 265;
     private MultiLineEditBox restrictionsInput;
     private EditBox experienceInput;
     private Button saveButton;
@@ -107,6 +108,13 @@ public class UEConfigScreen extends Screen {
         }).bounds(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowDamaged);
 
+        // Toggle for preventModdedIngredientsFromVanillaItems
+        Button togglePreventModdedIngredientsFromVanillaItems = Button.builder(Component.translatable(getPreventModdedIngredientsFromVanillaItemsLabel(preventModdedIngredientsFromVanillaItems)), btn -> {
+            preventModdedIngredientsFromVanillaItems = !preventModdedIngredientsFromVanillaItems;
+            btn.setMessage(Component.translatable(getPreventModdedIngredientsFromVanillaItemsLabel(preventModdedIngredientsFromVanillaItems)));
+        }).bounds(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(togglePreventModdedIngredientsFromVanillaItems);
+
         // Save button
         saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), btn -> {
             String[] entries = restrictionsInput.getValue().split("\n");
@@ -122,7 +130,7 @@ public class UEConfigScreen extends Screen {
                 System.out.println("Invalid experience value, using default: " + this.experience);
             }
 
-            UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems);
+            UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItems, experienceType, expValue, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems);
             UEConfigPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
             RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
             this.getMinecraft().setScreen(parent);
@@ -165,6 +173,10 @@ public class UEConfigScreen extends Screen {
         return "screen.uncrafteverything.config.allow_damaged_" + (enabled ? "yes" : "no");
     }
 
+    private String getPreventModdedIngredientsFromVanillaItemsLabel(boolean enabled) {
+        return "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_" + (enabled ? "yes" : "no");
+    }
+
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
@@ -202,6 +214,8 @@ public class UEConfigScreen extends Screen {
         pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_damaged_label"), x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(Component.translatable("screen.uncrafteverything.config.allow_damaged_label"), textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label"), x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label", textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
