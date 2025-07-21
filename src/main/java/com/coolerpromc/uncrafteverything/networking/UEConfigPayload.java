@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged) implements CustomPayload {
+public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) implements CustomPayload {
     public static final Id<UEConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "ue_config"));
 
     public static final PacketCodec<RegistryByteBuf, UEConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(UEConfigPayload::encode, UEConfigPayload::decode);
@@ -23,6 +23,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         PacketCodecs.INTEGER.encode(buf, payload.experience);
         PacketCodecs.BOOL.encode(buf, payload.allowUnsmithing);
         PacketCodecs.BOOL.encode(buf, payload.allowDamaged);
+        PacketCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
     }
 
     private static UEConfigPayload decode(RegistryByteBuf buf){
@@ -33,8 +34,9 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         int experience = PacketCodecs.INTEGER.decode(buf);
         boolean allowUnsmithing = PacketCodecs.BOOL.decode(buf);
         boolean allowDamaged = PacketCodecs.BOOL.decode(buf);
+        boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOL.decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
     }
 
     @Override

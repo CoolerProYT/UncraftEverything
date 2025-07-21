@@ -17,7 +17,10 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.*;
+import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.component.type.FireworksComponent;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -379,6 +382,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
+        }
+
+        boolean isVanillaInput = Registries.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft");
+
+        if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+            recipes = recipes.stream()
+                    .filter(r -> isVanillaIngredientRecipe(r.value()))
+                    .toList();
         }
 
         for (RecipeEntry<?> r : recipes) {
@@ -765,17 +776,32 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         return result;
     }
 
-    private boolean isSameItemCombination(List<Item> combination) {
-        Item firstItem = null;
-        for (Item item : combination) {
-            if (item != Items.AIR) {
-                if (firstItem == null) {
-                    firstItem = item;
-                } else if (item != firstItem) {
+    public static boolean isVanillaIngredientRecipe(Recipe<?> recipe) {
+        List<Ingredient> ingredients;
+
+        if (recipe instanceof ShapedRecipe shaped) {
+            ingredients = shaped.getIngredients();
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
+            ingredients = shapeless.ingredients;
+        } else if (recipe instanceof SmithingTransformRecipe smithingTransformRecipe){
+            ingredients = List.of(
+                    smithingTransformRecipe.base,
+                    smithingTransformRecipe.addition,
+                    smithingTransformRecipe.template
+            );
+        } else {
+            return true; // skip filtering for other types
+        }
+
+        for (Ingredient ingredient : ingredients) {
+            for (ItemStack stack : ingredient.getMatchingStacks()) {
+                Identifier id = Registries.ITEM.getId(stack.getItem());
+                if (!id.getNamespace().equals("minecraft")) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 
