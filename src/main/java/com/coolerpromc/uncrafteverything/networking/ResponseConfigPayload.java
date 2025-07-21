@@ -12,28 +12,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, Map<String, Integer> perItemExp) implements CustomPayload {
+public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) implements CustomPayload {
     public static final Id<ResponseConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "response_config"));
 
-    public static final PacketCodec<RegistryByteBuf, ResponseConfigPayload> STREAM_CODEC = PacketCodec.tuple(
-            UncraftEverythingConfig.RestrictionType.STREAM_CODEC,
-            ResponseConfigPayload::restrictionType,
-            PacketCodecs.STRING.collect(PacketCodecs.toList()),
-            ResponseConfigPayload::restrictedItems,
-            PacketCodecs.BOOLEAN,
-            ResponseConfigPayload::allowEnchantedItem,
-            UncraftEverythingConfig.ExperienceType.STREAM_CODEC,
-            ResponseConfigPayload::experienceType,
-            PacketCodecs.INTEGER,
-            ResponseConfigPayload::experience,
-            PacketCodecs.BOOLEAN,
-            ResponseConfigPayload::allowUnsmithing,
-            PacketCodecs.BOOLEAN,
-            ResponseConfigPayload::allowDamaged,
-            PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT),
-            ResponseConfigPayload::perItemExp,
-            ResponseConfigPayload::new
-    );
+    public static final PacketCodec<RegistryByteBuf, ResponseConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
+
+    private static void encode(RegistryByteBuf buf, ResponseConfigPayload payload) {
+        UncraftEverythingConfig.RestrictionType.STREAM_CODEC.encode(buf, payload.restrictionType);
+        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedItems);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowEnchantedItem);
+        UncraftEverythingConfig.ExperienceType.STREAM_CODEC.encode(buf, payload.experienceType);
+        PacketCodecs.INTEGER.encode(buf, payload.experience);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowUnsmithing);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowDamaged);
+        PacketCodecs.BOOLEAN.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
+        PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
+    }
+
+    private static ResponseConfigPayload decode(RegistryByteBuf buf){
+        UncraftEverythingConfig.RestrictionType restrictionType = UncraftEverythingConfig.RestrictionType.STREAM_CODEC.decode(buf);
+        List<String> restrictedItems = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
+        boolean allowEnchantedItem = PacketCodecs.BOOLEAN.decode(buf);
+        UncraftEverythingConfig.ExperienceType experienceType = UncraftEverythingConfig.ExperienceType.STREAM_CODEC.decode(buf);
+        int experience = PacketCodecs.INTEGER.decode(buf);
+        boolean allowUnsmithing = PacketCodecs.BOOLEAN.decode(buf);
+        boolean allowDamaged = PacketCodecs.BOOLEAN.decode(buf);
+        boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOLEAN.decode(buf);
+        Map<String, Integer> perItemExp = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).decode(buf);
+
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
+    }
 
     @Override
     public Id<? extends CustomPayload> getId() {
