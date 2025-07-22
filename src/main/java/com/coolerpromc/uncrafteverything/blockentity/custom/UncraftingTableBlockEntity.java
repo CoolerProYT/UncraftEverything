@@ -289,6 +289,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
                 || (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0)) && !inputStack.has(DataComponents.TRIM))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY)
+                || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
             if (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged()){
                 this.status = DAMAGED_ITEM;
@@ -310,7 +311,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = SHULKER_WITH_ITEM;
             }
 
-            if (inputHandler.getStackInSlot(0).isEmpty()){
+            if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = NO_RECIPE;
             }
 
