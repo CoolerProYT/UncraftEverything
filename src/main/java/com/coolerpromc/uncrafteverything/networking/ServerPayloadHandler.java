@@ -19,7 +19,7 @@ public class ServerPayloadHandler {
         context.get().enqueueWork(() -> {
             ServerPlayer player = context.get().getSender();
             if (player != null) {
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = player.getLevel();
                 BlockPos pos = payload.blockPos();
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -39,7 +39,7 @@ public class ServerPayloadHandler {
         context.get().enqueueWork(() -> {
             ServerPlayer player = context.get().getSender();
             if (player != null) {
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = player.getLevel();
                 BlockPos pos = payload.blockPos();
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);

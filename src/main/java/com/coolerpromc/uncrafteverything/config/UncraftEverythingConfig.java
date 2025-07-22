@@ -1,8 +1,7 @@
 
 package com.coolerpromc.uncrafteverything.config;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -14,6 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("removal")
 public class UncraftEverythingConfig {
     public static final UncraftEverythingConfig CONFIG;
     public static final ForgeConfigSpec CONFIG_SPEC;
@@ -149,13 +149,13 @@ public class UncraftEverythingConfig {
     }
 
     public ResourceLocation inputStackLocation(ItemStack itemStack) {
-        return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        return Registry.ITEM.getKey(itemStack.getItem());
     }
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
             ResourceLocation location = new ResourceLocation(input);
-            return Optional.of(TagKey.create(Registries.ITEM, location));
+            return Optional.of(TagKey.create(Registry.ITEM_REGISTRY, location));
         } catch (Exception e) {
             return Optional.empty();
         }

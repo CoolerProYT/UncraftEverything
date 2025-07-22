@@ -3,7 +3,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -67,13 +67,13 @@ public class PerItemExpConfigScreen extends Screen {
             }
         }
 
-        Button addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
+        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
             this.init();
-        }).bounds(width / 2 - 100, height - 60, 200, 20).build();
+        });
         addRenderableWidget(addButton);
 
-        Button saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).bounds(width / 2 - 100, height - 30, 200, 20).build();
+        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed);
         addRenderableWidget(saveButton);
     }
 
@@ -116,33 +116,33 @@ public class PerItemExpConfigScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics);
+    public void render(@NotNull PoseStack pPoseStack, int mouseX, int mouseY, float delta) {
+        renderBackground(pPoseStack);
 
-        guiGraphics.fill(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
+        fill(pPoseStack, width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
-        guiGraphics.drawCenteredString(font, title, width / 2, 10, 0xFFFFFFFF);
-        guiGraphics.drawCenteredString(font, Component.translatable("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
+        drawCenteredString(pPoseStack, font, title, width / 2, 10, 0xFFFFFFFF);
+        drawCenteredString(pPoseStack, font, Component.translatable("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
 
-        guiGraphics.enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
+        enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
 
         for (EditBox editBox : scrollableEditBoxes) {
-            editBox.render(guiGraphics, mouseX, mouseY, delta);
+            editBox.render(pPoseStack, mouseX, mouseY, delta);
         }
         for (Button button : scrollableButtons) {
-            button.render(guiGraphics, mouseX, mouseY, delta);
+            button.render(pPoseStack, mouseX, mouseY, delta);
         }
 
-        guiGraphics.disableScissor();
+        disableScissor();
 
         this.renderables.forEach(renderable -> {
             if (renderable instanceof Button && !scrollableButtons.contains(renderable)) {
-                renderable.render(guiGraphics, mouseX, mouseY, delta);
+                renderable.render(pPoseStack, mouseX, mouseY, delta);
             }
         });
 
         if (maxScrollOffset > 0) {
-            guiGraphics.drawCenteredString(font, Component.translatable("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
+            drawCenteredString(pPoseStack, font, Component.translatable("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
         }
     }
 
@@ -177,10 +177,10 @@ public class PerItemExpConfigScreen extends Screen {
             valueBox.setValue(currentValue);
             valueBox.setFilter(s -> s.matches("\\d*"));
 
-            deleteButton = Button.builder(Component.translatable("screen.uncrafteverything.x"), b -> {
+            deleteButton = new Button(x + 210, y, 20, 20, Component.translatable("screen.uncrafteverything.x"), b -> {
                 entries.remove(this);
                 init();
-            }).bounds(x + 210, y, 20, 20).build();
+            });
         }
 
         void addToScreen(PerItemExpConfigScreen screen) {

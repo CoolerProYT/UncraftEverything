@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+@SuppressWarnings("removal")
 public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) {
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_recipe_selection");
@@ -30,11 +31,11 @@ public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTabl
     }
 
     public static void encode(UncraftingRecipeSelectionPayload payload, FriendlyByteBuf byteBuf){
-        byteBuf.writeJsonWithCodec(CODEC, payload);
+        byteBuf.writeWithCodec(CODEC, payload);
     }
 
     public static UncraftingRecipeSelectionPayload decode(FriendlyByteBuf byteBuf){
-        return byteBuf.readJsonWithCodec(CODEC);
+        return byteBuf.readWithCodec(CODEC);
     }
 
     public static void register(){

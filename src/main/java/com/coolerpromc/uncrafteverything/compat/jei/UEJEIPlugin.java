@@ -19,13 +19,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.armortrim.*;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+@SuppressWarnings({"removal", "deprecation"})
 @JeiPlugin
 public class UEJEIPlugin implements IModPlugin {
     public static final RecipeType<JEIUncraftingTableRecipe> UNCRAFTING_TYPE = RecipeType.create(UncraftEverything.MODID, "uncrafting_table", JEIUncraftingTableRecipe.class);
@@ -65,7 +65,7 @@ public class UEJEIPlugin implements IModPlugin {
         });
 
         // Add Tipped Arrows
-        BuiltInRegistries.POTION.stream().forEach(potion -> {
+        Registry.POTION.stream().forEach(potion -> {
             if (potion != Potions.EMPTY && potion != Potions.WATER) {
                 ItemStack tippedArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), potion);
                 List<Ingredient> output = new ArrayList<>();
@@ -84,7 +84,7 @@ public class UEJEIPlugin implements IModPlugin {
         });
 
         // Add Enchanted Books
-        BuiltInRegistries.ENCHANTMENT.stream().forEach(enchantment -> {
+        Registry.ENCHANTMENT.stream().forEach(enchantment -> {
             if (enchantment != null) {
                 ItemStack enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
                 ItemStack dirt = new ItemStack(Items.DIAMOND_SWORD);
@@ -101,7 +101,7 @@ public class UEJEIPlugin implements IModPlugin {
         // Add all items that can be uncrafted
         recipeManager.getRecipes().forEach(recipeHolder -> {
             if (recipeHolder instanceof ShapedRecipe shapedRecipe){
-                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(shapedRecipe.result.getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = Registry.ITEM.getKey(shapedRecipe.result.getItem()).getNamespace().equals("minecraft");
 
                 if (!isVanillaInput || !UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(shapedRecipe)) {
                     entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result, shapedRecipe.getIngredients()));
@@ -109,44 +109,23 @@ public class UEJEIPlugin implements IModPlugin {
             }
 
             if (recipeHolder instanceof ShapelessRecipe shapelessRecipe){
-                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(shapelessRecipe.result.getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = Registry.ITEM.getKey(shapelessRecipe.result.getItem()).getNamespace().equals("minecraft");
 
                 if (!isVanillaInput || !UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(shapelessRecipe)) {
                     entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result, shapelessRecipe.ingredients));
                 }
             }
 
-            if (recipeHolder instanceof SmithingTransformRecipe smithingTransformRecipe){
-                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(smithingTransformRecipe.result.getItem()).getNamespace().equals("minecraft");
+            if (recipeHolder instanceof UpgradeRecipe smithingTransformRecipe){
+                boolean isVanillaInput = Registry.ITEM.getKey(smithingTransformRecipe.result.getItem()).getNamespace().equals("minecraft");
 
                 if (!isVanillaInput || !UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() || UncraftingTableBlockEntity.isVanillaIngredientRecipe(smithingTransformRecipe)) {
                     NonNullList<Ingredient> ingredients = NonNullList.create();
 
                     ingredients.add(smithingTransformRecipe.base);
                     ingredients.add(smithingTransformRecipe.addition);
-                    ingredients.add(smithingTransformRecipe.template);
                     entries.add(new JEIUncraftingTableRecipe(smithingTransformRecipe.result, ingredients));
                 }
-            }
-
-            if (recipeHolder instanceof SmithingTrimRecipe smithingTrimRecipe){
-                RegistryAccess registryAccess = Minecraft.getInstance().level.registryAccess();
-                List<Ingredient> output = new ArrayList<>();
-                output.add(0, smithingTrimRecipe.base);
-                output.add(1, smithingTrimRecipe.addition);
-                output.add(smithingTrimRecipe.template);
-                Arrays.stream(smithingTrimRecipe.base.getItems()).forEach(itemStack -> {
-                    output.set(0, Ingredient.of(itemStack));
-                    Arrays.stream(smithingTrimRecipe.addition.getItems()).forEach(itemStack1 -> {
-                        output.set(1, Ingredient.of(itemStack1));
-                        Optional<Holder.Reference<TrimMaterial>> trimMaterialReference = TrimMaterials.getFromIngredient(registryAccess, smithingTrimRecipe.addition.getItems()[0]);
-                        Optional<Holder.Reference<TrimPattern>> trimPatternReference = TrimPatterns.getFromTemplate(registryAccess, smithingTrimRecipe.template.getItems()[0]);
-                        if (trimPatternReference.isPresent() && trimMaterialReference.isPresent()){
-                            ArmorTrim.setTrim(registryAccess, itemStack, new ArmorTrim(trimMaterialReference.get(), trimPatternReference.get()));
-                            entries.add(new JEIUncraftingTableRecipe(itemStack, output));
-                        }
-                    });
-                });
             }
 
             if (ModList.get().isLoaded("recipestages")) {
