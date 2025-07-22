@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraftforge.common.ToolType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
@@ -18,7 +19,7 @@ import java.util.function.Supplier;
 public class UEBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, UncraftEverything.MODID);
 
-    public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(AbstractBlock.Properties.copy(Blocks.CRAFTING_TABLE)));
+    public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(AbstractBlock.Properties.copy(Blocks.CRAFTING_TABLE).harvestTool(ToolType.AXE)));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier){
         RegistryObject<T> block = BLOCKS.register(name, blockSupplier);
