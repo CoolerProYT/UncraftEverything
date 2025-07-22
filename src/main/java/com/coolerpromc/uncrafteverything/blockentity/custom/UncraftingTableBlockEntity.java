@@ -250,6 +250,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
                 || (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && inputStack.getNbt() != null && !inputStack.getNbt().contains("Trim"))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasNbt())
+                || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
             if (this.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged()){
                 this.status = DAMAGED_ITEM;
@@ -271,7 +272,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 this.status = SHULKER_WITH_ITEM;
             }
 
-            if (this.getStack(inputSlots[0]).isEmpty()){
+            if (this.getStack(inputSlots[0]).isEmpty() || (inputStack.getItem() == Items.ENCHANTED_BOOK)){
                 this.status = NO_RECIPE;
             }
 
