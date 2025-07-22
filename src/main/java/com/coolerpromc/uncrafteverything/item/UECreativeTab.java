@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.item;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -17,7 +18,7 @@ public class UECreativeTab {
 
         @Override
         public Component getDisplayName() {
-            return Component.translatable("creativetab.uncrafteverything");
+            return new TranslatableComponent("creativetab.uncrafteverything");
         }
 
         @Override

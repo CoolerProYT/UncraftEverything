@@ -41,7 +41,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
         if (!pLevel.isClientSide && pPlayer instanceof ServerPlayer serverPlayer) {
             BlockEntity entity = pLevel.getBlockEntity(pPos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
-                NetworkHooks.openScreen(serverPlayer, blockEntity, pPos);
+                NetworkHooks.openGui(serverPlayer, blockEntity, pPos);
                 blockEntity.getOutputStacks();
                 if (!pLevel.isClientSide()) {
                     pLevel.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);

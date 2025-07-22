@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -187,7 +188,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public @NotNull Component getDisplayName() {
-        return Component.translatable("block.uncrafteverything.uncrafting_table");
+        return new TranslatableComponent("block.uncrafteverything.uncrafting_table");
     }
 
     @Nullable
@@ -679,7 +680,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     if (item.getDescriptionId().contains("shulker_box")){
                         return item == Items.SHULKER_BOX;
                     }
-                    return item.getCraftingRemainingItem(item.getDefaultInstance()) == ItemStack.EMPTY || item.getCraftingRemainingItem(item.getDefaultInstance()).getItem() != item.getDefaultInstance().getItem();
+                    return item.getCraftingRemainingItem() == ItemStack.EMPTY.getItem() || item.getCraftingRemainingItem() != item;
                 })
                 .sorted(Comparator.comparing(Item::getDescriptionId))
                 .toList();

@@ -11,6 +11,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.translatable("block.uncrafteverything.uncrafting_table");
+        return new TranslatableComponent("block.uncrafteverything.uncrafting_table");
     }
 
     @Override
@@ -43,5 +44,15 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
         for (int i = 0; i < recipe.getOutputs().size(); i ++){
             iRecipeLayoutBuilder.addSlot(RecipeIngredientRole.OUTPUT, 78 + 18 * (i % 3), 2 + (i / 3) * 18).addIngredients(recipe.getOutputs().get(i));
         }
+    }
+
+    @Override
+    public ResourceLocation getUid() {
+        return UEJEIPlugin.UNCRAFTING_TYPE.getUid();
+    }
+
+    @Override
+    public Class<? extends JEIUncraftingTableRecipe> getRecipeClass() {
+        return JEIUncraftingTableRecipe.class;
     }
 }

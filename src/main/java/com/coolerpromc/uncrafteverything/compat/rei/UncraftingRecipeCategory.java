@@ -10,6 +10,7 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class UncraftingRecipeCategory implements DisplayCategory<UncraftingRecip
 
     @Override
     public Component getTitle() {
-        return Component.translatable("block.uncrafteverything.uncrafting_table");
+        return new TranslatableComponent("block.uncrafteverything.uncrafting_table");
     }
 
     @Override

@@ -3,11 +3,13 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +33,7 @@ public class PerItemExpConfigScreen extends Screen {
     private final List<Button> scrollableButtons = new ArrayList<>();
 
     public PerItemExpConfigScreen(Screen parent) {
-        super(Component.translatable("screen.uncrafteverything.per_item_xp_config"));
+        super(new TranslatableComponent("screen.uncrafteverything.per_item_xp_config"));
         this.parent = parent;
     }
 
@@ -67,13 +69,13 @@ public class PerItemExpConfigScreen extends Screen {
             }
         }
 
-        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
+        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, new TranslatableComponent("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
             this.init();
         });
         addRenderableWidget(addButton);
 
-        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed);
+        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, new TranslatableComponent("screen.uncrafteverything.save"), this::saveButtonPressed);
         addRenderableWidget(saveButton);
     }
 
@@ -122,9 +124,12 @@ public class PerItemExpConfigScreen extends Screen {
         fill(pPoseStack, width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
 
         drawCenteredString(pPoseStack, font, title, width / 2, 10, 0xFFFFFFFF);
-        drawCenteredString(pPoseStack, font, Component.translatable("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
+        drawCenteredString(pPoseStack, font, new TranslatableComponent("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
 
-        enableScissor(width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5);
+        int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
+        int windowHeight = Minecraft.getInstance().getWindow().getHeight();
+
+        RenderSystem.enableScissor((width / 2 - 120) * scale, (windowHeight - 5 - ENTRIES_END_Y * scale), 240 * scale, (ENTRIES_END_Y + 5 - ENTRIES_START_Y) * scale);
 
         for (EditBox editBox : scrollableEditBoxes) {
             editBox.render(pPoseStack, mouseX, mouseY, delta);
@@ -133,7 +138,7 @@ public class PerItemExpConfigScreen extends Screen {
             button.render(pPoseStack, mouseX, mouseY, delta);
         }
 
-        disableScissor();
+        RenderSystem.disableScissor();
 
         this.renderables.forEach(renderable -> {
             if (renderable instanceof Button && !scrollableButtons.contains(renderable)) {
@@ -142,7 +147,7 @@ public class PerItemExpConfigScreen extends Screen {
         });
 
         if (maxScrollOffset > 0) {
-            drawCenteredString(pPoseStack, font, Component.translatable("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
+            drawCenteredString(pPoseStack, font, new TranslatableComponent("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
         }
     }
 
@@ -170,14 +175,14 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         void initWidgets(int x, int y) {
-            keyBox = new EditBox(font, x, y, 150, 20, Component.translatable("screen.uncrafteverything.key"));
+            keyBox = new EditBox(font, x, y, 150, 20, new TranslatableComponent("screen.uncrafteverything.key"));
             keyBox.setValue(currentKey);
 
-            valueBox = new EditBox(font, x + 160, y, 40, 20, Component.translatable("screen.uncrafteverything.value"));
+            valueBox = new EditBox(font, x + 160, y, 40, 20, new TranslatableComponent("screen.uncrafteverything.value"));
             valueBox.setValue(currentValue);
             valueBox.setFilter(s -> s.matches("\\d*"));
 
-            deleteButton = new Button(x + 210, y, 20, 20, Component.translatable("screen.uncrafteverything.x"), b -> {
+            deleteButton = new Button(x + 210, y, 20, 20, new TranslatableComponent("screen.uncrafteverything.x"), b -> {
                 entries.remove(this);
                 init();
             });

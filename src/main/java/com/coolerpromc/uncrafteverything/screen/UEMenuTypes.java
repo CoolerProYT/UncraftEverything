@@ -13,7 +13,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.function.Supplier;
 
 public class UEMenuTypes {
-    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, UncraftEverything.MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.CONTAINERS, UncraftEverything.MODID);
 
     public static final Supplier<MenuType<UncraftingTableMenu>> UNCRAFTING_TABLE_MENU = registerMenuType("uncrafting_table_menu", UncraftingTableMenu::new);
 

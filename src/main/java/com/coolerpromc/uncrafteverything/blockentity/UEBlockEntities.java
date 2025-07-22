@@ -11,7 +11,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.function.Supplier;
 
 public class UEBlockEntities {
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, UncraftEverything.MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, UncraftEverything.MODID);
 
     public static final Supplier<BlockEntityType<UncraftingTableBlockEntity>> UNCRAFTING_TABLE_BE = BLOCK_ENTITIES.register("uncrafting_table_be", () -> BlockEntityType.Builder.of(UncraftingTableBlockEntity::new, UEBlocks.UNCRAFTING_TABLE.get()).build(null));
 
