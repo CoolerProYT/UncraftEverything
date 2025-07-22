@@ -20,6 +20,7 @@ public class UEDataGenerators {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
+        generator.addProvider(event.includeServer(), new UEBlockTagGenerator(packOutput, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(), new UEItemTagGenerator(packOutput, lookupProvider, existingFileHelper));
     }
 }
