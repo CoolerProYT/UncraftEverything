@@ -13,6 +13,8 @@ public class UEDataGenerators {
     public static void onGatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        generator.addProvider(new UEItemTagGenerator(generator, new UEBlockTagGenerator(generator, existingFileHelper), existingFileHelper));
+        UEBlockTagGenerator ueBlockTagGenerator = new UEBlockTagGenerator(generator, existingFileHelper);
+        generator.addProvider(ueBlockTagGenerator);
+        generator.addProvider(new UEItemTagGenerator(generator, ueBlockTagGenerator, existingFileHelper));
     }
 }
