@@ -1,12 +1,10 @@
 package com.coolerpromc.uncrafteverything.datagen;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import com.coolerpromc.uncrafteverything.util.UETags;
+import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.tags.BlockTags;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +19,7 @@ public class UEBlockTagGenerator extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-
+        this.tag(BlockTags.MINEABLE_WITH_AXE)
+                .add(UEBlocks.UNCRAFTING_TABLE.get());
     }
 }
