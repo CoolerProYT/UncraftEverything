@@ -7,7 +7,6 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionReq
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import com.dplayend.stackableitems.handler.HandlerConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -857,10 +856,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (Optional<Ingredient> ingredient : ingredients) {
             if (ingredient.isPresent()){
-                for (Holder<Item> stack : ingredient.get().getValues()) {
-                    ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.value());
-                    if (!id.getNamespace().equals("minecraft")) {
-                        return false;
+                if (ingredient.get().getCustomIngredient() != null && !ingredient.get().getCustomIngredient().items().toList().isEmpty()) {
+                    for (var holder : ingredient.get().getCustomIngredient().items().toList()) {
+                        ResourceLocation id = BuiltInRegistries.ITEM.getKey(holder.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
+                    }
+                }
+                else{
+                    for (Holder<Item> stack : ingredient.get().getValues()) {
+                        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
                     }
                 }
             }
