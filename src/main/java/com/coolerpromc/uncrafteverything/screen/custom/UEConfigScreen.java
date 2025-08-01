@@ -197,6 +197,25 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.getMinecraft().setScreen(parent);
     }
 
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int scrollTop = 25;
+        int scrollBottom = this.height - 45;
+
+        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+
+        if (!inScrollArea) {
+            if (!saveButton.isMouseOver(mouseX, mouseY)) {
+                return false;
+            }
+            else{
+                return saveButton.mouseClicked(mouseX, mouseY, button);
+            }
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
     protected void renderSeparator(GuiGraphics guiGraphics){
         ResourceLocation header = this.getMinecraft().level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
         ResourceLocation footer = this.getMinecraft().level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
