@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
@@ -9,8 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,21 +23,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PerItemExpConfigScreen extends Screen {
+@SuppressWarnings("removal")
+public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
-    private final int ENTRIES_START_Y = 40;
-    private final int ENTRIES_END_Y = 180;
-    private int scrollOffset = 0;
-    private int maxScrollOffset = 0;
+    private final int ENTRIES_START_Y = 30;
+    private final int ENTRIES_END_Y = 200;
     private boolean hasLoadedFromConfig = false;
+
+    private Button addButton;
+    private Button cancelButton;
+    private Button saveButton;
 
     private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
     private final List<Button> scrollableButtons = new ArrayList<>();
 
     public PerItemExpConfigScreen(Screen parent) {
-        super(new TranslatableComponent("screen.uncrafteverything.per_item_xp_config"));
+        super(new TranslatableComponent("screen.uncrafteverything.per_item_xp_config"), 200);
         this.parent = parent;
     }
 
@@ -52,34 +59,35 @@ public class PerItemExpConfigScreen extends Screen {
         }
 
         int visibleHeight = ENTRIES_END_Y - ENTRIES_START_Y;
-        int totalHeight = entries.size() * ENTRY_HEIGHT;
-        maxScrollOffset = Math.max(0, totalHeight - visibleHeight);
-        scrollOffset = Mth.clamp(scrollOffset, 0, maxScrollOffset);
+        contentHeight = entries.size() * ENTRY_HEIGHT + 16;
 
-        int startIndex = scrollOffset / ENTRY_HEIGHT;
+        int startIndex = (int) (scrollAmount / ENTRY_HEIGHT);
         int endIndex = Math.min(entries.size(), startIndex + (visibleHeight / ENTRY_HEIGHT) + 2);
 
         for (int i = startIndex; i < endIndex; i++) {
             Entry entry = entries.get(i);
-            int y = ENTRIES_START_Y + (i * ENTRY_HEIGHT) - scrollOffset;
+            int y = (int) (ENTRIES_START_Y + (i * ENTRY_HEIGHT) - scrollAmount);
 
             if (y >= ENTRIES_START_Y - ENTRY_HEIGHT && y <= ENTRIES_END_Y) {
-                entry.initWidgets(width / 2 - 115, y);
+                entry.initWidgets(width / 2 - 115, y + 16);
                 entry.addToScreen(this); // Add to both main widget list and scrollable lists
             }
         }
 
-        Button addButton = new Button(width / 2 - 100, height - 60, 200, 20, new TranslatableComponent("screen.uncrafteverything.add_new_entry"), b -> {
+        addButton = new Button(width / 2 - 100, height - 53, 200, 20, new TranslatableComponent("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
             this.init();
         });
         addRenderableWidget(addButton);
 
-        Button saveButton = new Button(width / 2 - 100, height - 30, 200, 20, new TranslatableComponent("screen.uncrafteverything.save"), this::saveButtonPressed);
+        cancelButton = new Button(width / 2 - width / 3 - 10, height - 28, width / 3, 20, new TranslatableComponent("screen.uncrafteverything.cancel"), button -> onClose());
+        addRenderableWidget(cancelButton);
+
+        saveButton = new Button(width / 2 + 10, height - 28, width / 3, 20, new TranslatableComponent("screen.uncrafteverything.save"), this::saveButtonPressed);
         addRenderableWidget(saveButton);
     }
 
-    private void saveButtonPressed(Button button){
+    private void saveButtonPressed(Button button) {
         saveCurrentValues();
         Map<String, Integer> newConfig = new HashMap<>();
         for (Entry entry : entries) {
@@ -109,27 +117,59 @@ public class PerItemExpConfigScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (maxScrollOffset > 0) {
-            scrollOffset = Mth.clamp(scrollOffset - (int)(delta * 10), 0, maxScrollOffset);
-            init();
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        super.mouseScrolled(mouseX, mouseY, delta);
+        init();
+        return true;
+    }
+
+    @Override
+    protected int scrollBarX() {
+        return this.width - 6;
+    }
+
+    @Override
+    protected int scrollBarY() {
+        int scrollBarHeight = Math.max(10, (int) ((this.height - 90) * (this.height - 90) / (double) contentHeight));
+        return (int) (25 + (scrollAmount / getMaxScroll()) * (this.height - 90 - scrollBarHeight));
+    }
+
+    @Override
+    protected int scrollerHeight() {
+        return Math.max(10, (int) ((this.height - 90) * (this.height - 90) / (double) contentHeight));
+    }
+
+    @Override
+    protected int getMaxScroll() {
+        return Math.max(0, contentHeight - (height - 95));
+    }
+
+    @Override
+    public void renderBackground(PoseStack poseStack) {
+        fillGradient(poseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
+        MinecraftForge.EVENT_BUS.post(new ScreenEvent.BackgroundDrawnEvent(this, poseStack));
+        renderSeparator(poseStack);
+        renderScrollbar(poseStack, 65);
     }
 
     @Override
     public void render(@NotNull PoseStack pPoseStack, int mouseX, int mouseY, float delta) {
         renderBackground(pPoseStack);
 
-        fill(pPoseStack, width / 2 - 120, ENTRIES_START_Y - 5, width / 2 + 120, ENTRIES_END_Y + 5, 0x88000000);
-
-        drawCenteredString(pPoseStack, font, title, width / 2, 10, 0xFFFFFFFF);
-        drawCenteredString(pPoseStack, font, new TranslatableComponent("screen.uncrafteverything.entries", entries.size()), width / 2, 25, 0xFFCCCCCC);
+        drawCenteredString(pPoseStack, font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         int scale = (int) Minecraft.getInstance().getWindow().getGuiScale();
         int windowHeight = Minecraft.getInstance().getWindow().getHeight();
 
-        RenderSystem.enableScissor((width / 2 - 120) * scale, (windowHeight - 5 - ENTRIES_END_Y * scale), 240 * scale, (ENTRIES_END_Y + 5 - ENTRIES_START_Y) * scale);
+        RenderSystem.enableScissor((width / 2 - 120) * scale, (windowHeight - 5 - ENTRIES_END_Y * scale), 240 * scale, (ENTRIES_END_Y - ENTRIES_START_Y + 5) * scale);
+
+        Component key = new TranslatableComponent("screen.uncrafteverything.per_item_xp_config.key");
+        font.draw(pPoseStack, key, (width / 2 - 115) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF);
+
+        Component value = new TranslatableComponent("screen.uncrafteverything.per_item_xp_config.value");
+        font.draw(pPoseStack, value, (width / 2 - 115 + 160) + (40 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF);
+
+        Component del = new TranslatableComponent("screen.uncrafteverything.per_item_xp_config.del");
+        font.draw(pPoseStack, del, (width / 2 - 115 + 210) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF);
 
         for (EditBox editBox : scrollableEditBoxes) {
             editBox.render(pPoseStack, mouseX, mouseY, delta);
@@ -145,20 +185,48 @@ public class PerItemExpConfigScreen extends Screen {
                 renderable.render(pPoseStack, mouseX, mouseY, delta);
             }
         });
-
-        if (maxScrollOffset > 0) {
-            drawCenteredString(pPoseStack, font, new TranslatableComponent("screen.uncrafteverything.scroll_to_see_more"), width / 2, ENTRIES_END_Y + 10, 0xFFAAAAAA);
-        }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int scrollTop = 25;
+        int scrollBottom = this.height - 65;
+
+        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+
+        if (!inScrollArea) {
+            if (!(addButton.isMouseOver(mouseX, mouseY) || cancelButton.isMouseOver(mouseX, mouseY) || saveButton.isMouseOver(mouseX, mouseY))) {
+                return false;
+            } else {
+                if (addButton.isMouseOver(mouseX, mouseY)) {
+                    return addButton.mouseClicked(mouseX, mouseY, button);
+                }
+
+                if (cancelButton.isMouseOver(mouseX, mouseY)) {
+                    return cancelButton.mouseClicked(mouseX, mouseY, button);
+                }
+
+                if (saveButton.isMouseOver(mouseX, mouseY)) {
+                    return saveButton.mouseClicked(mouseX, mouseY, button);
+                }
+            }
+        }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public void onClose() {
         this.getMinecraft().setScreen(parent);
+    }
+
+    protected void renderSeparator(PoseStack poseStack) {
+        ResourceLocation header = new ResourceLocation(UncraftEverything.MODID, "textures/gui/widget/header_separator.png");
+        ResourceLocation footer = new ResourceLocation(UncraftEverything.MODID, "textures/gui/widget/footer_separator.png");
+        RenderSystem.setShaderTexture(0, header);
+        blit(poseStack, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
+        RenderSystem.setShaderTexture(0, footer);
+        blit(poseStack, 0, this.height - 65, 0.0F, 0.0F, this.width, 2, 32, 2);
     }
 
     private class Entry {
