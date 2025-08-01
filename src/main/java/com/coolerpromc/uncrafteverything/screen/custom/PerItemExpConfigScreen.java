@@ -26,6 +26,10 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final int ENTRIES_END_Y = 200;
     private boolean hasLoadedFromConfig = false;
 
+    private Button addButton;
+    private Button cancelButton;
+    private Button saveButton;
+
     private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
     private final List<Button> scrollableButtons = new ArrayList<>();
 
@@ -64,17 +68,16 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
             }
         }
 
-        Button addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
+        addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
-            scrollAmount = getMaxScroll() + ENTRY_HEIGHT;
             this.init();
         }).bounds(width / 2 - 100, height - 53, 200, 20).build();
         addRenderableWidget(addButton);
 
-        Button cancelButton = Button.builder(Component.translatable("screen.uncrafteverything.cancel"), button -> onClose()).bounds(width / 2 - width / 3 - 10, height - 28, width / 3, 20).build();
+        cancelButton = Button.builder(Component.translatable("screen.uncrafteverything.cancel"), button -> onClose()).bounds(width / 2 - width / 3 - 10, height - 28, width / 3, 20).build();
         addRenderableWidget(cancelButton);
 
-        Button saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).bounds(width / 2 + 10, height - 28, width / 3, 20).build();
+        saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).bounds(width / 2 + 10, height - 28, width / 3, 20).build();
         addRenderableWidget(saveButton);
     }
 
@@ -177,6 +180,28 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int scrollTop = 25;
+        int scrollBottom = this.height - 65;
+
+        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+
+        if (!inScrollArea) {
+            if (!(addButton.isMouseOver(mouseX, mouseY) || cancelButton.isMouseOver(mouseX, mouseY) || saveButton.isMouseOver(mouseX, mouseY))) {
+                return false;
+            } else {
+                if (addButton.isMouseOver(mouseX, mouseY)) {
+                    return addButton.mouseClicked(mouseX, mouseY, button);
+                }
+
+                if (cancelButton.isMouseOver(mouseX, mouseY)) {
+                    return cancelButton.mouseClicked(mouseX, mouseY, button);
+                }
+
+                if (saveButton.isMouseOver(mouseX, mouseY)) {
+                    return saveButton.mouseClicked(mouseX, mouseY, button);
+                }
+            }
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
