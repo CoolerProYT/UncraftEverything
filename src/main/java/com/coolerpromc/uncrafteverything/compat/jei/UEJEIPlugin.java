@@ -129,8 +129,8 @@ public class UEJEIPlugin implements IModPlugin {
                     NonNullList<Ingredient> ingredients = NonNullList.create();
 
                     ingredients.add(smithingTransformRecipe.baseIngredient().get());
-                    ingredients.add(smithingTransformRecipe.additionIngredient().get());
-                    ingredients.add(smithingTransformRecipe.templateIngredient().get());
+                    smithingTransformRecipe.additionIngredient().ifPresent(ingredients::add);
+                    smithingTransformRecipe.templateIngredient().ifPresent(ingredients::add);
                     entries.add(new JEIUncraftingTableRecipe(smithingTransformRecipe.result, ingredients));
                 }
             }
