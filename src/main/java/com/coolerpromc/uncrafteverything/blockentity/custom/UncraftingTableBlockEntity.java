@@ -853,10 +853,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (Optional<Ingredient> ingredient : ingredients) {
             if (ingredient.isPresent()){
-                for (Holder<Item> stack : ingredient.get().getValues()) {
-                    ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.value());
-                    if (!id.getNamespace().equals("minecraft")) {
-                        return false;
+                if (ingredient.get().getCustomIngredient() != null && !ingredient.get().getCustomIngredient().items().toList().isEmpty()) {
+                    for (var holder : ingredient.get().getCustomIngredient().items().toList()) {
+                        ResourceLocation id = BuiltInRegistries.ITEM.getKey(holder.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
+                    }
+                }
+                else{
+                    for (Holder<Item> stack : ingredient.get().getValues()) {
+                        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
                     }
                 }
             }
