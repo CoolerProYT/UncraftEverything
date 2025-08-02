@@ -17,6 +17,7 @@
   "screen.uncrafteverything.blank": "",
   "screen.uncrafteverything.add_new_entry": "Add New Entry",
   "screen.uncrafteverything.save": "Save",
+  "screen.uncrafteverything.cancel": "Cancel",
   "screen.uncrafteverything.entries": "Entries: %d",
   "screen.uncrafteverything.scroll_to_see_more": "Scroll to see more entries",
   "screen.uncrafteverything.key": "Key",
@@ -47,5 +48,8 @@
   "screen.uncrafteverything.config.exp_required_label": "Experience Required \n(Level/Point based on previous config)",
   "screen.uncrafteverything.config.allow_unsmithing_label": "Allow Unsmithing (Netherite/Trimmed Armor)",
   "screen.uncrafteverything.config.allow_damaged_label": "Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)",
-  "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label": "Prevent Modded Ingredients from Vanilla Items (To avoid potential duplication)"
+  "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label": "Prevent Modded Ingredients from Vanilla Items (To avoid potential duplication)",
+  "screen.uncrafteverything.per_item_xp_config.key": "Item Id Wildcard/Item Tags",
+  "screen.uncrafteverything.per_item_xp_config.value": "Exp",
+  "screen.uncrafteverything.per_item_xp_config.del": "Delete"
 }
