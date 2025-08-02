@@ -9,3 +9,4 @@ accessible field net/minecraft/recipe/SmithingTransformRecipe addition Lnet/mine
 accessible field net/minecraft/recipe/SmithingTrimRecipe template Lnet/minecraft/recipe/Ingredient;
 accessible field net/minecraft/recipe/SmithingTrimRecipe base Lnet/minecraft/recipe/Ingredient;
 accessible field net/minecraft/recipe/SmithingTrimRecipe addition Lnet/minecraft/recipe/Ingredient;
+accessible field net/minecraft/client/gui/screen/Screen drawables Ljava/util/List;
