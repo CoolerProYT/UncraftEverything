@@ -815,10 +815,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
         for (Optional<Ingredient> ingredient : ingredients) {
             if (ingredient.isPresent()){
-                for (RegistryEntry<Item> stack : ingredient.get().getMatchingItems().toList()) {
-                    Identifier id = Registries.ITEM.getId(stack.value());
-                    if (!id.getNamespace().equals("minecraft")) {
-                        return false;
+                if (ingredient.get().getCustomIngredient() != null && !ingredient.get().getCustomIngredient().getMatchingItems().toList().isEmpty()){
+                    for (var holder : ingredient.get().getCustomIngredient().getMatchingItems().toList()){
+                        Identifier id = Registries.ITEM.getId(holder.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
+                    }
+                }
+                else{
+                    for (RegistryEntry<Item> stack : ingredient.get().getMatchingItems().toList()) {
+                        Identifier id = Registries.ITEM.getId(stack.value());
+                        if (!id.getNamespace().equals("minecraft")) {
+                            return false;
+                        }
                     }
                 }
             }

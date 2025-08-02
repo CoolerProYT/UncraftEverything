@@ -125,8 +125,8 @@ public class UEREIPlugin implements REIClientPlugin {
                     DefaultedList<Ingredient> ingredients = DefaultedList.of();
 
                     ingredients.add(smithingTransformRecipe.base());
-                    ingredients.add(smithingTransformRecipe.addition().get());
-                    ingredients.add(smithingTransformRecipe.template().get());
+                    smithingTransformRecipe.addition().ifPresent(ingredients::add);
+                    smithingTransformRecipe.template().ifPresent(ingredients::add);
                     entries.add(new JEIUncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.itemEntry(), 1, smithingTransformRecipe.result.components()), ingredients));
                 }
             }
