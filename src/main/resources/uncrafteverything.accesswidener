@@ -7,3 +7,4 @@ accessible field net/minecraft/recipe/TransmuteRecipe material Lnet/minecraft/re
 accessible field net/minecraft/recipe/TransmuteRecipe result Lnet/minecraft/recipe/TransmuteRecipeResult;
 accessible field net/minecraft/recipe/SmithingTransformRecipe result Lnet/minecraft/recipe/TransmuteRecipeResult;
 accessible field net/minecraft/recipe/SmithingTrimRecipe pattern Lnet/minecraft/registry/entry/RegistryEntry;
+accessible field net/minecraft/client/gui/screen/Screen drawables Ljava/util/List;
