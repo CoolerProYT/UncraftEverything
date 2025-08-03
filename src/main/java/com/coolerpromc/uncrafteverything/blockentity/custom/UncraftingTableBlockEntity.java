@@ -40,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -318,6 +319,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         List<Recipe<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
+            if (!recipeHolder.getId().getNamespace().equals("minecraft") && ForgeRegistries.ITEMS.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
+                return false;
+            }
+
             if (recipeHolder instanceof ShapedRecipe shapedRecipe){
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
@@ -473,14 +478,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
-        }
-
-        boolean isVanillaInput = Registry.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
-
-        if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
-            recipes = recipes.stream()
-                    .filter(UncraftingTableBlockEntity::isVanillaIngredientRecipe)
-                    .toList();
         }
 
         for (Recipe<?> r : recipes) {
@@ -696,13 +693,22 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = ForgeRegistries.ITEMS.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+                    return ForgeRegistries.ITEMS.getKey(item).getNamespace().equals("minecraft");
+                }
+                return true;
+            }).toList();
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
@@ -822,11 +828,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getItems()) {
-                ResourceLocation id = Registry.ITEM.getKey(stack.getItem());
-                if (!id.getNamespace().equals("minecraft")) {
-                    return false;
-                }
+            if (!Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).map(ForgeRegistries.ITEMS::getKey).map(ResourceLocation::getNamespace).toList().contains("minecraft")) {
+                return false;
             }
         }
 

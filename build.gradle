@@ -103,6 +103,10 @@ dependencies {
 
     compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:$rei_version")
 //    runtimeOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:$rei_version")
+    implementation fg.deobf("curse.maven:goety-586095:5821584")
+    implementation fg.deobf("curse.maven:curios-309927:5843737")
+    implementation fg.deobf("curse.maven:l2-complements-758349:4805416")
+    implementation fg.deobf("curse.maven:l2library-620203:4951847")
 }
 
 tasks.named('processResources', ProcessResources).configure {
