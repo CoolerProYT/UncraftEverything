@@ -324,6 +324,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         List<RecipeHolder<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
+            if (!recipeHolder.id().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
+                return false;
+            }
+            
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
@@ -417,14 +421,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
-        }
-
-        boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
-
-        if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
-            recipes = recipes.stream()
-                    .filter(r -> isVanillaIngredientRecipe(r.value()))
-                    .toList();
         }
 
         for (RecipeHolder<?> r : recipes) {
@@ -690,13 +686,22 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+                    return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
+                }
+                return true;
+            }).toList();
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
@@ -817,11 +822,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getItems()) {
-                ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-                if (!id.getNamespace().equals("minecraft")) {
-                    return false;
-                }
+            if (!Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).map(BuiltInRegistries.ITEM::getKey).map(ResourceLocation::getNamespace).toList().contains("minecraft")) {
+                return false;
             }
         }
 
