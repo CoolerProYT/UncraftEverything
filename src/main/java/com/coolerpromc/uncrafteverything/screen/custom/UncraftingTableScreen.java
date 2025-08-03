@@ -233,6 +233,8 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18);
                 RenderSystem.disableDepthTest();
+//                poseStack.pushPose();
+//                poseStack.translate(0, 0, 200);
                 fill(
                         pGuiGraphics,
                         x + 98 + 18 * (i % 3),
@@ -240,6 +242,7 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
                         0x998B8B8B);
+//                poseStack.popPose();
                 RenderSystem.enableDepthTest();
             }
         }

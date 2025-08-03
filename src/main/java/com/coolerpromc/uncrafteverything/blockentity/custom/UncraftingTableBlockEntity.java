@@ -18,7 +18,6 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.*;
-import net.minecraft.item.Item;
 import net.minecraft.item.crafting.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -29,7 +28,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -325,6 +323,10 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         }
 
         List<IRecipe<?>> recipes = serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
+            if (!recipeHolder.getId().getNamespace().equals("minecraft") && ForgeRegistries.ITEMS.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
+                return false;
+            }
+
             if (recipeHolder instanceof ShapedRecipe){
                 ShapedRecipe shapedRecipe = (ShapedRecipe) recipeHolder;
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
@@ -406,14 +408,6 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
-        }
-
-        boolean isVanillaInput = Registry.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
-
-        if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
-            recipes = recipes.stream()
-                    .filter(r -> isVanillaIngredientRecipe(r))
-                    .collect(Collectors.toList());
         }
 
         for (IRecipe<?> r : recipes) {
@@ -630,13 +624,22 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                         return ingredientItems.isEmpty() ? new ArrayList<>(Collections.singleton(Items.AIR)) : ingredientItems;
                     })
                     .orElse(new ArrayList<>(Collections.singleton(Items.AIR)));
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = ForgeRegistries.ITEMS.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+                    return ForgeRegistries.ITEMS.getKey(item).getNamespace().equals("minecraft");
+                }
+                return true;
+            }).collect(Collectors.toList());
 
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
@@ -759,11 +762,8 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         }
 
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getItems()) {
-                ResourceLocation id = Registry.ITEM.getKey(stack.getItem());
-                if (!id.getNamespace().equals("minecraft")) {
-                    return false;
-                }
+            if (!Arrays.stream(ingredient.getItems()).map(ItemStack::getItem).map(ForgeRegistries.ITEMS::getKey).map(ResourceLocation::getNamespace).collect(Collectors.toList()).contains("minecraft")) {
+                return false;
             }
         }
 
