@@ -233,7 +233,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                         itemStack,
                         x + 98 + 18 * (i % 3),
                         y + 17 + (i / 3) * 18);
-                RenderSystem.disableDepthTest();
+//                RenderSystem.disableDepthTest();
+                poseStack.pushPose();
+                poseStack.translate(0, 0, 200);
                 fill(
                         poseStack,
                         x + 98 + 18 * (i % 3),
@@ -241,7 +243,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                         x + 98 + 18 * (i % 3) + 16,
                         y + 17 + (i / 3) * 18 + 16,
                         0x998B8B8B);
-                RenderSystem.enableDepthTest();
+                poseStack.popPose();
+//                RenderSystem.enableDepthTest();
             }
         }
 
