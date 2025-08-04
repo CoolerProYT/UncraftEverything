@@ -292,6 +292,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         }
 
         List<Recipe<?>> recipes = serverLevel.getRecipeManager().values().stream().filter(recipeHolder -> {
+            if (!recipeHolder.getId().getNamespace().equals("minecraft") && Registry.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes()){
+                return false;
+            }
+            
             if (recipeHolder instanceof ShapedRecipe){
                 ShapedRecipe shapedRecipe = (ShapedRecipe) recipeHolder;
                 if (shapedRecipe.output.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.output.getCount()){
@@ -374,14 +378,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             outputStack.addOutput(book);
 
             outputs.add(outputStack);
-        }
-
-        boolean isVanillaInput = Registry.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft");
-
-        if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
-            recipes = recipes.stream()
-                    .filter(UncraftingTableBlockEntity::isVanillaIngredientRecipe)
-                    .collect(Collectors.toList());
         }
 
         for (Recipe<?> r : recipes) {
@@ -602,13 +598,22 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                         return ingredientItems.isEmpty() ? new ArrayList<>(Collections.singleton(Items.AIR)) : ingredientItems;
                     })
                     .orElse(new ArrayList<>(Collections.singleton(Items.AIR)));
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = Registry.ITEM.getId(this.getStack(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+                    return Registry.ITEM.getId(item).getNamespace().equals("minecraft");
+                }
+                return true;
+            }).collect(Collectors.toList());
 
             String key = items.stream()
                     .map(Item::getTranslationKey)
                     .sorted()
                     .collect(Collectors.joining(","));
 
-            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), items));
+            List<Item> finalItems = items;
+            Group group = groupKeyToGroup.computeIfAbsent(key, k -> new Group(new ArrayList<>(), finalItems));
             group.positions.add(i);
         }
 
@@ -731,11 +736,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         }
 
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getMatchingStacksClient()) {
-                Identifier id = Registry.ITEM.getId(stack.getItem());
-                if (!id.getNamespace().equals("minecraft")) {
-                    return false;
-                }
+            if (!Arrays.stream(ingredient.matchingStacks).map(ItemStack::getItem).map(Registry.ITEM::getId).map(Identifier::getNamespace).collect(Collectors.toList()).contains("minecraft")) {
+                return false;
             }
         }
 
