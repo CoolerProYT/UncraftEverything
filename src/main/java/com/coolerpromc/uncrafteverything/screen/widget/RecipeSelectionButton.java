@@ -4,9 +4,11 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.cursor.StandardCursors;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.PressableWidget;
+import net.minecraft.client.input.AbstractKeyInput;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -25,17 +27,20 @@ public class RecipeSelectionButton extends PressableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
-        int i = this.active ? 16777215 : 10526880;
-        this.drawMessage(context, minecraftClient.textRenderer, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
+    public void onPress(AbstractKeyInput input) {
+        if (this.onPress != null) {
+            this.onPress.onPress(this);
+        }
     }
 
     @Override
-    public void onPress() {
-        if (this.onPress != null) {
-            this.onPress.onPress(this);
+    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        MinecraftClient minecraftClient = MinecraftClient.getInstance();
+        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, TEXTURES.get(this.active, this.isSelected()), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ColorHelper.getWhite(this.alpha));
+        int i = ColorHelper.withAlpha(this.alpha, this.active ? -1 : -6250336);
+        this.drawMessage(context, minecraftClient.textRenderer, i);
+        if (this.isHovered()) {
+            context.setCursor(this.isInteractable() ? StandardCursors.POINTING_HAND : StandardCursors.NOT_ALLOWED);
         }
     }
 

@@ -1,8 +1,10 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -30,37 +32,37 @@ public abstract class AbstractScrollableScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 264) { // Down arrow
+    public boolean keyPressed(KeyInput input) {
+        if (input.getKeycode() == 264) { // Down arrow
             mouseScrolled(0, 0, 0, -1);
             return true;
-        } else if (keyCode == 265) { // Up arrow
+        } else if (input.getKeycode() == 265) { // Up arrow
             mouseScrolled(0, 0, 0, 1);
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(input);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseX >= scrollBarX() && mouseY >= scrollBarY() & mouseY <= scrollBarY() + scrollerHeight()) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (click.x() >= scrollBarX() && click.y() >= scrollBarY() && click.y() <= scrollBarY() + scrollerHeight()) {
             this.scrolling = true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click click) {
         this.scrolling = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(click);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(Click click, double dragX, double dragY) {
         if (this.scrolling) {
-            mouseScrolled(mouseX, mouseY, 0, -(dragY / 4));
+            mouseScrolled(click.x(), click.y(), 0, -(dragY / 4));
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(click, dragX, dragY);
     }
 
     @Override

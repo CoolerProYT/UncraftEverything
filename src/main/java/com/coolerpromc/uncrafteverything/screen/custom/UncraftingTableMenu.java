@@ -26,13 +26,13 @@ public class UncraftingTableMenu extends ScreenHandler {
     public final PlayerEntity player;
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockPos blockPos) {
-        this(syncId, playerInventory, playerInventory.player.getWorld().getBlockEntity(blockPos), new ArrayPropertyDelegate(3));
+        this(syncId, playerInventory, playerInventory.player.getEntityWorld().getBlockEntity(blockPos), new ArrayPropertyDelegate(3));
     }
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, PropertyDelegate data) {
         super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId);
         this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
-        this.world = playerInventory.player.getWorld();
+        this.world = playerInventory.player.getEntityWorld();
         this.data = data;
         this.player = playerInventory.player;
 
@@ -72,10 +72,6 @@ public class UncraftingTableMenu extends ScreenHandler {
             } else {
                 slot.markDirty();
             }
-        }
-        blockEntity.getOutputStacks();
-        if (player instanceof ServerPlayerEntity serverPlayer){
-            ServerPlayNetworking.send(serverPlayer, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
         }
         return newStack;
     }

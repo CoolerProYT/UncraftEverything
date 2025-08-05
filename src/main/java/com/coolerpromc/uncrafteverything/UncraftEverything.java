@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.recipe.RecipeEntry;
@@ -23,7 +22,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class UncraftEverything implements ModInitializer {
@@ -51,10 +49,11 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionDataPayload.TYPE, UncraftingRecipeSelectionDataPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getWorld();
+				ServerWorld level = player.getEntityWorld();
 				BlockPos pos = uncraftingTableCraftButtonClickPayload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -68,7 +67,7 @@ public class UncraftEverything implements ModInitializer {
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionPayload.TYPE, (uncraftingRecipeSelectionPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
-				ServerWorld level = player.getWorld();
+				ServerWorld level = player.getEntityWorld();
 				BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -90,6 +89,7 @@ public class UncraftEverything implements ModInitializer {
 				UncraftEverythingConfig.allowUnSmithing = payload.allowUnsmithing();
 				UncraftEverythingConfig.allowDamaged = payload.allowDamaged();
 				UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = payload.preventModdedIngredientsFromVanillaItems();
+				UncraftEverythingConfig.restrictedModIngredients = payload.restrictedModIngredients();
 				UncraftEverythingConfig.save();
 			}
 		});
@@ -105,7 +105,8 @@ public class UncraftEverything implements ModInitializer {
 						UncraftEverythingConfig.allowUnSmithing,
 						UncraftEverythingConfig.allowDamaged,
 						UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
-						PerItemExpCostConfig.getPerItemExp()
+						PerItemExpCostConfig.getPerItemExp(),
+						UncraftEverythingConfig.restrictedModIngredients
 				));
 			}
 		});
@@ -118,8 +119,23 @@ public class UncraftEverything implements ModInitializer {
 			}
 		});
 
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionDataPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player){
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.updatePage(payload.page());
+
+					blockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
-            ServerRecipeManager recipeManager = serverPlayerEntity.getWorld().getRecipeManager();
+            ServerRecipeManager recipeManager = serverPlayerEntity.getEntityWorld().getRecipeManager();
             List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
             recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING));
             recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));

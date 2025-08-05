@@ -2,11 +2,8 @@ package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -14,16 +11,12 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 public class UncraftingTableBlock extends BlockWithEntity {
     public UncraftingTableBlock(Settings properties) {
@@ -47,13 +40,13 @@ public class UncraftingTableBlock extends BlockWithEntity {
 
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer){
+        if (!world.isClient() && player instanceof ServerPlayerEntity serverPlayer){
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openHandledScreen(blockEntity);
                 blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
-                ServerPlayNetworking.send(serverPlayer, new UncraftingTableDataPayload(blockEntity.getPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
+//                ServerPlayNetworking.send(serverPlayer, new UncraftingTableDataPayload(blockEntity.getPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
             }
             else {
                 throw new IllegalStateException("Container provider is missing");

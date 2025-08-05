@@ -7,12 +7,12 @@ import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEConfigPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.EditBoxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +32,15 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean allowUnsmithing = config.allowUnsmithing();
     private boolean allowDamagedItems = config.allowDamaged();
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
+    private List<String> restrictedModIngredients = config.restrictedModIngredients();
 
     private EditBoxWidget restrictionsInput;
     private TextFieldWidget experienceInput;
+    private EditBoxWidget restrictedModInput;
     private ButtonWidget saveButton;
 
     protected UEConfigScreen(Text title, Screen parent) {
-        super(title, 245);
+        super(title, 338);
         this.parent = parent;
     }
 
@@ -104,6 +106,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         }).dimensions(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
         this.addDrawableChild(togglePreventModdedIngredientsFromVanillaItems);
 
+        // Restricted Mod input box
+        String joinedMod = String.join("\n", restrictedModIngredients);
+        restrictedModInput = EditBoxWidget.builder().x(x).y((int) (baseY + 270 - scrollAmount)).build(textRenderer, widgetWidth, 88, Text.translatable("screen.uncrafteverything.blank"));
+        restrictedModInput.setText(joinedMod);
+        this.addDrawableChild(restrictedModInput);
+
         // Save button (always at bottom)
         saveButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.save"), this::pressSaveButton).dimensions(this.width / 2 - 100, (this.height - 45) + 15, 200, 20).build();
         this.addDrawableChild(saveButton);
@@ -158,6 +166,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         Text preventModded = Text.translatable("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label");
         pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, preventModded, x, (int) (baseY + 245 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
+        Text restrictedMod = Text.translatable("screen.uncrafteverything.config.prevent_modid");
+        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
         pGuiGraphics.disableScissor();
 
         pGuiGraphics.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.uncrafteverything.uncraft_everything_config"), this.width / 2, (23 - this.textRenderer.fontHeight) / 2, 0xFFFFFFFF);
@@ -202,22 +213,22 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(Click click, boolean doubled) {
         int scrollTop = 25;
         int scrollBottom = this.height - 45;
 
-        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+        boolean inScrollArea = click.y() >= scrollTop && click.y() <= scrollBottom;
 
         if (!inScrollArea) {
-            if (!saveButton.isMouseOver(mouseX, mouseY)) {
+            if (!saveButton.isMouseOver(click.x(), click.y())) {
                 return false;
             }
             else{
-                return saveButton.mouseClicked(mouseX, mouseY, button);
+                return saveButton.mouseClicked(click, doubled);
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
     protected void renderSeparator(DrawContext guiGraphics){
@@ -241,8 +252,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private void pressSaveButton(ButtonWidget button){
         restrictions = Arrays.stream(restrictionsInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
         experience = Integer.parseInt(experienceInput.getText());
+        restrictedModIngredients = Arrays.stream(restrictedModInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
         this.client.setScreen(parent);
