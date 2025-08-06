@@ -13,7 +13,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) implements CustomPayload {
+public record ResponseConfigPayload(
+        UncraftEverythingConfig.RestrictionType restrictionType,
+        List<String> restrictedItems,
+        boolean allowEnchantedItem,
+        UncraftEverythingConfig.ExperienceType experienceType,
+        int experience,
+        boolean allowUnsmithing,
+        boolean allowDamaged,
+        boolean preventModdedIngredientsFromVanillaItems,
+        Map<String, Integer> perItemExp,
+        List<String> restrictedModIngredients
+) implements CustomPayload {
+
     public static final Id<ResponseConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "response_config"));
 
     public static final PacketCodec<RegistryByteBuf, ResponseConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
@@ -28,6 +40,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         PacketCodecs.BOOL.encode(buf, payload.allowDamaged);
         PacketCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
         PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
+        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedModIngredients);
     }
 
     private static ResponseConfigPayload decode(RegistryByteBuf buf){
@@ -40,8 +53,9 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = PacketCodecs.BOOL.decode(buf);
         boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOL.decode(buf);
         Map<String, Integer> perItemExp = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).decode(buf);
+        List<String> restrictedModIngredients = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
     }
 
     @Override

@@ -80,6 +80,7 @@ public class UncraftEverything implements ModInitializer {
 				UncraftEverythingConfig.allowUnSmithing = payload.allowUnsmithing();
 				UncraftEverythingConfig.allowDamaged = payload.allowDamaged();
 				UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = payload.preventModdedIngredientsFromVanillaItems();
+				UncraftEverythingConfig.restrictedModIngredients = payload.restrictedModIngredients();
 				UncraftEverythingConfig.save();
 			}
 		});
@@ -95,7 +96,8 @@ public class UncraftEverything implements ModInitializer {
 						UncraftEverythingConfig.allowUnSmithing,
 						UncraftEverythingConfig.allowDamaged,
 						UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
-						PerItemExpCostConfig.getPerItemExp()
+						PerItemExpCostConfig.getPerItemExp(),
+						UncraftEverythingConfig.restrictedModIngredients
 				));
 			}
 		});

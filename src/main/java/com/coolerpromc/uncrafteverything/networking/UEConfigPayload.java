@@ -10,7 +10,18 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) implements CustomPayload {
+public record UEConfigPayload(
+        UncraftEverythingConfig.RestrictionType restrictionType,
+        List<String> restrictedItems,
+        boolean allowEnchantedItem,
+        UncraftEverythingConfig.ExperienceType experienceType,
+        int experience,
+        boolean allowUnsmithing,
+        boolean allowDamaged,
+        boolean preventModdedIngredientsFromVanillaItems,
+        List<String> restrictedModIngredients
+) implements CustomPayload {
+
     public static final Id<UEConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "ue_config"));
 
     public static final PacketCodec<RegistryByteBuf, UEConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(UEConfigPayload::encode, UEConfigPayload::decode);
@@ -24,6 +35,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         PacketCodecs.BOOL.encode(buf, payload.allowUnsmithing);
         PacketCodecs.BOOL.encode(buf, payload.allowDamaged);
         PacketCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
+        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedModIngredients);
     }
 
     private static UEConfigPayload decode(RegistryByteBuf buf){
@@ -35,8 +47,9 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         boolean allowUnsmithing = PacketCodecs.BOOL.decode(buf);
         boolean allowDamaged = PacketCodecs.BOOL.decode(buf);
         boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOL.decode(buf);
+        List<String> restrictedModIngredients = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
     }
 
     @Override
