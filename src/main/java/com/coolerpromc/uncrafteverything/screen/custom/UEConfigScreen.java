@@ -35,6 +35,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean allowUnsmithing = config.allowUnsmithing();
     private boolean allowDamagedItems = config.allowDamaged();
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
+    private List<String> restrictedModIngredients = config.restrictedModIngredients();
 
     private ButtonWidget restrictionTypeButton;
     private ButtonWidget toggleEnchantedBtn;
@@ -45,10 +46,11 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
     private MultiLineEditBox restrictionsInput;
     private TextFieldWidget experienceInput;
+    private MultiLineEditBox restrictedModInput;
     private ButtonWidget saveButton;
 
     protected UEConfigScreen(Text title, Screen parent) {
-        super(title, 245);
+        super(title, 338);
         this.parent = parent;
     }
 
@@ -110,6 +112,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         });
         this.addChild(togglePreventModdedIngredientsFromVanillaItems);
 
+        // Restricted Mod input box
+        String joinedMod = String.join("\n", restrictedModIngredients);
+        restrictedModInput = new MultiLineEditBox(textRenderer, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 88, Integer.MAX_VALUE);
+        restrictedModInput.setText(joinedMod);
+        this.addChild(restrictedModInput);
+
         // Save button (always at bottom)
         saveButton = new ButtonWidget(this.width / 2 - 100, (this.height - 45) + 15, 200, 20, new TranslatableText("screen.uncrafteverything.save"), this::pressSaveButton);
         this.addChild(saveButton);
@@ -146,6 +154,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.toggleAllowUnsmithing.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.toggleAllowDamaged.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.togglePreventModdedIngredientsFromVanillaItems.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.restrictedModInput.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int x = 10;
         int textWidth = this.width / 2 - 10;
@@ -178,6 +187,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         TranslatableText preventModded = new TranslatableText("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label");
         this.textRenderer.drawTrimmed(preventModded, x, (int) (baseY + 245 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(preventModded.getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        TranslatableText restrictedMod = new TranslatableText("screen.uncrafteverything.config.prevent_modid");
+        this.textRenderer.drawTrimmed(restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(restrictedMod.getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
@@ -264,8 +276,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private void pressSaveButton(ButtonWidget button){
         restrictions = Arrays.stream(restrictionsInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
         experience = Integer.parseInt(experienceInput.getText());
+        restrictedModIngredients = Arrays.stream(restrictedModInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
         ClientPlayNetworking.send(UEConfigPayload.TYPE, UEConfigPayload.encode(PacketByteBufs.create(), configPayload));
         ClientPlayNetworking.send(RequestConfigPayload.TYPE, RequestConfigPayload.encode(PacketByteBufs.create(), new RequestConfigPayload()));
         this.client.openScreen(parent);

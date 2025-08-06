@@ -32,6 +32,7 @@ public class UncraftEverythingConfig {
     public static boolean allowUnSmithing;
     public static boolean allowDamaged;
     public static boolean preventModdedIngredientsFromVanillaItems;
+    public static List<String> restrictedModIngredients;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -87,6 +88,12 @@ public class UncraftEverythingConfig {
         allowDamaged = configFile.getOrElse("AllowDamaged.allowDamaged", true);
 
         preventModdedIngredientsFromVanillaItems = configFile.getOrElse("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", true);
+
+        List<String> restrictedIngredients = new ArrayList<>();
+        restrictedIngredients.add("productivetrees");
+        restrictedIngredients.add("chipped");
+
+        restrictedModIngredients = configFile.getOrElse("RestrictedModIngredients.restrictedModIngredients", restrictedIngredients);
     }
 
     public static void save() {
@@ -117,6 +124,9 @@ public class UncraftEverythingConfig {
 
         configFile.set("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", preventModdedIngredientsFromVanillaItems);
         configFile.setComment("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", "Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes. This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]");
+
+        configFile.set("RestrictedModIngredients.restrictedModIngredients", restrictedModIngredients);
+        configFile.setComment("RestrictedModIngredients.restrictedModIngredients", "A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues. \nFormat: modid");
 
         configFile.save();
     }
@@ -214,6 +224,10 @@ public class UncraftEverythingConfig {
         }
 
         return true;
+    }
+
+    public static List<String> getRestrictedModIngredients() {
+        return restrictedModIngredients;
     }
 
     public static Identifier inputStackLocation(ItemStack itemStack) {

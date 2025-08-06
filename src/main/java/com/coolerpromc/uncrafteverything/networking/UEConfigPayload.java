@@ -19,8 +19,9 @@ public class UEConfigPayload {
     public final boolean allowUnsmithing;
     public final boolean allowDamaged;
     public final boolean preventModdedIngredientsFromVanillaItems;
+    public final List<String> restrictedModIngredients;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) {
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, List<String> restrictedModIngredients) {
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -29,6 +30,7 @@ public class UEConfigPayload {
         this.allowUnsmithing = allowUnsmithing;
         this.allowDamaged = allowDamaged;
         this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
+        this.restrictedModIngredients = restrictedModIngredients;
     }
 
     public static PacketByteBuf encode(PacketByteBuf buf, UEConfigPayload payload) {
@@ -40,6 +42,7 @@ public class UEConfigPayload {
         buf.writeBoolean(payload.allowUnsmithing);
         buf.writeBoolean(payload.allowDamaged);
         buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
+        BufferUtil.writeStringList(buf, payload.restrictedModIngredients);
 
         return buf;
     }
@@ -53,8 +56,9 @@ public class UEConfigPayload {
         boolean allowUnsmithing = buf.readBoolean();
         boolean allowDamaged = buf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
+        List<String> restrictedModIngredients = BufferUtil.readStringList(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
     }
 
     public UncraftEverythingConfig.RestrictionType restrictionType() {
@@ -80,5 +84,8 @@ public class UEConfigPayload {
     }
     public boolean preventModdedIngredientsFromVanillaItems() {
         return preventModdedIngredientsFromVanillaItems;
+    }
+    public List<String> restrictedModIngredients() {
+        return restrictedModIngredients;
     }
 }
