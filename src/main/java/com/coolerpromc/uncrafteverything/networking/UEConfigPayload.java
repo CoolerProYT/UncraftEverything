@@ -10,28 +10,47 @@ import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) implements CustomPayload {
+public record UEConfigPayload(
+        UncraftEverythingConfig.RestrictionType restrictionType,
+        List<String> restrictedItems,
+        boolean allowEnchantedItem,
+        UncraftEverythingConfig.ExperienceType experienceType,
+        int experience,
+        boolean allowUnsmithing,
+        boolean allowDamaged,
+        boolean preventModdedIngredientsFromVanillaItems,
+        List<String> restrictedModIngredients
+) implements CustomPayload {
+
     public static final Id<UEConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "ue_config"));
 
-    public static final PacketCodec<RegistryByteBuf, UEConfigPayload> STREAM_CODEC = PacketCodec.tuple(
-            UncraftEverythingConfig.RestrictionType.STREAM_CODEC,
-            UEConfigPayload::restrictionType,
-            PacketCodecs.STRING.collect(PacketCodecs.toList()),
-            UEConfigPayload::restrictedItems,
-            PacketCodecs.BOOLEAN,
-            UEConfigPayload::allowEnchantedItem,
-            UncraftEverythingConfig.ExperienceType.STREAM_CODEC,
-            UEConfigPayload::experienceType,
-            PacketCodecs.INTEGER,
-            UEConfigPayload::experience,
-            PacketCodecs.BOOLEAN,
-            UEConfigPayload::allowUnsmithing,
-            PacketCodecs.BOOLEAN,
-            UEConfigPayload::allowDamaged,
-            PacketCodecs.BOOLEAN,
-            UEConfigPayload::preventModdedIngredientsFromVanillaItems,
-            UEConfigPayload::new
-    );
+    public static final PacketCodec<RegistryByteBuf, UEConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(UEConfigPayload::encode, UEConfigPayload::decode);
+
+    private static void encode(RegistryByteBuf buf, UEConfigPayload payload) {
+        UncraftEverythingConfig.RestrictionType.STREAM_CODEC.encode(buf, payload.restrictionType);
+        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedItems);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowEnchantedItem);
+        UncraftEverythingConfig.ExperienceType.STREAM_CODEC.encode(buf, payload.experienceType);
+        PacketCodecs.INTEGER.encode(buf, payload.experience);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowUnsmithing);
+        PacketCodecs.BOOLEAN.encode(buf, payload.allowDamaged);
+        PacketCodecs.BOOLEAN.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
+        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedModIngredients);
+    }
+
+    private static UEConfigPayload decode(RegistryByteBuf buf){
+        UncraftEverythingConfig.RestrictionType restrictionType = UncraftEverythingConfig.RestrictionType.STREAM_CODEC.decode(buf);
+        List<String> restrictedItems = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
+        boolean allowEnchantedItem = PacketCodecs.BOOLEAN.decode(buf);
+        UncraftEverythingConfig.ExperienceType experienceType = UncraftEverythingConfig.ExperienceType.STREAM_CODEC.decode(buf);
+        int experience = PacketCodecs.INTEGER.decode(buf);
+        boolean allowUnsmithing = PacketCodecs.BOOLEAN.decode(buf);
+        boolean allowDamaged = PacketCodecs.BOOLEAN.decode(buf);
+        boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOLEAN.decode(buf);
+        List<String> restrictedModIngredients = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
+
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+    }
 
     @Override
     public Id<? extends CustomPayload> getId() {
