@@ -18,9 +18,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp){
+public record ResponseConfigPayload(
+        UncraftEverythingConfig.RestrictionType restrictionType,
+        List<String> restrictedItems,
+        boolean allowEnchantedItem,
+        UncraftEverythingConfig.ExperienceType experienceType,
+        int experience,
+        boolean allowUnsmithing,
+        boolean allowDamaged,
+        boolean preventModdedIngredientsFromVanillaItems,
+        Map<String, Integer> perItemExp,
+        List<String> restrictedModIngredients
+) {
+
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config");
     private static final int PROTOCOL_VERSION = 0;
+
     public static final StreamCodec<RegistryFriendlyByteBuf, ResponseConfigPayload> STREAM_CODEC = StreamCodec.of(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
 
     private static void encode(RegistryFriendlyByteBuf buf, ResponseConfigPayload payload) {
@@ -33,6 +46,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
         ByteBufCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
         ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedModIngredients);
     }
 
     private static ResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -45,9 +59,11 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
         boolean preventModdedIngredientsFromVanillaItems = ByteBufCodecs.BOOL.decode(buf);
         Map<String, Integer> perItemExp = ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).decode(buf);
+        List<String> restrictedModIngredients = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
     }
+
     public static final SimpleChannel INSTANCE = ChannelBuilder
             .named(TYPE)
             .networkProtocolVersion(PROTOCOL_VERSION)

@@ -14,9 +14,20 @@ import net.minecraftforge.network.SimpleChannel;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems) {
+public record UEConfigPayload(
+        UncraftEverythingConfig.RestrictionType restrictionType,
+        List<String> restrictedItems, boolean allowEnchantedItem,
+        UncraftEverythingConfig.ExperienceType experienceType,
+        int experience,
+        boolean allowUnsmithing,
+        boolean allowDamaged,
+        boolean preventModdedIngredientsFromVanillaItems,
+        List<String> restrictedModIngredients
+) {
+
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config");
     private static final int PROTOCOL_VERSION = 0;
+    
     public static final StreamCodec<RegistryFriendlyByteBuf, UEConfigPayload> STREAM_CODEC = StreamCodec.of(UEConfigPayload::encode, UEConfigPayload::decode);
 
     private static void encode(RegistryFriendlyByteBuf buf, UEConfigPayload payload) {
@@ -28,6 +39,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         ByteBufCodecs.BOOL.encode(buf, payload.allowUnsmithing);
         ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
         ByteBufCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedModIngredients);
     }
 
     private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -39,9 +51,11 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         boolean allowUnsmithing = ByteBufCodecs.BOOL.decode(buf);
         boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
         boolean preventModdedIngredientsFromVanillaItems = ByteBufCodecs.BOOL.decode(buf);
+        List<String> restrictedModIngredients = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
     }
+
     public static final SimpleChannel INSTANCE = ChannelBuilder
             .named(TYPE)
             .networkProtocolVersion(PROTOCOL_VERSION)

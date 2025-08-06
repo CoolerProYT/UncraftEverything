@@ -29,6 +29,7 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.BooleanValue allowUnSmithing;
     public final ForgeConfigSpec.BooleanValue allowDamaged;
     public final ForgeConfigSpec.BooleanValue preventModdedIngredientsFromVanillaItems;
+    public final ForgeConfigSpec.ConfigValue<List<? extends String>> restrictedModIngredients;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -65,6 +66,11 @@ public class UncraftEverythingConfig {
         preventModdedIngredientsFromVanillaItems = builder.comment("Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes. This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]")
                 .define("preventModdedIngredientsFromVanillaItems", true);
         builder.pop();
+
+        builder.push("RestrictedModIngredients");
+        restrictedModIngredients = builder.comment("A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues.",
+                "Format: modid")
+                .defineList("restrictedModIngredients", List.of("productivetrees", "chipped"), o -> o instanceof String modid && !modid.equals("minecraft"));
     }
 
     public int getExperience() {
@@ -149,6 +155,10 @@ public class UncraftEverythingConfig {
         }
 
         return true;
+    }
+
+    public List<? extends String> getRestrictedModIngredients() {
+        return restrictedModIngredients.get();
     }
 
     public ResourceLocation inputStackLocation(ItemStack itemStack) {
