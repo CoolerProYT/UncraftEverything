@@ -721,11 +721,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
+            List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
                 boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
                     return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    ResourceLocation ingredientRL = BuiltInRegistries.ITEM.getKey(item);
+                    return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
             }).toList();
