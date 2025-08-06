@@ -624,11 +624,16 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                         return ingredientItems.isEmpty() ? new ArrayList<>(Collections.singleton(Items.AIR)) : ingredientItems;
                     })
                     .orElse(new ArrayList<>(Collections.singleton(Items.AIR)));
+            List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
                 boolean isVanillaInput = ForgeRegistries.ITEMS.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
                     return ForgeRegistries.ITEMS.getKey(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    ResourceLocation ingredientRL = ForgeRegistries.ITEMS.getKey(item);
+                    return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
             }).collect(Collectors.toList());

@@ -49,6 +49,7 @@
   "screen.uncrafteverything.config.allow_unsmithing_label": "Allow Unsmithing (Netherite/Trimmed Armor)",
   "screen.uncrafteverything.config.allow_damaged_label": "Allow Damaged Items to be Uncrafted (Reapair Item will be deducted)",
   "screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label": "Prevent Modded Ingredients from Vanilla Items (To avoid potential duplication)",
+  "screen.uncrafteverything.config.prevent_modid": "Restricted Mod Ingredients",
   "screen.uncrafteverything.per_item_xp_config.key": "Item Id Wildcard/Item Tags",
   "screen.uncrafteverything.per_item_xp_config.value": "Exp",
   "screen.uncrafteverything.per_item_xp_config.del": "Delete"
