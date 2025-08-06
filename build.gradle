@@ -84,6 +84,11 @@ dependencies {
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
 //    runtimeOnly  "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+
+    implementation "curse.maven:chipped-456956:5813117"
+    implementation "curse.maven:productivetrees-867074:6263281"
+    implementation "curse.maven:resourceful-lib-570073:5973188"
+    implementation "curse.maven:athena-841890:6669522"
 }
 
 tasks.withType(ProcessResources).configureEach {

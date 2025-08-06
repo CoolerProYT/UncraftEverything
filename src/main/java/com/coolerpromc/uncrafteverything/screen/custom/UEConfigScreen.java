@@ -11,7 +11,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -32,13 +31,15 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean allowUnsmithing = config.allowUnsmithing();
     private boolean allowDamagedItems = config.allowDamaged();
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
+    private List<String> restrictedModIngredients = config.restrictedModIngredients();
 
     private MultiLineEditBox restrictionsInput;
     private EditBox experienceInput;
+    private MultiLineEditBox restrictedModInput;
     private Button saveButton;
 
     protected UEConfigScreen(Component title, Screen parent) {
-        super(title, 245);
+        super(title, 338);
         this.parent = parent;
     }
 
@@ -102,6 +103,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         }).bounds(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(togglePreventModdedIngredientsFromVanillaItems);
 
+        // Restricted Mod input box
+        String joinedMod = String.join("\n", restrictedModIngredients);
+        restrictedModInput = new MultiLineEditBox(this.font, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
+        restrictedModInput.setValue(joinedMod);
+        this.addRenderableWidget(restrictedModInput);
+
         // Save button
         saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::pressSaveButton).bounds(this.width / 2 - 100, (this.height - 45) + 15, 200, 20).build();
         this.addRenderableWidget(saveButton);
@@ -158,6 +165,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         Component preventModded = Component.translatable("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label");
         pGuiGraphics.drawWordWrap(this.font, preventModded, x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        Component restrictedMod = Component.translatable("screen.uncrafteverything.config.prevent_modid");
+        pGuiGraphics.drawWordWrap(this.font, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
@@ -242,8 +252,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private void pressSaveButton(Button button){
         restrictions = Arrays.stream(restrictionsInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
         experience = Integer.parseInt(experienceInput.getValue());
+        restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
         PacketDistributor.sendToServer(configPayload);
         PacketDistributor.sendToServer(new RequestConfigPayload());
         this.getMinecraft().setScreen(parent);
