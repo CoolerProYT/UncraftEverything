@@ -9,7 +9,17 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.List;
 
-public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged,  boolean preventModdedIngredientsFromVanillaItems){
+public record UEConfigPayload(
+    UncraftEverythingConfig.RestrictionType restrictionType,
+    List<String> restrictedItems, 
+    boolean allowEnchantedItem, 
+    UncraftEverythingConfig.ExperienceType experienceType, 
+    int experience, 
+    boolean allowUnsmithing, 
+    boolean allowDamaged, 
+    boolean preventModdedIngredientsFromVanillaItems,
+    List<String> restrictedModIngredients
+  ){
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "ue_config");
     private static final String PROTOCOL_VERSION = "1";
 
@@ -33,6 +43,7 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         byteBuf.writeBoolean(payload.allowUnsmithing);
         byteBuf.writeBoolean(payload.allowDamaged);
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
+        byteBuf.writeCollection(payload.restrictedModIngredients, FriendlyByteBuf::writeUtf);
     }
 
     public static UEConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -44,8 +55,9 @@ public record UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictio
         boolean allowUnsmithing = byteBuf.readBoolean();
         boolean allowDamaged = byteBuf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
+        List<String> restrictedModIngredients = byteBuf.readList(FriendlyByteBuf::readUtf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
     }
 
     public static void register(){

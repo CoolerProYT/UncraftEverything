@@ -11,7 +11,18 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) {
+public record ResponseConfigPayload(
+    UncraftEverythingConfig.RestrictionType restrictionType, 
+    List<String> restrictedItems, 
+    boolean allowEnchantedItem, 
+    UncraftEverythingConfig.ExperienceType experienceType, 
+    int experience, boolean allowUnsmithing, 
+    boolean allowDamaged, 
+    boolean preventModdedIngredientsFromVanillaItems, 
+    Map<String, Integer> perItemExp,
+    List<String> restrictedModIngredients
+) {
+
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "response_config");
     private static final String PROTOCOL_VERSION = "1";
 
@@ -36,6 +47,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         byteBuf.writeBoolean(payload.allowDamaged);
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         byteBuf.writeMap(payload.perItemExp, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeVarInt);
+        byteBuf.writeCollection(payload.restrictedModIngredients, FriendlyByteBuf::writeUtf);
     }
 
     public static ResponseConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -48,8 +60,9 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = byteBuf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = byteBuf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readVarInt);
+        List<String> restrictedModIngredients = byteBuf.readList(FriendlyByteBuf::readUtf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
     }
 
     public static void register(){
