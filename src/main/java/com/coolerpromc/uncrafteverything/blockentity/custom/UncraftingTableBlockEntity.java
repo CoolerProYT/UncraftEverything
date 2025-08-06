@@ -660,11 +660,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                         return ingredientItems.isEmpty() ? List.of(Items.AIR) : ingredientItems;
                     })
                     .orElse(List.of(Items.AIR));
+            List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
                 boolean isVanillaInput = Registries.ITEM.getId(this.getStack(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
                     return Registries.ITEM.getId(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    Identifier ingredientRL = Registries.ITEM.getId(item);
+                    return !UncraftEverythingConfig.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
             }).toList();

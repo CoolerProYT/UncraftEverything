@@ -9,7 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp) {
+public record ResponseConfigPayload(
+    UncraftEverythingConfig.RestrictionType restrictionType, 
+    List<String> restrictedItems, 
+    boolean allowEnchantedItem, 
+    UncraftEverythingConfig.ExperienceType experienceType, 
+    int experience, 
+    boolean allowUnsmithing, 
+    boolean allowDamaged, 
+    boolean preventModdedIngredientsFromVanillaItems, 
+    Map<String, Integer> perItemExp,
+    List<String> restrictedModIngredients
+) {
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "response_config");
 
     public static PacketByteBuf encode(PacketByteBuf buf, ResponseConfigPayload payload) {
@@ -22,7 +33,7 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         buf.writeBoolean(payload.allowDamaged);
         buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         buf.writeMap(payload.perItemExp, PacketByteBuf::writeString, PacketByteBuf::writeVarInt);
-
+        buf.writeCollection(payload.restrictedModIngredients, PacketByteBuf::writeString);
         return buf;
     }
 
@@ -36,7 +47,8 @@ public record ResponseConfigPayload(UncraftEverythingConfig.RestrictionType rest
         boolean allowDamaged = buf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
         Map<String, Integer> perItemExp = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readVarInt);
+        List<String> restrictedModIngredients = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
     }
 }
