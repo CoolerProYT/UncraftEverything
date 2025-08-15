@@ -1,7 +1,6 @@
 package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
-import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
@@ -10,12 +9,10 @@ import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -102,6 +99,20 @@ public class UncraftEverything implements ModInitializer {
 			PerItemExpCostConfig.getPerItemExp().clear();
 			PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
 			PerItemExpCostConfig.save();
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionDataPayload.TYPE, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			UncraftingRecipeSelectionDataPayload payload = packetByteBuf.decodeAsJson(UncraftingRecipeSelectionDataPayload.CODEC);
+			ServerWorld level = serverPlayerEntity.getServerWorld();
+			BlockPos pos = payload.blockPos();
+
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+				uncraftingTableBlockEntity.updatePage(payload.page());
+
+				blockEntity.markDirty();
+				level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+			}
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {

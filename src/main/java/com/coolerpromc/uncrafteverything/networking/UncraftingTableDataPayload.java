@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.List;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes){
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
     public static final Identifier ID = new Identifier(UncraftEverything.MODID, "uncrafting_table_data");
 
     public static PacketByteBuf encode(UncraftingTableDataPayload payload, PacketByteBuf byteBuf){
@@ -21,6 +21,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         for (UncraftingTableRecipe recipe : payload.recipes()) {
             recipe.writeToBuf(byteBuf);
         }
+
+        byteBuf.writeVarInt(payload.size());
 
         return byteBuf;
     }
@@ -34,6 +36,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
             recipes.add(UncraftingTableRecipe.readFromBuf(byteBuf));
         }
 
-        return new UncraftingTableDataPayload(blockPos, recipes);
+        int size = byteBuf.readVarInt();
+
+        return new UncraftingTableDataPayload(blockPos, recipes, size);
     }
 }

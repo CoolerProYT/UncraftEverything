@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
@@ -39,13 +40,22 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     private static final int SCROLLBAR_PADDING = 2;
     private int page = 0;
     private final int MAX_PAGE_SIZE = 7;
+    private int recipeSize = 0;
 
     public UncraftingTableScreen(UncraftingTableMenu handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
 
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes) {
+    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
         this.recipes = recipes;
+        this.recipeSize = size;
+
+        if (size < 7 && this.page != 0){
+            this.page = 0;
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            packetByteBuf.encodeAsJson(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
+        }
     }
 
     @Override
@@ -125,7 +135,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         this.drawCenteredWordWrapWithoutShadow(context, this.textRenderer, exp, 0, 0, 0xFF00AA00);
         context.getMatrices().pop();
 
-        int maxPageCount = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE);
+        int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
         int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
 
         if (page > maxPageCount - 1) {
@@ -145,6 +155,9 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             else{
                 this.page = Math.max(maxPageCount - 1, 0);
             }
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            packetByteBuf.encodeAsJson(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
         }).position(x - 152 + 5, y + backgroundHeight - 23).size(16, 16).build();
         this.addDrawableChild(prevButton).render(context, mouseX, mouseY, delta);
 
@@ -155,11 +168,14 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             else{
                 this.page = 0;
             }
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            packetByteBuf.encodeAsJson(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
         }).position(x - 21, y + backgroundHeight - 23).size(16, 16).build();
         this.addDrawableChild(nextButton).render(context, mouseX, mouseY, delta);
 
         int visibleCount = 0;
-        for (int j = page * MAX_PAGE_SIZE; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
+        for (int j = 0; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
             UncraftingTableRecipe recipe = recipes.get(j);
             int displayIndex = visibleCount;
 
@@ -290,9 +306,17 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (amount == 1.0d && this.page > 0) {
             this.page--;
-        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
+        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipeSize) {
             this.page++;
         }
+        else if (amount == 1.0d && this.page == 0 && !recipes.isEmpty()) {
+            this.page = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE) - 1;
+        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipeSize) {
+            this.page = 0;
+        }
+        PacketByteBuf packetByteBuf = PacketByteBufs.create();
+        packetByteBuf.encodeAsJson(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+        ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
         return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
