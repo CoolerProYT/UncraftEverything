@@ -13,15 +13,18 @@ public class UncraftingTableDataPayload{
     public static final Identifier ID = new Identifier(UncraftEverything.MODID, "uncrafting_table_data");
     public final BlockPos blockPos;
     public final List<UncraftingTableRecipe> recipes;
+    public final int size;
 
-    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes){
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
         this.blockPos = blockPos;
         this.recipes = recipes;
+        this.size = size;
     }
 
     public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("block_pos").forGetter(UncraftingTableDataPayload::blockPos),
-            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes)
+            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
+            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
     ).apply(instance, UncraftingTableDataPayload::new));
 
     public BlockPos blockPos() {
@@ -30,5 +33,9 @@ public class UncraftingTableDataPayload{
 
     public List<UncraftingTableRecipe> recipes() {
         return recipes;
+    }
+
+    public int size() {
+        return size;
     }
 }

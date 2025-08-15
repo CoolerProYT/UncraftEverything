@@ -2,7 +2,6 @@ package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -11,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -45,13 +43,6 @@ public class UncraftingTableBlock extends BlockWithEntity {
                 player.openHandledScreen(blockEntity);
                 blockEntity.getOutputStacks();
                 world.updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), 3);
-                PacketByteBuf packetByteBuf = PacketByteBufs.create();
-                try {
-                    packetByteBuf.encode(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(blockEntity.getPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                ServerPlayNetworking.send(serverPlayer, UncraftingTableDataPayload.ID, packetByteBuf);
             }
             else {
                 throw new IllegalStateException("Container provider is missing");

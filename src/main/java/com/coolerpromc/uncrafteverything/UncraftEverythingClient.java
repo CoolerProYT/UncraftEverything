@@ -32,7 +32,7 @@ public class UncraftEverythingClient implements ClientModInitializer {
                     UncraftingTableDataPayload uncraftingTableDataPayload = packetByteBuf.decode(UncraftingTableDataPayload.CODEC);
 
                     if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity){
-                        uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
+                        uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes(), uncraftingTableDataPayload.size());
                     }
                 }
             } catch (Exception e) {

@@ -9,12 +9,14 @@ import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+
+import java.io.IOException;
 
 public class UncraftEverything implements ModInitializer {
 	public static final String MODID = "uncrafteverything";
@@ -110,6 +112,28 @@ public class UncraftEverything implements ModInitializer {
 			PerItemExpCostConfig.getPerItemExp().clear();
 			PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
 			PerItemExpCostConfig.save();
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionDataPayload.TYPE, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+            try{
+				UncraftingRecipeSelectionDataPayload payload = packetByteBuf.decode(UncraftingRecipeSelectionDataPayload.CODEC);
+				ServerWorld level = serverPlayerEntity.getServerWorld();
+				BlockPos pos = payload.blockPos();
+
+				minecraftServer.execute(() -> {
+					BlockEntity blockEntity = level.getBlockEntity(pos);
+					if (blockEntity instanceof UncraftingTableBlockEntity) {
+						UncraftingTableBlockEntity uncraftingTableBlockEntity = ((UncraftingTableBlockEntity) blockEntity);
+						uncraftingTableBlockEntity.updatePage(payload.page());
+
+						blockEntity.markDirty();
+						level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+					}
+				});
+			}
+			catch (IOException e){
+				System.out.println("Failed to decode UncraftingRecipeSelectionDataPayload: " + e.getMessage());
+			}
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {

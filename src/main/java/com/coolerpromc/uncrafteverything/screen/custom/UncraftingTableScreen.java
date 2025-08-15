@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
@@ -45,6 +46,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     private static final int SCROLLBAR_PADDING = 2;
     private int page = 0;
     private final int MAX_PAGE_SIZE = 7;
+    private int recipeSize = 0;
 
     private ButtonWidget configButton;
     private ButtonWidget expConfigButton;
@@ -53,8 +55,20 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         super(handler, inventory, title);
     }
 
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes) {
+    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
         this.recipes = recipes;
+        this.recipeSize = size;
+
+        if (size < 7 && this.page != 0){
+            this.page = 0;
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            try {
+                packetByteBuf.encode(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
+        }
     }
 
     @Override
@@ -140,7 +154,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         this.drawCenteredWordWrapWithoutShadow(context, this.textRenderer, exp, (int) (expX * 1.3334f), 0, 0xFF00AA00);
         context.pop();
 
-        int maxPageCount = (int) Math.ceil((double) recipes.size() / MAX_PAGE_SIZE);
+        int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
         int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
 
         if (page > maxPageCount - 1) {
@@ -159,6 +173,13 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             else{
                 this.page = Math.max(maxPageCount - 1, 0);
             }
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            try {
+                packetByteBuf.encode(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
         });
         myWidgets.add(prevButton);
         this.addChild(prevButton).render(context, mouseX, mouseY, delta);
@@ -171,13 +192,20 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             else{
                 this.page = 0;
             }
+            PacketByteBuf packetByteBuf = PacketByteBufs.create();
+            try {
+                packetByteBuf.encode(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
         });
         myWidgets.add(nextButton);
         this.addChild(nextButton).render(context, mouseX, mouseY, delta);
         fill(context, x - 21, y + backgroundHeight - 23 + 15, x - 21 + 16, y + backgroundHeight - 23 + 16, nextButton.isHovered() || nextButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
 
         int visibleCount = 0;
-        for (int j = page * MAX_PAGE_SIZE; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
+        for (int j = 0; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
             UncraftingTableRecipe recipe = recipes.get(j);
             int displayIndex = visibleCount;
 
@@ -320,7 +348,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (amount == 1.0d && this.page > 0) {
             this.page--;
-        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipes.size()) {
+        } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipeSize) {
             this.page++;
         }
         else if (amount == 1.0d && this.page == 0 && !recipes.isEmpty()) {
@@ -328,6 +356,14 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
         } else if (amount == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipes.size()) {
             this.page = 0;
         }
+        PacketByteBuf packetByteBuf = PacketByteBufs.create();
+        try {
+            packetByteBuf.encode(UncraftingRecipeSelectionDataPayload.CODEC, new UncraftingRecipeSelectionDataPayload(page, this.handler.blockEntity.getPos()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ClientPlayNetworking.send(UncraftingRecipeSelectionDataPayload.TYPE, packetByteBuf);
+        
         return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
