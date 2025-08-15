@@ -32,8 +32,8 @@ public class UncraftEverythingClient implements ClientModInitializer {
             Screen screen = minecraft.currentScreen;
 
             if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
-                if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity blockEntity){
-                    uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
+                if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity){
+                    uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes(), uncraftingTableDataPayload.size());
                 }
             }
         });
