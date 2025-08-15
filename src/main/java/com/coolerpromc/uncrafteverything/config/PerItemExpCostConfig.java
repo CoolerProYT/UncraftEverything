@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PerItemExpCostConfig {
     private static final Gson GSON = new Gson();
-    private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>(){}.getType();
+    private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>() {
+    }.getType();
 
     private static Map<String, Integer> perItemExp = new ConcurrentHashMap<>();
     private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "uncrafteverything-exp.json");
@@ -23,15 +24,20 @@ public class PerItemExpCostConfig {
     private static Thread watchThread;
 
     public static void load() {
-        if (!CONFIG_FILE.exists()){
+        if (!CONFIG_FILE.exists()) {
             saveDefaults();
         }
 
-        try(FileReader reader = new FileReader(CONFIG_FILE)){
-            perItemExp = GSON.fromJson(reader, MAP_TYPE);
-        }
-        catch (Exception e){
+        try (FileReader reader = new FileReader(CONFIG_FILE)) {
+            Map<String, Integer> loaded = GSON.fromJson(reader, MAP_TYPE);
+            if (loaded != null) {
+                perItemExp = new ConcurrentHashMap<>(loaded);
+            } else {
+                perItemExp = new ConcurrentHashMap<>();
+            }
+        } catch (Exception e) {
             System.out.println("Failed to load per item exp config! " + e.getMessage());
+            perItemExp = new ConcurrentHashMap<>(); // fallback
         }
     }
 
@@ -55,7 +61,11 @@ public class PerItemExpCostConfig {
         return perItemExp;
     }
 
-    public static void startWatcher(){
+    public static void startWatcher() {
+        if (watchThread != null && watchThread.isAlive()) {
+            return;
+        }
+
         try {
             watchService = FileSystems.getDefault().newWatchService();
             Path configDir = CONFIG_FILE.getParentFile().toPath();
@@ -63,15 +73,8 @@ public class PerItemExpCostConfig {
 
             watchThread = new Thread(() -> {
                 try {
-                    while (true) {
-                        WatchKey key;
-                        try {
-                            key = watchService.take();
-                        } catch (ClosedWatchServiceException e) {
-                            System.out.println("[UncraftEverything] Watch service closed, exiting watcher thread.");
-                            break; // Exit loop on service close
-                        }
-
+                    while (!Thread.currentThread().isInterrupted()) {
+                        WatchKey key = watchService.take();
                         for (WatchEvent<?> event : key.pollEvents()) {
                             Path changed = (Path) event.context();
                             if (changed.toString().equals(CONFIG_FILE.getName())) {
@@ -81,30 +84,33 @@ public class PerItemExpCostConfig {
                         }
                         key.reset();
                     }
-                } catch (InterruptedException e) {
-                    System.out.println("[UncraftEverything] Watcher thread interrupted, exiting.");
+                } catch (ClosedWatchServiceException cwse) {
+                    // Normal shutdown
                 } catch (Exception e) {
-                    System.out.println("[UncraftEverything] Error in config watcher: " + e.getMessage());
+                    System.out.println("Error watching config file: " + e.getMessage());
                 }
             }, "PerItemExpConfig Watcher");
+
             watchThread.setDaemon(true);
             watchThread.start();
-
         } catch (Exception e) {
             System.out.println("Error hot reloading per item exp config: " + e.getMessage());
         }
     }
 
-    public static void stopWatcher() {
-        if (watchService != null) {
-            try {
-                watchService.close(); // This will throw in the thread, now handled
-            } catch (Exception e) {
-                System.out.println("Error closing watch service: " + e.getMessage());
+    public static synchronized void stopWatcher() {
+        try {
+            if (watchService != null) {
+                watchService.close();
             }
+        } catch (Exception ignored) {
         }
-        if (watchThread != null && watchThread.isAlive()) {
-            watchThread.interrupt(); // Safe to do; just in case it's in a take() call
+        if (watchThread != null) {
+            watchThread.interrupt();
         }
+        watchService = null;
+        watchThread = null;
+
+        System.out.println("[UncraftEverything] Per item exp config watcher stopped.");
     }
 }

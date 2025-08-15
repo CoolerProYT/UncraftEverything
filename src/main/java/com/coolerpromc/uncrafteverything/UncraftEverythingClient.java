@@ -27,7 +27,7 @@ public class UncraftEverythingClient implements ClientModInitializer {
 
             if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
                 if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity){
-                    uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes());
+                    uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes(), uncraftingTableDataPayload.size());
                 }
             }
         });
