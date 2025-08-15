@@ -9,7 +9,6 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ImplementedInventory;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
@@ -45,7 +44,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -73,6 +71,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
     private ItemStack currentStack = ItemStack.EMPTY;
+    private int page = 0;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(10, ItemStack.EMPTY);
     private final int[] inputSlots = {0};
@@ -125,9 +124,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
             currentStack = this.getStack(0);
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            for (ServerPlayerEntity playerEntity : PlayerLookup.around((ServerWorld) world, new Vec3d(getPos().getX(), getPos().getY(), getPos().getZ()), 10)){
-                ServerPlayNetworking.send(playerEntity, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(this.getCurrentRecipes())));
-            }
+            ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
         }
     }
 
@@ -175,14 +172,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         super.writeData(view);
 
         Inventories.writeData(view, inventory);
-        WriteView.ListAppender<UncraftingTableRecipe> recipeListAppender = view.getListAppender("current_recipes", UncraftingTableRecipe.CODEC);
-        for (UncraftingTableRecipe recipe : currentRecipes) {
-            recipeListAppender.add(recipe);
-        }
 
-        if (currentRecipe != null) {
-            view.put("current_recipe", UncraftingTableRecipe.CODEC, currentRecipe);
-        }
         view.putInt("experience", experience);
         view.putInt("experienceType", experienceType);
     }
@@ -192,11 +182,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         super.readData(view);
 
         Inventories.readData(view, inventory);
-        for (UncraftingTableRecipe recipe : view.getTypedListView("current_recipes", UncraftingTableRecipe.CODEC)) {
-            currentRecipes.add(recipe);
-        }
 
-        currentRecipe = view.read("current_recipe", UncraftingTableRecipe.CODEC).orElse(null);
         experience = view.getInt("experience", UncraftEverythingConfig.experience);
         experienceType = view.getInt("experienceType", UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0);
     }
@@ -745,6 +731,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             List<Item> items = getItemsFromIngredient(ingredient);
             if (items.isEmpty()) items = List.of(Items.AIR);
 
+            List<Item> finalItems1 = items;
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = Registries.ITEM.getId(this.getStack(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+                    return Registries.ITEM.getId(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    Identifier ingredientRL = Registries.ITEM.getId(item);
+                    return !UncraftEverythingConfig.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
+                }
+                return true;
+            }).toList();
+
             String key = items.stream()
                     .map(Item::getTranslationKey)
                     .sorted()
@@ -844,17 +844,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     public void handleUncraftButtonClicked(boolean hasShiftDown){
         if (hasShiftDown){
             while (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(hasNextRecipe());
             }
         }
         else{
             if (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(false);
             }
         }
     }
 
-    private void processUncraft(){
+    private void processUncraft(boolean hasNext){
         List<ItemStack> outputs = currentRecipe.getOutputs();
 
         for (int i = 0; i < outputs.size(); i++) {
@@ -877,13 +877,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             player.addExperienceLevels(-getExperience());
         }
+
         this.removeStack(0, this.currentRecipe.getInput().getCount());
         markDirty();
 
         getOutputStacks();
         if (world != null && !world.isClient()) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), this.getCurrentRecipes()));
+            if (!hasNext){
+                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+            }
         }
     }
 
@@ -907,6 +910,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
         }
     }
+
+    public void updatePage(int page){
+        this.page = page;
+        ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+    }
+
 
     private int getExperience() {
         Map<String, Integer> experienceMap = PerItemExpCostConfig.getPerItemExp();
@@ -949,6 +958,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             return false;
         }
 
+        ItemStack inputStack = this.getStack(inputSlots[0]);
+        if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
+            return false;
+        }
+
         List<ItemStack> results = currentRecipe.getOutputs();
         for (int i = 0; i < results.size(); i++) {
             ItemStack result = results.get(i);
@@ -968,6 +982,39 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 return false;
             }
         }
+        return true;
+    }
+
+    private boolean hasNextRecipe() {
+        if (currentRecipes.isEmpty() || currentRecipe == null) {
+            return false;
+        }
+
+        if (this.getStack(inputSlots[0]).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
+            return false;
+        }
+
+        List<ItemStack> results = currentRecipe.getOutputs();
+
+        for (int i = 0; i < results.size(); i++) {
+            ItemStack result = results.get(i);
+            if (i >= outputSlots.length) return false;
+
+            ItemStack slotStack = this.getStack(this.outputSlots[i]);
+
+            if (slotStack.isEmpty()) {
+                continue;
+            }
+
+            if (!ItemStack.areItemsAndComponentsEqual(slotStack, result)) {
+                return false;
+            }
+
+            if (slotStack.getCount() + result.getCount() * 2 > slotStack.getMaxCount()) {
+                return false;
+            }
+        }
+
         return true;
     }
 

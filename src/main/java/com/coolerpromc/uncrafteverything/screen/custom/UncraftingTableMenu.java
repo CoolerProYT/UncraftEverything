@@ -73,10 +73,6 @@ public class UncraftingTableMenu extends ScreenHandler {
                 slot.markDirty();
             }
         }
-        blockEntity.getOutputStacks();
-        if (player instanceof ServerPlayerEntity serverPlayer){
-            ServerPlayNetworking.send(serverPlayer, new UncraftingTableDataPayload(blockEntity.getPos(), blockEntity.getCurrentRecipes()));
-        }
         return newStack;
     }
 
