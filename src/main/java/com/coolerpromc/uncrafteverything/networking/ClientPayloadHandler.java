@@ -20,7 +20,7 @@ public class ClientPayloadHandler {
                 UncraftingTableScreen uncraftingTableScreen = (UncraftingTableScreen) screen;
                 if (level.getBlockEntity(payload.blockPos()) instanceof UncraftingTableBlockEntity) {
                     UncraftingTableBlockEntity blockEntity = (UncraftingTableBlockEntity) level.getBlockEntity(payload.blockPos());
-                    uncraftingTableScreen.updateFromBlockEntity(payload.recipes());
+                    uncraftingTableScreen.updateFromBlockEntity(payload.recipes(), payload.size());
                 }
             }
         });

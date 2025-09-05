@@ -19,10 +19,12 @@ import java.util.function.Supplier;
 public class UncraftingTableDataPayload {
     private final BlockPos blockPos;
     private final List<UncraftingTableRecipe> recipes;
+    private final int size;
 
-    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes){
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
         this.blockPos = blockPos;
         this.recipes = recipes;
+        this.size = size;
     }
 
     private static final String PROTOCOL_VERSION = "1";
@@ -35,7 +37,8 @@ public class UncraftingTableDataPayload {
 
     public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableDataPayload::blockPos),
-            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes)
+            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
+            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
     ).apply(instance, UncraftingTableDataPayload::new));
 
     private static int packetId = 0;
@@ -75,6 +78,10 @@ public class UncraftingTableDataPayload {
 
     public List<UncraftingTableRecipe> recipes() {
         return recipes;
+    }
+
+    public int size(){
+        return size;
     }
 
     public static void register(){

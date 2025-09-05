@@ -116,4 +116,23 @@ public class ServerPayloadHandler {
             return null;
         });
     }
+
+    public static void handleRecipeSelectionData(UncraftingRecipeSelectionDataPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            ServerWorld level = context.get().getSender().getLevel();
+            BlockPos pos = payload.blockPos();
+
+            TileEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof UncraftingTableBlockEntity) {
+                UncraftingTableBlockEntity uncraftingTableBlockEntity = ((UncraftingTableBlockEntity) blockEntity);
+                uncraftingTableBlockEntity.updatePage(payload.page());
+
+                blockEntity.setChanged();
+                level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(new TranslationTextComponent("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
 }

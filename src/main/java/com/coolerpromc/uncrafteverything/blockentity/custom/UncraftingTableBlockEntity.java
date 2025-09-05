@@ -6,6 +6,7 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
+import com.coolerpromc.uncrafteverything.util.ModItemStackHandler;
 import com.coolerpromc.uncrafteverything.util.UETags;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.block.BlockState;
@@ -20,7 +21,6 @@ import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.*;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionUtils;
@@ -32,7 +32,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -65,8 +64,9 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
     private ItemStack currentStack = ItemStack.EMPTY;
+    private int page = 0;
 
-    private final ItemStackHandler inputHandler = new ItemStackHandler(1){
+    private final ModItemStackHandler inputHandler = new ModItemStackHandler(1){
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -84,7 +84,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 }
                 currentStack = getStackInSlot(0);
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes)));
+                UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
             }
         }
 
@@ -199,20 +199,11 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
-    @Override
+   @Override
     public CompoundNBT save(@NotNull CompoundNBT tag) {
         tag.put("input", inputHandler.serializeNBT());
         tag.put("output", outputHandler.serializeNBT());
-        ListNBT listTag = new ListNBT();
-        for (UncraftingTableRecipe recipe : currentRecipes) {
-            CompoundNBT recipeTag = new CompoundNBT();
-            recipeTag.put("recipe", recipe.serializeNbt());
-            listTag.add(recipeTag);
-        }
-        tag.put("current_recipes", listTag);
-        if (currentRecipe != null) {
-            tag.put("current_recipe", currentRecipe.serializeNbt());
-        }
+
         tag.putInt("experience", experience);
         tag.putInt("experienceType", experienceType);
 
@@ -225,16 +216,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
 
         inputHandler.deserializeNBT(tag.getCompound("input"));
         outputHandler.deserializeNBT(tag.getCompound("output"));
-        if (tag.contains("current_recipes", Constants.NBT.TAG_LIST)){
-            ListNBT listTag = tag.getList("current_recipes", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundNBT recipeTag = listTag.getCompound(i);
-                currentRecipes.add(UncraftingTableRecipe.deserializeNbt(recipeTag.getCompound("recipe")));
-            }
-        }
-        if (tag.contains("current_recipe", Constants.NBT.TAG_COMPOUND)){
-            currentRecipe = UncraftingTableRecipe.deserializeNbt(tag.getCompound("current_recipe"));
-        }
+
         experience = tag.getInt("experience");
         experienceType = tag.getInt("experienceType");
     }
@@ -253,7 +235,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         save(tag);
         return new SUpdateTileEntityPacket(this.getBlockPos(), 1, tag);
     }
-
+    
     public ItemStackHandler getInputHandler() {
         return inputHandler;
     }
@@ -686,6 +668,20 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             List<Item> items = getItemsFromIngredient(ingredient);
             if (items.isEmpty()) items = new ArrayList<>(Collections.singleton(Items.AIR));
 
+            List<Item> finalItems1 = items;
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = ForgeRegistries.ITEMS.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+                    return ForgeRegistries.ITEMS.getKey(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    ResourceLocation ingredientRL = ForgeRegistries.ITEMS.getKey(item);
+                    return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
+                }
+                return true;
+            }).collect(Collectors.toList());
+
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
@@ -778,17 +774,17 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
     public void handleUncraftButtonClicked(boolean hasShiftDown){
         if (hasShiftDown){
             while (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(hasNextRecipe());
             }
         }
         else{
             if (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(false);
             }
         }
     }
 
-    private void processUncraft(){
+    private void processUncraft(boolean hasNext){
         List<ItemStack> outputs = currentRecipe.getOutputs();
 
         for (int i = 0; i < outputs.size(); i++) {
@@ -811,7 +807,13 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             player.giveExperienceLevels(-getExperience());
         }
-        inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+
+        if (hasNext){
+            inputHandler.extractItemWithoutTriggerChanges(0, this.currentRecipe.getInput().getCount(), false);
+        }
+        else{
+            inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+        }
         setChanged();
 
         if (level != null && !level.isClientSide()) {
@@ -838,6 +840,11 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 this.status = NO_ENOUGH_EXPERIENCE;
             }
         }
+    }
+
+    public void updatePage(int page){
+        this.page = page;
+        UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
     }
 
     private int getExperience() {
@@ -881,6 +888,11 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             return false;
         }
 
+        ItemStack inputStack = inputHandler.getStackInSlot(0);
+        if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
+            return false;
+        }
+
         List<ItemStack> results = currentRecipe.getOutputs();
 
         for (int i = 0; i < results.size(); i++) {
@@ -898,6 +910,39 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
             }
 
             if (slotStack.getCount() + result.getCount() > slotStack.getMaxStackSize()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean hasNextRecipe() {
+        if (currentRecipes.isEmpty() || currentRecipe == null) {
+            return false;
+        }
+
+        if (inputHandler.getStackInSlot(0).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
+            return false;
+        }
+
+        List<ItemStack> results = currentRecipe.getOutputs();
+
+        for (int i = 0; i < results.size(); i++) {
+            ItemStack result = results.get(i);
+            if (i >= outputHandler.getSlots()) return false;
+
+            ItemStack slotStack = outputHandler.getStackInSlot(i);
+
+            if (slotStack.isEmpty()) {
+                continue;
+            }
+
+            if (!ItemStack.isSame(slotStack, result)) {
+                return false;
+            }
+
+            if (slotStack.getCount() + result.getCount() * 2 > slotStack.getMaxStackSize()) {
                 return false;
             }
         }

@@ -19,9 +19,10 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+@SuppressWarnings("removal")
 @Mod(UncraftEverything.MODID)
 public class UncraftEverything
 {
@@ -54,12 +55,13 @@ public class UncraftEverything
             UEConfigPayload.register();
             UEExpPayload.register();
             UncraftingRecipeSelectionRequestPayload.register();
+            UncraftingRecipeSelectionDataPayload.register();
         });
     }
 
     @SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event)
-    {
+    public void onServerStopping(FMLServerStoppingEvent event) {
+        PerItemExpCostConfig.stopWatcher();
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
