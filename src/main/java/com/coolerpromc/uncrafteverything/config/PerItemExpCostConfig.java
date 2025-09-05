@@ -23,15 +23,20 @@ public class PerItemExpCostConfig {
     private static Thread watchThread;
 
     public static void load() {
-        if (!CONFIG_FILE.exists()){
+        if (!CONFIG_FILE.exists()) {
             saveDefaults();
         }
 
-        try(FileReader reader = new FileReader(CONFIG_FILE)){
-            perItemExp = GSON.fromJson(reader, MAP_TYPE);
-        }
-        catch (Exception e){
+        try (FileReader reader = new FileReader(CONFIG_FILE)) {
+            Map<String, Integer> loaded = GSON.fromJson(reader, MAP_TYPE);
+            if (loaded != null) {
+                perItemExp = new ConcurrentHashMap<>(loaded);
+            } else {
+                perItemExp = new ConcurrentHashMap<>();
+            }
+        } catch (Exception e) {
             System.out.println("Failed to load per item exp config! " + e.getMessage());
+            perItemExp = new ConcurrentHashMap<>(); // fallback
         }
     }
 
@@ -55,34 +60,55 @@ public class PerItemExpCostConfig {
         return perItemExp;
     }
 
-    public static void startWatcher(){
+    public static synchronized void startWatcher() {
+        if (watchThread != null && watchThread.isAlive()) {
+            return;
+        }
+
         try {
             watchService = FileSystems.getDefault().newWatchService();
             Path configDir = CONFIG_FILE.getParentFile().toPath();
             configDir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
 
             watchThread = new Thread(() -> {
-                try{
-                    while (true){
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
                         WatchKey key = watchService.take();
-                        for (WatchEvent<?> event : key.pollEvents()){
+                        for (WatchEvent<?> event : key.pollEvents()) {
                             Path changed = (Path) event.context();
-                            if (changed.toString().equals(CONFIG_FILE.getName())){
+                            if (changed.toString().equals(CONFIG_FILE.getName())) {
                                 System.out.println("[UncraftEverything] Per item exp config file changed, reloading...");
                                 load();
                             }
                         }
                         key.reset();
                     }
-                }
-                catch (Exception e){
+                } catch (ClosedWatchServiceException cwse) {
+                    // Normal shutdown
+                } catch (Exception e) {
                     System.out.println("Error watching config file: " + e.getMessage());
                 }
             }, "PerItemExpConfig Watcher");
+
             watchThread.setDaemon(true);
             watchThread.start();
         } catch (Exception e) {
             System.out.println("Error hot reloading per item exp config: " + e.getMessage());
         }
+    }
+
+    public static synchronized void stopWatcher() {
+        try {
+            if (watchService != null) {
+                watchService.close();
+            }
+        } catch (Exception ignored) {}
+        if (watchThread != null) {
+            watchThread.interrupt();
+        }
+        watchService = null;
+        watchThread = null;
+
+        System.out.println("[UncraftEverything] Per item exp config watcher stopped.");
     }
 }

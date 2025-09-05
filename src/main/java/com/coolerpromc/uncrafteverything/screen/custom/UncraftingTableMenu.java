@@ -87,10 +87,6 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(pPlayer, sourceStack);
-        blockEntity.getOutputStacks();
-        if (player instanceof ServerPlayer serverPlayer){
-            PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), blockEntity.getCurrentRecipes()));
-        }
         return copyOfSourceStack;
     }
 
