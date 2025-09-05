@@ -4,7 +4,6 @@ import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlock
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -109,6 +108,24 @@ public class ServerPayloadHandler {
                 PerItemExpCostConfig.getPerItemExp().clear();
                 PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
                 PerItemExpCostConfig.save();
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(new TranslatableComponent("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleRecipeSelectionData(UncraftingRecipeSelectionDataPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            ServerLevel level = context.get().getSender().getLevel();
+            BlockPos pos = payload.blockPos();
+
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                uncraftingTableBlockEntity.updatePage(payload.page());
+
+                blockEntity.setChanged();
+                level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
             }
         }).exceptionally(e -> {
             context.get().getNetworkManager().disconnect(new TranslatableComponent("screen.uncrafteverything.disconnected", e.getMessage()));

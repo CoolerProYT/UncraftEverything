@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes) {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_data");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -27,7 +27,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
 
     public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableDataPayload::blockPos),
-            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes)
+            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
+            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
     ).apply(instance, UncraftingTableDataPayload::new));
 
     private static int packetId = 0;
@@ -42,6 +43,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         for (UncraftingTableRecipe recipe : payload.recipes()) {
             recipe.writeToBuf(byteBuf);
         }
+
+        byteBuf.writeVarInt(payload.size());
     }
 
     public static UncraftingTableDataPayload decode(FriendlyByteBuf byteBuf){
@@ -53,7 +56,9 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
             recipes.add(UncraftingTableRecipe.readFromBuf(byteBuf));
         }
 
-        return new UncraftingTableDataPayload(blockPos, recipes);
+        int size = byteBuf.readVarInt();
+
+        return new UncraftingTableDataPayload(blockPos, recipes, size);
     }
 
     private static java.util.function.BiConsumer<UncraftingTableDataPayload, Supplier<NetworkEvent.Context>> getHandler() {
