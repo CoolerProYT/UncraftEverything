@@ -6,6 +6,7 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
+import com.coolerpromc.uncrafteverything.util.ModItemStackHandler;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
@@ -76,8 +77,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     private int experienceType; // 0 = POINT, 1 = LEVEL
     private int status = -1;
     private ItemStack currentStack = ItemStack.EMPTY;
+    private int page = 0;
 
-    private final ItemStackHandler inputHandler = new ItemStackHandler(1){
+    private final ModItemStackHandler inputHandler = new ModItemStackHandler(1){
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -95,7 +97,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
                 currentStack = getStackInSlot(0);
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                PacketDistributor.sendToPlayersNear((ServerLevel) level, null, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 10, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes)));
+                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
             }
         }
 
@@ -213,14 +215,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         inputHandler.serialize(valueOutput.child("input"));
         outputHandler.serialize(valueOutput.child("output"));
 
-        ValueOutput.TypedOutputList<UncraftingTableRecipe> recipeListAppender = valueOutput.list("current_recipes", UncraftingTableRecipe.CODEC);
-        for (UncraftingTableRecipe recipe : currentRecipes) {
-            recipeListAppender.add(recipe);
-        }
-
-        if (currentRecipe != null) {
-            valueOutput.store("current_recipe", UncraftingTableRecipe.CODEC, currentRecipe);
-        }
         valueOutput.putInt("experience", experience);
         valueOutput.putInt("experienceType", experienceType);
     }
@@ -231,12 +225,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         inputHandler.deserialize(valueInput.childOrEmpty("input"));
         outputHandler.deserialize(valueInput.childOrEmpty("output"));
-
-        for (UncraftingTableRecipe recipe : valueInput.listOrEmpty("current_recipes", UncraftingTableRecipe.CODEC)) {
-            currentRecipes.add(recipe);
-        }
-
-        currentRecipe = valueInput.read("current_recipe", UncraftingTableRecipe.CODEC).orElse(null);
 
         experience = valueInput.getIntOr("experience", 0);
         experienceType = valueInput.getIntOr("experienceType", 0);
@@ -783,6 +771,20 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             List<Item> items = getItemsFromIngredient(ingredient);
             if (items.isEmpty()) items = List.of(Items.AIR);
 
+            List<Item> finalItems1 = items;
+            items = items.stream().filter(item -> {
+                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
+                    return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
+                }
+                else if(finalItems1.size() > 1){
+                    ResourceLocation ingredientRL = BuiltInRegistries.ITEM.getKey(item);
+                    return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
+                }
+                return true;
+            }).toList();
+
             String key = items.stream()
                     .map(Item::getDescriptionId)
                     .sorted()
@@ -882,17 +884,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public void handleUncraftButtonClicked(boolean hasShiftDown){
         if (hasShiftDown){
             while (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(hasNextRecipe());
             }
         }
         else{
             if (hasRecipe() && hasEnoughExperience()) {
-                processUncraft();
+                processUncraft(false);
             }
         }
     }
 
-    private void processUncraft(){
+    private void processUncraft(boolean hasNext){
         List<ItemStack> outputs = currentRecipe.getOutputs();
 
         for (int i = 0; i < outputs.size(); i++) {
@@ -915,7 +917,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         else if (UncraftEverythingConfig.CONFIG.experienceType.get().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             player.giveExperienceLevels(-getExperience());
         }
-        inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+
+        if (hasNext){
+            inputHandler.extractItemWithoutTriggerChanges(0, this.currentRecipe.getInput().getCount(), false);
+        }
+        else{
+            inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+        }
         setChanged();
 
         if (level != null && !level.isClientSide()) {
@@ -942,6 +950,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = NO_ENOUGH_EXPERIENCE;
             }
         }
+    }
+
+    public void updatePage(int page){
+        this.page = page;
+        PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
     }
 
     private int getExperience() {
@@ -985,6 +998,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return false;
         }
 
+        ItemStack inputStack = inputHandler.getStackInSlot(0);
+        if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
+            return false;
+        }
+
         List<ItemStack> results = currentRecipe.getOutputs();
 
         for (int i = 0; i < results.size(); i++) {
@@ -1002,6 +1020,39 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if (slotStack.getCount() + result.getCount() > slotStack.getMaxStackSize()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean hasNextRecipe() {
+        if (currentRecipes.isEmpty() || currentRecipe == null) {
+            return false;
+        }
+
+        if (inputHandler.getStackInSlot(0).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
+            return false;
+        }
+
+        List<ItemStack> results = currentRecipe.getOutputs();
+
+        for (int i = 0; i < results.size(); i++) {
+            ItemStack result = results.get(i);
+            if (i >= outputHandler.getSlots()) return false;
+
+            ItemStack slotStack = outputHandler.getStackInSlot(i);
+
+            if (slotStack.isEmpty()) {
+                continue;
+            }
+
+            if (!ItemStack.isSameItemSameComponents(slotStack, result)) {
+                return false;
+            }
+
+            if (slotStack.getCount() + result.getCount() * 2 > slotStack.getMaxStackSize()) {
                 return false;
             }
         }

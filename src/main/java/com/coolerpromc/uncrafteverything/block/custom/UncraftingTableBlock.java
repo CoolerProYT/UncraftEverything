@@ -2,7 +2,6 @@ package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,8 +18,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 public class UncraftingTableBlock extends BaseEntityBlock {
     public UncraftingTableBlock(Properties properties) {
@@ -52,7 +49,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
                 blockEntity.getOutputStacks();
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
+//                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
                 }
             }
             else {
