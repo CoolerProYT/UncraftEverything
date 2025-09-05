@@ -11,6 +11,7 @@ import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -41,10 +42,16 @@ public class UncraftEverything
         UEConfigPayload.register(modEventBus);
         UEExpPayload.register(modEventBus);
         UncraftingRecipeSelectionRequestPayload.register(modEventBus);
+        UncraftingRecipeSelectionDataPayload.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         PerItemExpCostConfig.load();
         PerItemExpCostConfig.startWatcher();
+    }
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        PerItemExpCostConfig.stopWatcher();
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

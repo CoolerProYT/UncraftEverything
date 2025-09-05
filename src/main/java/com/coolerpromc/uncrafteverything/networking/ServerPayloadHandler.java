@@ -110,4 +110,24 @@ public class ServerPayloadHandler {
             return null;
         });
     }
+
+    public static void handleRecipeSelectionData(UncraftingRecipeSelectionDataPayload payload, CustomPayloadEvent.Context context){
+        context.enqueueWork(() -> {
+            if (context.getSender() instanceof ServerPlayer player){
+                ServerLevel level = player.level();
+                BlockPos pos = payload.blockPos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.updatePage(payload.page());
+
+                    blockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            context.getConnection().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
 }

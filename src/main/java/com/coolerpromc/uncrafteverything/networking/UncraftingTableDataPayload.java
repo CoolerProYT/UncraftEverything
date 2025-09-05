@@ -17,7 +17,7 @@ import net.minecraftforge.network.SimpleChannel;
 
 import java.util.List;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes) {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
     private static final int PROTOCOL_VERSION = 0;
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data");
     public static final SimpleChannel INSTANCE = ChannelBuilder
@@ -34,7 +34,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
 
     public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableDataPayload::blockPos),
-            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes)
+            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
+            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
     ).apply(instance, UncraftingTableDataPayload::new));
 
     private static int packetId = 0;
@@ -65,6 +66,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
                 }
             }
         }
+
+        byteBuf.writeVarInt(payload.size());
     }
 
     public static UncraftingTableDataPayload decode(RegistryFriendlyByteBuf byteBuf){
@@ -90,7 +93,9 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
             }
         }
 
-        return new UncraftingTableDataPayload(pos, recipes);
+        int size = byteBuf.readVarInt();
+
+        return new UncraftingTableDataPayload(pos, recipes, size);
     }
 
     public static void register(BusGroup bus) {
