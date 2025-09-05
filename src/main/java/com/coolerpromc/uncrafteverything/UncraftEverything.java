@@ -17,6 +17,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 @Mod(UncraftEverything.MODID)
 public class UncraftEverything
@@ -41,6 +42,12 @@ public class UncraftEverything
     public void onServerStarting(ServerStartingEvent event)
     {
     }
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        PerItemExpCostConfig.stopWatcher();
+    }
+
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {

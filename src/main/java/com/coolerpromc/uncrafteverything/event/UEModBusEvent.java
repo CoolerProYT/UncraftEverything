@@ -64,5 +64,11 @@ public class UEModBusEvent {
                 FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {
                 }
         );
+
+        registrar.playToServer(
+                UncraftingRecipeSelectionDataPayload.TYPE,
+                UncraftingRecipeSelectionDataPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleRecipeSelectionData
+        );
     }
 }
