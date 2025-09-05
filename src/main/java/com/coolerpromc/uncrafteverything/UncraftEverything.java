@@ -19,6 +19,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 @Mod(UncraftEverything.MODID)
 public class UncraftEverything
@@ -49,6 +50,9 @@ public class UncraftEverything
         event.sendRecipes(RecipeType.CRAFTING, RecipeType.SMITHING);
     }
 
+    public void onServerStopping(ServerStoppingEvent event) {
+        PerItemExpCostConfig.stopWatcher();
+    }
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
