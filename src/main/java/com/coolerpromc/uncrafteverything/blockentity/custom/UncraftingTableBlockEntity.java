@@ -126,8 +126,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             }
             currentStack = this.getStack(0);
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.pos, new ArrayList<>(this.getCurrentRecipes()), currentRecipes.size()), PacketByteBufs.create()));
-
+            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, UncraftingTableDataPayload.encode(new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()), PacketByteBufs.create()));
         }
     }
 

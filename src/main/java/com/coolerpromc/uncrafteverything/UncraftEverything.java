@@ -106,13 +106,15 @@ public class UncraftEverything implements ModInitializer {
 			ServerWorld level = serverPlayerEntity.getServerWorld();
 			BlockPos pos = payload.blockPos();
 
-			BlockEntity blockEntity = level.getBlockEntity(pos);
-			if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-				uncraftingTableBlockEntity.updatePage(payload.page());
+			minecraftServer.execute(() -> {
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.updatePage(payload.page());
 
-				blockEntity.markDirty();
-				level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
-			}
+					blockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			});
 		});
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
