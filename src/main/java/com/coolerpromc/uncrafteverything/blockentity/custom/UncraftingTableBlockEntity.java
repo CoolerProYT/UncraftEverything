@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
@@ -262,6 +263,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 .filter(s -> s.contains("*"))
                 .map(s -> Pattern.compile(s.replace("*", ".*")))
                 .toList();
+
+        System.out.println(QuestHelper.hasCompletedQuest(player, "5AAB741B10BB0BAE"));
 
         if (inputHandler.getStackInSlot(0).isEmpty()
                 || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
