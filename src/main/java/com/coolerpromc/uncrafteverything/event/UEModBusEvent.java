@@ -70,5 +70,11 @@ public class UEModBusEvent {
                 UncraftingRecipeSelectionDataPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleRecipeSelectionData
         );
+
+        registrar.playToServer(
+                UEProgressionPayload.TYPE,
+                UEProgressionPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleProgression
+        );
     }
 }
