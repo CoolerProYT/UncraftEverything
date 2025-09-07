@@ -5,6 +5,7 @@ import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEConfigPayload;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
     private final Screen parent;
@@ -33,6 +35,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
     private List<String> restrictedModIngredients = config.restrictedModIngredients();
 
+    private Button restrictionTypeButton;
+    private Button toggleEnchantedBtn;
+    private Button toggleEnchantmentTypeBtn;
+    private Button toggleAllowUnsmithing;
+    private Button toggleAllowDamaged;
+    private Button togglePreventModdedIngredientsFromVanillaItems;
     private MultiLineEditBox restrictionsInput;
     private EditBox experienceInput;
     private MultiLineEditBox restrictedModInput;
@@ -49,7 +57,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         int widgetWidth = this.width - x - 10;
         int baseY = 30; // Start position, accounting for title and scroll
 
-        Button restrictionTypeButton = Button.builder(Component.translatable("screen.uncrafteverything.config.restriction_type_" + restrictionType.toString().toLowerCase()), this::pressRestrictionTypeButton).bounds(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
+        restrictionTypeButton = Button.builder(Component.translatable("screen.uncrafteverything.config.restriction_type_" + restrictionType.toString().toLowerCase()), this::pressRestrictionTypeButton).bounds(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(restrictionTypeButton);
 
         // Restrictions input box
@@ -59,14 +67,14 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.addRenderableWidget(restrictionsInput);
 
         // Toggle for allowEnchantedItems
-        Button toggleEnchantedBtn = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_enchanted_", allowEnchantedItems)), btn -> {
+        toggleEnchantedBtn = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_enchanted_", allowEnchantedItems)), btn -> {
             allowEnchantedItems = !allowEnchantedItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_enchanted_", allowEnchantedItems)));
         }).bounds(x, (int) (baseY + 120 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnchantedBtn);
 
         // Toggle for experienceType
-        Button toggleEnchantmentTypeBtn = Button.builder(
+        toggleEnchantmentTypeBtn = Button.builder(
                 Component.translatable("screen.uncrafteverything.config.exp_type_" + experienceType.toString().toLowerCase()),
                 btn -> {
                     UncraftEverythingConfig.ExperienceType[] values = UncraftEverythingConfig.ExperienceType.values();
@@ -84,20 +92,20 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.addRenderableWidget(experienceInput);
 
         // Toggle for allowUnsmithing
-        Button toggleAllowUnsmithing = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_unsmithing_", allowUnsmithing)), btn -> {
+        toggleAllowUnsmithing = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_unsmithing_", allowUnsmithing)), btn -> {
             allowUnsmithing = !allowUnsmithing;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_unsmithing_", allowUnsmithing)));
         }).bounds(x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowUnsmithing);
 
-        Button toggleAllowDamaged = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_damaged_", allowDamagedItems)), btn -> {
+        toggleAllowDamaged = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_damaged_", allowDamagedItems)), btn -> {
                 allowDamagedItems = !allowDamagedItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_damaged_", allowDamagedItems)));
         }).bounds(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowDamaged);
 
         // Toggle for preventModdedIngredientsFromVanillaItems
-        Button togglePreventModdedIngredientsFromVanillaItems = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_", preventModdedIngredientsFromVanillaItems)), btn -> {
+        togglePreventModdedIngredientsFromVanillaItems = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_", preventModdedIngredientsFromVanillaItems)), btn -> {
             preventModdedIngredientsFromVanillaItems = !preventModdedIngredientsFromVanillaItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_", preventModdedIngredientsFromVanillaItems)));
         }).bounds(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
@@ -175,6 +183,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         pGuiGraphics.drawCenteredString(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         saveButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
+        renderButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
     @Override
@@ -258,5 +268,103 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         PacketDistributor.sendToServer(configPayload);
         PacketDistributor.sendToServer(new RequestConfigPayload());
         this.getMinecraft().setScreen(parent);
+    }
+
+    private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
+        if (restrictionTypeButton.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Restriction Type"),
+                    valueInfo("Blacklist", "All items defined in Restricted Items will not be able to uncraft"),
+                    Component.empty(),
+                    valueInfo("Whitelist", "Only items defined in Restricted Items will be able to uncraft")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (restrictionsInput.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Edit Restricted Items"),
+                    description("The value can be either item id, item tags, or item id wildcard")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleEnchantedBtn.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Allow Enchanted Items"),
+                    valueInfo("Yes", "Enchanted Item can be uncrafted, enchanted book will be given (A bit cheating, not recommended to enable)"),
+                    Component.empty(),
+                    valueInfo("No", "Enchanted Item cannot uncrafted (Recommended to enable to prevent getting enchanted book easier than it should)")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleEnchantmentTypeBtn.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Experience Type"),
+                    valueInfo("Point", "Sufficient experience point will be required to uncraft, and will be consumed on each uncraft"),
+                    Component.empty(),
+                    valueInfo("Level", "Sufficient experience level will be required to uncraft, and will be consumed on each uncraft")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (experienceInput.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Edit Experience Required"),
+                    description("Experience point/level to be consumed when uncrafting. For setting different experience amount for certain items, please go to Per Item Exp Config")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleAllowUnsmithing.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Allow Unsmithing"),
+                    valueInfo("Yes", "Netherite/Trimmed tools & armor will be able to uncraft, same for custom smithing recipe from other mods"),
+                    Component.empty(),
+                    valueInfo("No", "Items obtained from smithing will not be able to uncraft")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleAllowDamaged.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Allow Damaged Items"),
+                    valueInfo("Yes", "Damaged items will be able to uncraft, but the material will be deducted based on durability"),
+                    Component.empty(),
+                    valueInfo("No", "Damaged items will not be able to uncraft")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (togglePreventModdedIngredientsFromVanillaItems.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Prevent Modded Ingredients"),
+                    valueInfo("Yes", "Ingredients/Items that are not vanilla will not be searched when uncrafting vanilla items"),
+                    Component.empty(),
+                    valueInfo("No", "Every ingredients will be included when uncrafting vanilla item (Not recommended, possible duplication)")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (restrictedModInput.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Edit Restricted Mods"),
+                    description("A list of mod id that their ingredients will be restricted when uncrafting, this apply to every items (Enter each mod id in a new line)")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+    }
+
+    private Component title(String title){
+        return Component.literal(title).withStyle(ChatFormatting.BLUE);
+    }
+
+    private Component valueInfo(String value, String info){
+        return Component.literal(value + ": ").withStyle(ChatFormatting.AQUA).append(Component.literal(info).withStyle(ChatFormatting.GRAY));
+    }
+
+    private Component description(String desc){
+        return Component.literal(desc).withStyle(ChatFormatting.GRAY);
     }
 }
