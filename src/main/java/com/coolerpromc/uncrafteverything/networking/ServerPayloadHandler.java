@@ -67,6 +67,8 @@ public class ServerPayloadHandler {
                 config.allowDamaged.set(payload.allowDamaged());
                 config.preventModdedIngredientsFromVanillaItems.set(payload.preventModdedIngredientsFromVanillaItems());
                 config.restrictedModIngredients.set(payload.restrictedModIngredients());
+                config.enableProgression.set(payload.enableProgression());
+                config.onlyAllowDefinedProgression.set(payload.onlyAllowDefinedProgression());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -90,7 +92,9 @@ public class ServerPayloadHandler {
                         config.preventModdedIngredientsFromVanillaItems.get(),
                         PerItemExpCostConfig.getPerItemExp(),
                         (List<String>) config.restrictedModIngredients.get(),
-                        FTBQuestProgressionConfig.getProgressionMap()
+                        FTBQuestProgressionConfig.getProgressionMap(),
+                        config.enableProgression.get(),
+                        config.onlyAllowDefinedProgression.get()
                 );
                 PacketDistributor.sendToPlayer(player, configPayload);
             }

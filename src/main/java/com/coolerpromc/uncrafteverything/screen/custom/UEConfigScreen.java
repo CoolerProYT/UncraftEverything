@@ -34,12 +34,16 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean allowDamagedItems = config.allowDamaged();
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
     private List<String> restrictedModIngredients = config.restrictedModIngredients();
+    private boolean enableProgression = config.enableProgression();
+    private boolean onlyAllowDefinedProgression = config.onlyAllowDefinedProgression();
 
     private Button restrictionTypeButton;
     private Button toggleEnchantedBtn;
     private Button toggleEnchantmentTypeBtn;
     private Button toggleAllowUnsmithing;
     private Button toggleAllowDamaged;
+    private Button toggleEnableProgression;
+    private Button toggleOnlyAllowDefinedProgression;
     private Button togglePreventModdedIngredientsFromVanillaItems;
     private MultiLineEditBox restrictionsInput;
     private EditBox experienceInput;
@@ -47,7 +51,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private Button saveButton;
 
     protected UEConfigScreen(Component title, Screen parent) {
-        super(title, 338);
+        super(title, 388);
         this.parent = parent;
     }
 
@@ -62,7 +66,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        restrictionsInput = new MultiLineEditBox(this.font, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
+        restrictionsInput = new MultiLineEditBox(this.font, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 90, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
         restrictionsInput.setValue(joined);
         this.addRenderableWidget(restrictionsInput);
 
@@ -113,9 +117,21 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         // Restricted Mod input box
         String joinedMod = String.join("\n", restrictedModIngredients);
-        restrictedModInput = new MultiLineEditBox(this.font, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 88, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
+        restrictedModInput = new MultiLineEditBox(this.font, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 90, Component.translatable("screen.uncrafteverything.blank"), Component.translatable("screen.uncrafteverything.blank"));
         restrictedModInput.setValue(joinedMod);
         this.addRenderableWidget(restrictedModInput);
+
+        toggleEnableProgression = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)), btn -> {
+            enableProgression = !enableProgression;
+            btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)));
+        }).bounds(x, (int) (baseY + 365 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(toggleEnableProgression);
+
+        toggleOnlyAllowDefinedProgression = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)), btn -> {
+            onlyAllowDefinedProgression = !onlyAllowDefinedProgression;
+            btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)));
+        }).bounds(x, (int) (baseY + 390 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(toggleOnlyAllowDefinedProgression);
 
         // Save button
         saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::pressSaveButton).bounds(this.width / 2 - 100, (this.height - 45) + 15, 200, 20).build();
@@ -176,6 +192,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         Component restrictedMod = Component.translatable("screen.uncrafteverything.config.prevent_modid");
         pGuiGraphics.drawWordWrap(this.font, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        Component enableProgression = Component.translatable("screen.uncrafteverything.config.enable_progression");
+        pGuiGraphics.drawWordWrap(this.font, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        Component onlyAllowDefined = Component.translatable("screen.uncrafteverything.config.only_allow_defined_progression");
+        pGuiGraphics.drawWordWrap(this.font, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
@@ -264,7 +286,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         experience = Integer.parseInt(experienceInput.getValue());
         restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
         PacketDistributor.sendToServer(configPayload);
         PacketDistributor.sendToServer(new RequestConfigPayload());
         this.getMinecraft().setScreen(parent);
@@ -351,6 +373,28 @@ public class UEConfigScreen extends AbstractScrollableScreen {
             List<Component> tooltip = List.of(
                     title("Edit Restricted Mods"),
                     description("A list of mod id that their ingredients will be restricted when uncrafting, this apply to every items (Enter each mod id in a new line)")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleEnableProgression.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Enable Progression"),
+                    valueInfo("Yes", "Item defined in Progression Config will be locked from uncrafting until the quest is done (Item that are not defined in config might also disabled depending on the config below), FTB Quests are required for this to work"),
+                    Component.empty(),
+                    valueInfo("No", "Nothing happen, uncrafting table work as usual")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (toggleOnlyAllowDefinedProgression.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("Toggle Only Allow Defined Progression"),
+                    description("This config value only work when progression is enabled"),
+                    Component.empty(),
+                    valueInfo("Yes", "Item that are not defined in Progression Config will never be able to uncraft"),
+                    Component.empty(),
+                    valueInfo("No", "Everything will be able to uncraft except the item that are defined with a quest that is not completed")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
