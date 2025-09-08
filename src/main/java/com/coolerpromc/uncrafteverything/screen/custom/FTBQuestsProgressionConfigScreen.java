@@ -2,7 +2,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
-import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
+import com.coolerpromc.uncrafteverything.networking.UEProgressionPayload;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PerItemExpConfigScreen extends AbstractScrollableScreen {
+public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
     private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
@@ -32,8 +32,8 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
     private final List<Button> scrollableButtons = new ArrayList<>();
 
-    public PerItemExpConfigScreen(Screen parent) {
-        super(Component.translatable("screen.uncrafteverything.per_item_xp_config"), 200);
+    public FTBQuestsProgressionConfigScreen(Screen parent) {
+        super(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), 200);
         this.parent = parent;
     }
 
@@ -45,7 +45,7 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         scrollableButtons.clear();
 
         if (!hasLoadedFromConfig) {
-            for (Map.Entry<String, Integer> entry : ClientPayloadHandler.payloadFromServer.perItemExp().entrySet()) {
+            for (Map.Entry<String, String> entry : ClientPayloadHandler.payloadFromServer.ftbQuestProgression().entrySet()) {
                 entries.add(new Entry(entry.getKey(), entry.getValue()));
             }
             hasLoadedFromConfig = true;
@@ -62,13 +62,13 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
             int y = (int) (ENTRIES_START_Y + (i * ENTRY_HEIGHT) - scrollAmount);
 
             if (y >= ENTRIES_START_Y - ENTRY_HEIGHT && y <= ENTRIES_END_Y) {
-                entry.initWidgets(width / 2 - 115, y + 16);
+                entry.initWidgets(width / 2 - 170, y + 16);
                 entry.addToScreen(this); // Add to both main widget list and scrollable lists
             }
         }
 
         addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
-            entries.add(new Entry("", 0));
+            entries.add(new Entry("", ""));
             this.init();
         }).bounds(width / 2 - 100, height - 53, 200, 20).build();
         addRenderableWidget(addButton);
@@ -82,17 +82,17 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
 
     private void saveButtonPressed(Button button){
         saveCurrentValues();
-        Map<String, Integer> newConfig = new HashMap<>();
+        Map<String, String> newConfig = new HashMap<>();
         for (Entry entry : entries) {
             String key = entry.currentKey.trim();
             String val = entry.currentValue.trim();
-            if (!key.isEmpty() && val.matches("\\d+")) {
-                newConfig.put(key, Integer.parseInt(val));
+            if (!key.isEmpty() && !val.isEmpty()) {
+                newConfig.put(key, val);
             }
         }
 
-        UEExpPayload configPayload = new UEExpPayload(newConfig);
-        UEExpPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
+        UEProgressionPayload configPayload = new UEProgressionPayload(newConfig);
+        UEProgressionPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
         RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         this.getMinecraft().setScreen(parent);
     }
@@ -138,7 +138,7 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderTransparentBackground(guiGraphics);
+        renderMenuBackground(guiGraphics);
         renderBlurredBackground(partialTick);
         renderSeparator(guiGraphics);
         renderScrollbar(guiGraphics, 90);
@@ -146,20 +146,18 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
-
         guiGraphics.drawCenteredString(font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         guiGraphics.enableScissor(0, ENTRIES_START_Y - 5, width, this.height - 65);
 
         Component key = Component.translatable("screen.uncrafteverything.per_item_xp_config.key");
-        guiGraphics.drawString(font, key, (width / 2 - 115) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, key, (width / 2 - 170) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
-        Component value = Component.translatable("screen.uncrafteverything.per_item_xp_config.value");
-        guiGraphics.drawString(font, value, (width / 2 - 115 + 160) + (40 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        Component value = Component.translatable("screen.uncrafteverything.ftb_quest_progression_config.value");
+        guiGraphics.drawString(font, value, (width / 2 - 170 + 160) + (150 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
         Component del = Component.translatable("screen.uncrafteverything.per_item_xp_config.del");
-        guiGraphics.drawString(font, del, (width / 2 - 115 + 210) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, del, (width / 2 - 170 + 320) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
         for (EditBox editBox : scrollableEditBoxes) {
             editBox.render(guiGraphics, mouseX, mouseY, delta);
@@ -226,26 +224,25 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         String currentKey;
         String currentValue;
 
-        Entry(String key, int value) {
+        Entry(String key, String value) {
             this.currentKey = key;
-            this.currentValue = String.valueOf(value);
+            this.currentValue = value;
         }
 
         void initWidgets(int x, int y) {
             keyBox = new EditBox(font, x, y, 150, 20, Component.translatable("screen.uncrafteverything.key"));
             keyBox.setValue(currentKey);
 
-            valueBox = new EditBox(font, x + 160, y, 40, 20, Component.translatable("screen.uncrafteverything.value"));
+            valueBox = new EditBox(font, x + 160, y, 150, 20, Component.translatable("screen.uncrafteverything.value"));
             valueBox.setValue(currentValue);
-            valueBox.setFilter(s -> s.matches("\\d*"));
 
             deleteButton = Button.builder(Component.translatable("screen.uncrafteverything.x"), b -> {
                 entries.remove(this);
                 init();
-            }).bounds(x + 210, y, 20, 20).build();
+            }).bounds(x + 320, y, 20, 20).build();
         }
 
-        void addToScreen(PerItemExpConfigScreen screen) {
+        void addToScreen(FTBQuestsProgressionConfigScreen screen) {
             screen.addRenderableWidget(keyBox);
             screen.addRenderableWidget(valueBox);
             screen.addRenderableWidget(deleteButton);

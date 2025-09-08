@@ -73,6 +73,10 @@ dependencies {
     implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
     compileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     implementation("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+
+    compileOnly "curse.maven:ftb-quests-forge-289412:6829212"
+    compileOnly "curse.maven:ftb-library-forge-404465:6807424"
+    compileOnly "curse.maven:ftb-teams-forge-404468:6130786"
 }
 
 tasks.named('processResources', ProcessResources).configure {

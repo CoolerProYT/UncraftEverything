@@ -22,8 +22,10 @@ public record UEConfigPayload(
         boolean allowUnsmithing,
         boolean allowDamaged,
         boolean preventModdedIngredientsFromVanillaItems,
-        List<String> restrictedModIngredients
-) {
+        List<String> restrictedModIngredients,
+        boolean enableProgression,
+        boolean onlyAllowDefinedProgression
+){
 
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config");
     private static final int PROTOCOL_VERSION = 0;
@@ -40,6 +42,8 @@ public record UEConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
         ByteBufCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
         ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedModIngredients);
+        ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
+        ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
     }
 
     private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -52,8 +56,10 @@ public record UEConfigPayload(
         boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
         boolean preventModdedIngredientsFromVanillaItems = ByteBufCodecs.BOOL.decode(buf);
         List<String> restrictedModIngredients = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
+        boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
+        boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
     }
 
     public static final SimpleChannel INSTANCE = ChannelBuilder
