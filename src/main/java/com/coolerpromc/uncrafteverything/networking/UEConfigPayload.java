@@ -18,7 +18,9 @@ public record UEConfigPayload(
     boolean allowUnsmithing, 
     boolean allowDamaged, 
     boolean preventModdedIngredientsFromVanillaItems,
-    List<String> restrictedModIngredients
+    List<String> restrictedModIngredients,
+        boolean enableProgression,
+        boolean onlyAllowDefinedProgression
   ){
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "ue_config");
     private static final String PROTOCOL_VERSION = "1";
@@ -44,6 +46,8 @@ public record UEConfigPayload(
         byteBuf.writeBoolean(payload.allowDamaged);
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         byteBuf.writeCollection(payload.restrictedModIngredients, FriendlyByteBuf::writeUtf);
+        byteBuf.writeBoolean(payload.enableProgression);
+        byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
     }
 
     public static UEConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -56,8 +60,10 @@ public record UEConfigPayload(
         boolean allowDamaged = byteBuf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         List<String> restrictedModIngredients = byteBuf.readList(FriendlyByteBuf::readUtf);
+        boolean enableProgression = byteBuf.readBoolean();
+        boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
     }
 
     public static void register(){

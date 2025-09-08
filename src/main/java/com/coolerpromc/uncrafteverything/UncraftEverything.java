@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
@@ -42,7 +43,9 @@ public class UncraftEverything
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         PerItemExpCostConfig.load();
+        FTBQuestProgressionConfig.load();
         PerItemExpCostConfig.startWatcher();
+        FTBQuestProgressionConfig.startWatcher();
     }
 
     public void commonSetup(FMLCommonSetupEvent event) {
@@ -56,12 +59,14 @@ public class UncraftEverything
             UEExpPayload.register();
             UncraftingRecipeSelectionRequestPayload.register();
             UncraftingRecipeSelectionDataPayload.register();
+            UEProgressionPayload.register();
         });
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         PerItemExpCostConfig.stopWatcher();
+        FTBQuestProgressionConfig.stopWatcher();
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
