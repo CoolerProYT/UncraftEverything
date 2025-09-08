@@ -89,6 +89,10 @@ dependencies {
     implementation "curse.maven:productivetrees-867074:6263281"
     implementation "curse.maven:resourceful-lib-570073:5973188"
     implementation "curse.maven:athena-841890:6669522"
+
+    implementation "curse.maven:ftb-quests-forge-289412:6874989"
+    implementation "curse.maven:ftb-library-forge-404465:6874538"
+    implementation "curse.maven:ftb-teams-forge-404468:6930910"
 }
 
 tasks.withType(ProcessResources).configureEach {
