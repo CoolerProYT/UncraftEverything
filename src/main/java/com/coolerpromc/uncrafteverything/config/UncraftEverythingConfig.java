@@ -1,12 +1,15 @@
 
 package com.coolerpromc.uncrafteverything.config;
 
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -107,6 +110,19 @@ public class UncraftEverythingConfig {
 
     public boolean onlyAllowDefinedProgression(){
         return onlyAllowDefinedProgression.getAsBoolean();
+    }
+
+    public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
+        if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
+            String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
+            if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
+                return Pair.of(questId == null || !QuestHelper.hasCompletedQuest(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+            else{
+                return Pair.of(questId != null && !QuestHelper.hasCompletedQuest(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+        }
+        return Pair.of(false, -1);
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {

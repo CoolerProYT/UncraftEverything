@@ -1,7 +1,15 @@
 package com.coolerpromc.uncrafteverything.config;
 
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import dev.ftb.mods.ftbquests.quest.BaseQuestFile;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
@@ -10,7 +18,11 @@ import java.io.FileWriter;
 import java.lang.reflect.Type;
 import java.nio.file.*;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+
+import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
 public class FTBQuestProgressionConfig {
     private static final Gson GSON = new Gson();
@@ -110,5 +122,31 @@ public class FTBQuestProgressionConfig {
         watchThread = null;
 
         System.out.println("[UncraftEverything] ftb quest progression config watcher stopped.");
+    }
+
+
+    public static String getQuestId(ItemStack itemStack) {
+        Map<String, String> questMap = FTBQuestProgressionConfig.getProgressionMap();
+        for (Map.Entry<String, String> map : questMap.entrySet()){
+            if (map.getKey().startsWith("#")){
+                String tagName = map.getKey().substring(1);
+                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
+                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
+                    return map.getValue();
+                }
+            }
+
+            if (map.getKey().contains("*")){
+                String regex = map.getKey().replace("*", ".*");
+                if (Pattern.matches(regex, getItemLocation(itemStack).toString())){
+                    return map.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static ResourceLocation getItemLocation(ItemStack itemStack){
+        return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 }

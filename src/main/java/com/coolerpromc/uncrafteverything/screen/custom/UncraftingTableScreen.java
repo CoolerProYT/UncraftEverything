@@ -251,6 +251,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 case 5 -> "screen.uncrafteverything.restricted_by_config";
                 case 6 -> "screen.uncrafteverything.damaged_item";
                 case 7 -> "screen.uncrafteverything.enchanted_item";
+                case 8 -> "screen.uncrafteverything.locked_item";
+                case 9 -> "screen.uncrafteverything.progression_not_defined";
                 default -> "screen.uncrafteverything.blank";
             });
 

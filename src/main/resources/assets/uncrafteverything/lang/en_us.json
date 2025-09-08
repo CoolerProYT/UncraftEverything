@@ -14,6 +14,8 @@
   "screen.uncrafteverything.restricted_by_config": "Item Restricted by Config!",
   "screen.uncrafteverything.damaged_item": "Item is Damaged!",
   "screen.uncrafteverything.enchanted_item": "Enchanted Item Not Allowed!",
+  "screen.uncrafteverything.locked_item": "Quest Not Completed!",
+  "screen.uncrafteverything.progression_not_defined": "Item Not Defined in Progression!",
   "screen.uncrafteverything.blank": "",
   "screen.uncrafteverything.add_new_entry": "Add New Entry",
   "screen.uncrafteverything.save": "Save",
