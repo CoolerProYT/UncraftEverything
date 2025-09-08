@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import net.minecraft.core.BlockPos;
@@ -66,6 +67,8 @@ public class ServerPayloadHandler {
                 config.allowDamaged.set(payload.allowDamaged());
                 config.preventModdedIngredientsFromVanillaItems.set(payload.preventModdedIngredientsFromVanillaItems());
                 config.restrictedModIngredients.set(payload.restrictedModIngredients());
+                config.enableProgression.set(payload.enableProgression());
+                config.onlyAllowDefinedProgression.set(payload.onlyAllowDefinedProgression());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -88,7 +91,10 @@ public class ServerPayloadHandler {
                         config.allowDamaged.get(),
                         config.preventModdedIngredientsFromVanillaItems.get(),
                         PerItemExpCostConfig.getPerItemExp(),
-                        (List<String>) config.restrictedModIngredients.get()
+                        (List<String>) config.restrictedModIngredients.get(),
+                        FTBQuestProgressionConfig.getProgressionMap(),
+                        config.enableProgression.get(),
+                        config.onlyAllowDefinedProgression.get()
                 );
                 PacketDistributor.sendToPlayer(player, configPayload);
             }
@@ -104,6 +110,19 @@ public class ServerPayloadHandler {
                 PerItemExpCostConfig.getPerItemExp().clear();
                 PerItemExpCostConfig.getPerItemExp().putAll(payload.perItemExp());
                 PerItemExpCostConfig.save();
+            }
+        }).exceptionally(e -> {
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleProgression(UEProgressionPayload payload, IPayloadContext context){
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer){
+                FTBQuestProgressionConfig.getProgressionMap().clear();
+                FTBQuestProgressionConfig.getProgressionMap().putAll(payload.progressionMap());
+                FTBQuestProgressionConfig.save();
             }
         }).exceptionally(e -> {
             context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
