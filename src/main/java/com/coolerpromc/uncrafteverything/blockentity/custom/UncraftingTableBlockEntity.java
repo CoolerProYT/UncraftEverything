@@ -9,10 +9,7 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ModItemStackHandler;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
+import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -48,8 +45,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.PacketDistributor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,6 +70,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public static final int RESTRICTED_ITEM = 5;
     public static final int DAMAGED_ITEM = 6;
     public static final int ENCHANTED_ITEM = 7;
+    public static final int LOCKED_ITEM = 8;
+    public static final int PROGRESSION_NOT_DEFINED = 9;
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
@@ -86,7 +88,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         protected void onContentsChanged(int slot) {
             setChanged();
             getOutputStacks();
-            if (level != null && !level.isClientSide()) {
+            if (level != null && !level.isClientSide() && player != null) {
                 if (currentStack.getItem() != getStackInSlot(0).getItem() && !getStackInSlot(0).isEmpty()){
                     for (int i = 0; i < getOutputHandler().getSlots(); i++) {
                         ItemStack outputStack = getOutputHandler().getStackInSlot(i);
@@ -212,6 +214,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
+    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (side == Direction.DOWN){
+            return LazyOptional.of(() -> outputHandler).cast();
+        }
+
+        return LazyOptional.of(() -> inputHandler).cast();
+    }
+
+    @Override
     protected void saveAdditional(ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
 
@@ -272,13 +283,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void getOutputStacks() {
-        if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel serverLevel) || player == null) return;
 
         this.status = -1;
 
         ItemStack inputStack = this.inputHandler.getStackInSlot(0);
 
         if (inputHandler.getStackInSlot(0).isEmpty()
+                || UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0)).getLeft()
                 || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
                 || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
@@ -308,6 +320,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = NO_RECIPE;
+            }
+
+            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0));
+            if (isItemLocked.getLeft() && !inputHandler.getStackInSlot(0).isEmpty()){
+                this.status = isItemLocked.getRight();
             }
 
             currentRecipes.clear();
@@ -938,7 +955,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = NO_RECIPE;
             }
             else {
-                this.status = NO_SUITABLE_OUTPUT_SLOT;
+                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getStackInSlot(0)).getLeft()){
+                    this.status = LOCKED_ITEM;
+                }
+                else{
+                    this.status = NO_SUITABLE_OUTPUT_SLOT;
+                }
             }
         }
         else{
