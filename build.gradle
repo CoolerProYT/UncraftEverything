@@ -48,6 +48,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', mod_id
 
             property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
 
         server {
@@ -91,15 +92,16 @@ dependencies {
     compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
     implementation(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
 
-    compileOnly fg.deobf("dev.architectury:architectury-forge:$architectury_version")
+    implementation fg.deobf("dev.architectury:architectury-forge:$architectury_version")
     compileOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:$cloth_config_version")
 
     compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:$rei_version")
 //    runtimeOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:$rei_version")
-//    implementation fg.deobf("curse.maven:goety-586095:5821584")
-//    implementation fg.deobf("curse.maven:curios-309927:5843737")
-//    implementation fg.deobf("curse.maven:l2-complements-758349:4805416")
-//    implementation fg.deobf("curse.maven:l2library-620203:4951847")
+
+    implementation fg.deobf("curse.maven:ftb-quests-forge-289412:6113498")
+    implementation fg.deobf("curse.maven:ftb-library-forge-404465:4396792")
+    implementation fg.deobf("curse.maven:ftb-teams-forge-404468:4579981")
+    implementation fg.deobf("curse.maven:item-filters-309674:4553322")
 }
 
 tasks.named('processResources', ProcessResources).configure {

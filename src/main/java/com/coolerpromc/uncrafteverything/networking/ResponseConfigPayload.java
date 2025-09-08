@@ -12,15 +12,19 @@ import java.util.List;
 import java.util.Map;
 
 public record ResponseConfigPayload(
-    UncraftEverythingConfig.RestrictionType restrictionType, 
-    List<String> restrictedItems, 
-    boolean allowEnchantedItem, 
-    UncraftEverythingConfig.ExperienceType experienceType, 
-    int experience, boolean allowUnsmithing, 
-    boolean allowDamaged, 
-    boolean preventModdedIngredientsFromVanillaItems, 
+    UncraftEverythingConfig.RestrictionType restrictionType,
+    List<String> restrictedItems,
+    boolean allowEnchantedItem,
+    UncraftEverythingConfig.ExperienceType experienceType,
+    int experience,
+    boolean allowUnsmithing,
+    boolean allowDamaged,
+    boolean preventModdedIngredientsFromVanillaItems,
     Map<String, Integer> perItemExp,
-    List<String> restrictedModIngredients
+    List<String> restrictedModIngredients,
+    Map<String, String> ftbQuestProgression,
+    boolean enableProgression,
+    boolean onlyAllowDefinedProgression
 ) {
 
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "response_config");
@@ -48,6 +52,9 @@ public record ResponseConfigPayload(
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         byteBuf.writeMap(payload.perItemExp, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeVarInt);
         byteBuf.writeCollection(payload.restrictedModIngredients, FriendlyByteBuf::writeUtf);
+        byteBuf.writeMap(payload.ftbQuestProgression, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeUtf);
+        byteBuf.writeBoolean(payload.enableProgression);
+        byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
     }
 
     public static ResponseConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -61,8 +68,11 @@ public record ResponseConfigPayload(
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = byteBuf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readVarInt);
         List<String> restrictedModIngredients = byteBuf.readList(FriendlyByteBuf::readUtf);
+        Map<String, String> ftbQuestProgression = byteBuf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readUtf);
+        boolean enableProgression = byteBuf.readBoolean();
+        boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
     }
 
     public static void register(){

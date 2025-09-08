@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
@@ -45,6 +46,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     private Button configButton;
     private Button expConfigButton;
+    private Button progressionButton;
 
     public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -77,8 +79,13 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
             configButton = new Button(leftPos + imageWidth - 16, topPos + 3, 12, 12, TextComponent.EMPTY, this::openConfigScreen);
             expConfigButton = new Button(leftPos + imageWidth - 30, topPos + 3, 12, 12, TextComponent.EMPTY, this::openExpScreen);
+            progressionButton = new Button(leftPos + imageWidth - 44, topPos + 3, 12, 12, TextComponent.EMPTY, this::openProgressionScreen);
+            
             this.addWidget(configButton);
             this.addWidget(expConfigButton);
+            if (QuestHelper.FTBQUESTS_LOADED){
+                this.addWidget(progressionButton);
+            }
         }
     }
 
@@ -93,6 +100,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     private void openExpScreen(Button button){
         this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
+    }
+
+    private void openProgressionScreen(Button button){
+        this.getMinecraft().setScreen(new FTBQuestsProgressionConfigScreen(this));
     }
 
     @Override
@@ -123,6 +134,18 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             RenderSystem.setShaderTexture(0, new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"));
             blit(poseStack, 0, 0, 0, 0,8, 8, 8, 8);
             poseStack.popPose();
+
+            if(QuestHelper.FTBQUESTS_LOADED){
+                progressionButton.render(poseStack, mouseX, mouseY, partialTick);
+
+                fill(poseStack, leftPos + imageWidth - 43, topPos + 3 + 11, leftPos + imageWidth - 45 + 12, topPos + 3 + 12, progressionButton.isHoveredOrFocused() ? 0xFFFFFFFF : 0xFF000000);
+
+                poseStack.pushPose();
+                poseStack.translate(leftPos + imageWidth - 44 + 2, topPos + 5, 400);
+                RenderSystem.setShaderTexture(0, new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/book.png"));
+                blit(poseStack, 0, 0, 0, 0,8, 8, 8, 8);
+                poseStack.popPose();
+            }
         }
     }
 
@@ -271,6 +294,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 case 5 -> "screen.uncrafteverything.restricted_by_config";
                 case 6 -> "screen.uncrafteverything.damaged_item";
                 case 7 -> "screen.uncrafteverything.enchanted_item";
+                case 8 -> "screen.uncrafteverything.locked_item";
+                case 9 -> "screen.uncrafteverything.progression_not_defined";
                 default -> "screen.uncrafteverything.blank";
             });
 
@@ -308,6 +333,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
                 renderTooltip(poseStack, new TranslatableComponent("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
+            }
+
+            if (pMouseX >= leftPos + imageWidth - 44 && pMouseX <= leftPos + imageWidth - 32 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15 && QuestHelper.FTBQUESTS_LOADED) {
+                renderTooltip(poseStack, new TranslatableComponent("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
             }
         }
 
