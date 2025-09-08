@@ -295,120 +295,120 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
         if (restrictionTypeButton.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Restriction Type"),
-                    valueInfo("Blacklist", "All items defined in Restricted Items will not be able to uncraft"),
+                    title("tooltip.uncrafteverything.config.toggle_restriction_type"),
+                    valueInfo("tooltip.uncrafteverything.config.blacklist", "tooltip.uncrafteverything.config.blacklist_info"),
                     Component.empty(),
-                    valueInfo("Whitelist", "Only items defined in Restricted Items will be able to uncraft")
+                    valueInfo("tooltip.uncrafteverything.config.whitelist", "tooltip.uncrafteverything.config.whitelist_info")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (restrictionsInput.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Edit Restricted Items"),
-                    description("The value can be either item id, item tags, or item id wildcard")
+                    title("tooltip.uncrafteverything.config.edit_restricted_items"),
+                    description("tooltip.uncrafteverything.config.edit_restricted_items_description")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleEnchantedBtn.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Allow Enchanted Items"),
-                    valueInfo("Yes", "Enchanted Item can be uncrafted, enchanted book will be given (A bit cheating, not recommended to enable)"),
+                    title("tooltip.uncrafteverything.config.toggle_allow_enchanted_items"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.allow_enchanted_yes"),
                     Component.empty(),
-                    valueInfo("No", "Enchanted Item cannot uncrafted (Recommended to enable to prevent getting enchanted book easier than it should)")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.allow_enchanted_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleEnchantmentTypeBtn.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Experience Type"),
-                    valueInfo("Point", "Sufficient experience point will be required to uncraft, and will be consumed on each uncraft"),
+                    title("tooltip.uncrafteverything.config.toggle_experience_type"),
+                    valueInfo("tooltip.uncrafteverything.config.point", "tooltip.uncrafteverything.config.point_info"),
                     Component.empty(),
-                    valueInfo("Level", "Sufficient experience level will be required to uncraft, and will be consumed on each uncraft")
+                    valueInfo("tooltip.uncrafteverything.config.level", "tooltip.uncrafteverything.config.level_info")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (experienceInput.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Edit Experience Required"),
-                    description("Experience point/level to be consumed when uncrafting. For setting different experience amount for certain items, please go to Per Item Exp Config")
+                    title("tooltip.uncrafteverything.config.edit_experience_required"),
+                    description("tooltip.uncrafteverything.config.edit_experience_required_description")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleAllowUnsmithing.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Allow Unsmithing"),
-                    valueInfo("Yes", "Netherite/Trimmed tools & armor will be able to uncraft, same for custom smithing recipe from other mods"),
+                    title("tooltip.uncrafteverything.config.toggle_allow_unsmithing"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_allow_unsmithing_yes"),
                     Component.empty(),
-                    valueInfo("No", "Items obtained from smithing will not be able to uncraft")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_allow_unsmithing_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleAllowDamaged.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Allow Damaged Items"),
-                    valueInfo("Yes", "Damaged items will be able to uncraft, but the material will be deducted based on durability"),
+                    title("tooltip.uncrafteverything.config.toggle_allow_damaged_items"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_allow_damaged_items_yes"),
                     Component.empty(),
-                    valueInfo("No", "Damaged items will not be able to uncraft")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_allow_damaged_items_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (togglePreventModdedIngredientsFromVanillaItems.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Prevent Modded Ingredients"),
-                    valueInfo("Yes", "Ingredients/Items that are not vanilla will not be searched when uncrafting vanilla items"),
+                    title("tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients_yes"),
                     Component.empty(),
-                    valueInfo("No", "Every ingredients will be included when uncrafting vanilla item (Not recommended, possible duplication)")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (restrictedModInput.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Edit Restricted Mods"),
-                    description("A list of mod id that their ingredients will be restricted when uncrafting, this apply to every items (Enter each mod id in a new line)")
+                    title("tooltip.uncrafteverything.config.edit_restricted_mods"),
+                    description("tooltip.uncrafteverything.config.edit_restricted_mods_description")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleEnableProgression.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Enable Progression"),
-                    valueInfo("Yes", "Item defined in Progression Config will be locked from uncrafting until the quest is done (Item that are not defined in config might also disabled depending on the config below), FTB Quests are required for this to work"),
+                    title("tooltip.uncrafteverything.config.toggle_enable_progression"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_enable_progression_yes"),
                     Component.empty(),
-                    valueInfo("No", "Nothing happen, uncrafting table work as usual")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_enable_progression_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
 
         if (toggleOnlyAllowDefinedProgression.isHovered()){
             List<Component> tooltip = List.of(
-                    title("Toggle Only Allow Defined Progression"),
-                    description("This config value only work when progression is enabled"),
+                    title("tooltip.uncrafteverything.config.toggle_only_allow_defined_progression"),
+                    description("tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_description"),
                     Component.empty(),
-                    valueInfo("Yes", "Item that are not defined in Progression Config will never be able to uncraft"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_yes"),
                     Component.empty(),
-                    valueInfo("No", "Everything will be able to uncraft except the item that are defined with a quest that is not completed")
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
 
     private Component title(String title){
-        return Component.literal(title).withStyle(ChatFormatting.BLUE);
+        return Component.translatable(title).withStyle(ChatFormatting.BLUE);
     }
 
     private Component valueInfo(String value, String info){
-        return Component.literal(value + ": ").withStyle(ChatFormatting.AQUA).append(Component.literal(info).withStyle(ChatFormatting.GRAY));
+        return Component.translatable(value).append(": ").withStyle(ChatFormatting.AQUA).append(Component.translatable(info).withStyle(ChatFormatting.GRAY));
     }
 
     private Component description(String desc){
-        return Component.literal(desc).withStyle(ChatFormatting.GRAY);
+        return Component.translatable(desc).withStyle(ChatFormatting.GRAY);
     }
 }
