@@ -116,10 +116,10 @@ public class UncraftEverythingConfig {
         if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
             if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
-                return Pair.of(questId == null || !QuestHelper.hasCompletedQuest(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
             }
             else{
-                return Pair.of(questId != null && !QuestHelper.hasCompletedQuest(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
             }
         }
         return Pair.of(false, -1);

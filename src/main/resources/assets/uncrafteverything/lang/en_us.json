@@ -6,6 +6,7 @@
   "screen.uncrafteverything.uncraft_recipe_selection": "Uncrafting Recipes Selection",
   "screen.uncrafteverything.page": "%d of %d",
   "screen.uncrafteverything.per_item_xp_config": "Per Item Exp Config",
+  "screen.uncrafteverything.ftb_quest_progression_config": "FTB Quests Progression Config",
   "screen.uncrafteverything.no_recipe_found": "No Recipe Found!",
   "screen.uncrafteverything.no_suitable_output_slot": "No Suitable Output Slot!",
   "screen.uncrafteverything.not_enough_exp": "Not Enough Experience!",
@@ -60,5 +61,6 @@
   "screen.uncrafteverything.config.only_allow_defined_progression": "Only Allow Defined Progression",
   "screen.uncrafteverything.per_item_xp_config.key": "Item Id Wildcard/Item Tags",
   "screen.uncrafteverything.per_item_xp_config.value": "Exp",
+  "screen.uncrafteverything.ftb_quest_progression_config.value": "Chapter/Quest Id",
   "screen.uncrafteverything.per_item_xp_config.del": "Delete"
 }
