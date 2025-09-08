@@ -32,8 +32,11 @@ public class ResponseConfigPayload {
     public final boolean preventModdedIngredientsFromVanillaItems;
     public final Map<String, Integer> perItemExp;
     public final List<String> restrictedModIngredients;
+    public final Map<String, String> ftbQuestProgression;
+    public final boolean enableProgression;
+    public final boolean onlyAllowDefinedProgression;
 
-    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp, List<String> restrictedModIngredients){
+    public ResponseConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, Map<String, Integer> perItemExp, List<String> restrictedModIngredients, Map<String, String> ftbQuestProgression, boolean enableProgression, boolean onlyAllowDefinedProgression) {
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -44,6 +47,9 @@ public class ResponseConfigPayload {
         this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
         this.perItemExp = perItemExp;
         this.restrictedModIngredients = restrictedModIngredients;
+        this.ftbQuestProgression = ftbQuestProgression;
+        this.enableProgression = enableProgression;
+        this.onlyAllowDefinedProgression = onlyAllowDefinedProgression;
     }
 
     private static int packetId = 0;
@@ -62,6 +68,9 @@ public class ResponseConfigPayload {
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         BufferUtil.writeMap(byteBuf, payload.perItemExp);
         BufferUtil.writeStringList(byteBuf, payload.restrictedModIngredients);
+        BufferUtil.writeStringMap(byteBuf, payload.ftbQuestProgression);
+        byteBuf.writeBoolean(payload.enableProgression);
+        byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
     }
 
     public static ResponseConfigPayload decode(PacketBuffer byteBuf){
@@ -75,8 +84,11 @@ public class ResponseConfigPayload {
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         Map<String, Integer> perItemExp = BufferUtil.readMap(byteBuf);
         List<String> restrictedModIngredients = BufferUtil.readStringList(byteBuf);
+        Map<String, String> ftbQuestProgression = BufferUtil.readStringMap(byteBuf);
+        boolean enableProgression = byteBuf.readBoolean();
+        boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
     }
 
     public static void register(){
@@ -127,5 +139,17 @@ public class ResponseConfigPayload {
 
     public List<String> restrictedModIngredients(){
         return restrictedModIngredients;
+    }
+
+    public Map<String, String> ftbQuestProgression(){
+        return ftbQuestProgression;
+    }
+
+    public boolean enableProgression(){
+        return enableProgression;
+    }
+
+    public boolean onlyAllowDefinedProgression(){
+        return onlyAllowDefinedProgression;
     }
 }

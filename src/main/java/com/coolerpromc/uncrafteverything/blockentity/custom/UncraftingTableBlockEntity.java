@@ -25,6 +25,7 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
@@ -32,10 +33,13 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -55,6 +59,8 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
     public static final int RESTRICTED_ITEM = 5;
     public static final int DAMAGED_ITEM = 6;
     public static final int ENCHANTED_ITEM = 7;
+    public static final int LOCKED_ITEM = 8;
+    public static final int PROGRESSION_NOT_DEFINED = 9;
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
@@ -71,7 +77,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         protected void onContentsChanged(int slot) {
             setChanged();
             getOutputStacks();
-            if (level != null && !level.isClientSide()) {
+            if (level != null && !level.isClientSide() && player != null) {
                 if (currentStack.getItem() != getStackInSlot(0).getItem() && !getStackInSlot(0).isEmpty()){
                     for (int i = 0; i < getOutputHandler().getSlots(); i++) {
                         ItemStack outputStack = getOutputHandler().getStackInSlot(i);
@@ -199,8 +205,19 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
         return new UncraftingTableMenu(containerId, playerInventory, this, data);
     }
 
-   @Override
+    @Override
+    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (side == Direction.DOWN){
+            return LazyOptional.of(() -> outputHandler).cast();
+        }
+
+        return LazyOptional.of(() -> inputHandler).cast();
+    }
+
+    @Override
     public CompoundNBT save(@NotNull CompoundNBT tag) {
+        super.save(tag);
+
         tag.put("input", inputHandler.serializeNBT());
         tag.put("output", outputHandler.serializeNBT());
 
@@ -249,7 +266,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
     }
 
     public void getOutputStacks() {
-        if (!(level instanceof ServerWorld)) return;
+        if (!(level instanceof ServerWorld) || player == null) return;
         ServerWorld serverLevel = (ServerWorld) level;
 
         this.status = -1;
@@ -263,6 +280,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 .collect(Collectors.toList());
 
         if (inputHandler.getStackInSlot(0).isEmpty()
+                || UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0)).getLeft()
                 || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
                 || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
@@ -292,6 +310,11 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
 
             if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = NO_RECIPE;
+            }
+
+            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0));
+            if (isItemLocked.getLeft() && !inputHandler.getStackInSlot(0).isEmpty()){
+                this.status = isItemLocked.getRight();
             }
 
             currentRecipes.clear();
@@ -829,7 +852,12 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                 this.status = NO_RECIPE;
             }
             else {
-                this.status = NO_SUITABLE_OUTPUT_SLOT;
+                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getStackInSlot(0)).getLeft()){
+                    this.status = LOCKED_ITEM;
+                }
+                else{
+                    this.status = NO_SUITABLE_OUTPUT_SLOT;
+                }
             }
         }
         else{

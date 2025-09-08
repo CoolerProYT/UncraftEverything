@@ -29,8 +29,10 @@ public class UEConfigPayload{
     public final boolean allowDamaged;
     public final boolean preventModdedIngredientsFromVanillaItems;
     public final List<String> restrictedModIngredients;
+    public final boolean enableProgression;
+    public final boolean onlyAllowDefinedProgression;
 
-    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, List<String> restrictedModIngredients) {
+    public UEConfigPayload(UncraftEverythingConfig.RestrictionType restrictionType, List<String> restrictedItems, boolean allowEnchantedItem, UncraftEverythingConfig.ExperienceType experienceType, int experience, boolean allowUnsmithing, boolean allowDamaged, boolean preventModdedIngredientsFromVanillaItems, List<String> restrictedModIngredients, boolean enableProgression, boolean onlyAllowDefinedProgression) {
         this.restrictionType = restrictionType;
         this.restrictedItems = restrictedItems;
         this.allowEnchantedItem = allowEnchantedItem;
@@ -40,6 +42,8 @@ public class UEConfigPayload{
         this.allowDamaged = allowDamaged;
         this.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
         this.restrictedModIngredients = restrictedModIngredients;
+        this.enableProgression = enableProgression;
+        this.onlyAllowDefinedProgression = onlyAllowDefinedProgression;
     }
 
     private static int packetId = 0;
@@ -57,6 +61,8 @@ public class UEConfigPayload{
         byteBuf.writeBoolean(payload.allowDamaged);
         byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         BufferUtil.writeStringList(byteBuf, payload.restrictedModIngredients);
+        byteBuf.writeBoolean(payload.enableProgression);
+        byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
     }
 
     public static UEConfigPayload decode(PacketBuffer byteBuf){
@@ -69,8 +75,10 @@ public class UEConfigPayload{
         boolean allowDamaged = byteBuf.readBoolean();
         boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
         List<String> restrictedModIngredients = BufferUtil.readStringList(byteBuf);
+        boolean enableProgression = byteBuf.readBoolean();
+        boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
     }
 
     public static void register(){
@@ -117,5 +125,13 @@ public class UEConfigPayload{
 
     public List<String> restrictedModIngredients() {
         return restrictedModIngredients;
+    }
+
+    public boolean enableProgression() {
+        return enableProgression;
+    }
+
+    public boolean onlyAllowDefinedProgression() {
+        return onlyAllowDefinedProgression;
     }
 }

@@ -41,4 +41,23 @@ public class BufferUtil {
         }
         return map;
     }
+
+    public static void writeStringMap(PacketBuffer buffer, Map<String, String> map){
+        buffer.writeVarInt(map.size());
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            buffer.writeUtf(entry.getKey());
+            buffer.writeUtf(entry.getValue());
+        }
+    }
+
+    public static Map<String, String> readStringMap(PacketBuffer buffer) {
+        int size = buffer.readVarInt();
+        Map<String, String> map = new java.util.HashMap<>(size);
+        for (int i = 0; i < size; i++) {
+            String key = buffer.readUtf();
+            String value = buffer.readUtf();
+            map.put(key, value);
+        }
+        return map;
+    }
 }

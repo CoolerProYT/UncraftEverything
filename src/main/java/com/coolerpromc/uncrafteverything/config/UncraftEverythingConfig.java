@@ -1,7 +1,10 @@
-
+ 
 package com.coolerpromc.uncrafteverything.config;
 
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tags.ItemTags;
@@ -28,6 +31,8 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.BooleanValue allowDamaged;
     public final ForgeConfigSpec.BooleanValue preventModdedIngredientsFromVanillaItems;
     public final ForgeConfigSpec.ConfigValue<List<? extends String>> restrictedModIngredients;
+    public final ForgeConfigSpec.BooleanValue enableProgression;
+    public final ForgeConfigSpec.BooleanValue onlyAllowDefinedProgression;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -77,16 +82,20 @@ public class UncraftEverythingConfig {
         restrictedModIngredients = builder.comment("A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues.",
                 "Format: modid")
                 .defineList("restrictedModIngredients", defaultRestrictedModIngredients, o -> o instanceof String && !o.equals("minecraft"));
+        builder.pop();
+
+        builder.push("FTBQuestProgression");
+        enableProgression = builder.comment("Enable progression based uncrafting recipe search (Only available when FTB Quests is added to the mod pack)").define("enableProgression", false);
+        onlyAllowDefinedProgression = builder.comment("When FTB Quests is added and progression enabled, only item defined in progression config able to uncraft, all other item will be disabled.").define("onlyAllowDefinedProgression", false);
+        builder.pop();
     }
 
     public int getExperience() {
         return experience.get();
     }
-
     public boolean allowUnSmithing() {
         return allowUnSmithing.get();
     }
-
     public boolean allowDamaged() {
         return allowDamaged.get();
     }
@@ -97,6 +106,27 @@ public class UncraftEverythingConfig {
 
     public boolean preventModdedIngredientRecipes(){
         return preventModdedIngredientsFromVanillaItems.get();
+    }
+
+    public boolean enableProgression(){
+        return enableProgression.get();
+    }
+
+    public boolean onlyAllowDefinedProgression(){
+        return onlyAllowDefinedProgression.get();
+    }
+
+    public static Pair<Boolean, Integer> isItemLocked(ServerPlayerEntity player, ItemStack itemStack){
+        if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
+            String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
+            if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
+                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+            else{
+                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+        }
+        return Pair.of(false, -1);
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
