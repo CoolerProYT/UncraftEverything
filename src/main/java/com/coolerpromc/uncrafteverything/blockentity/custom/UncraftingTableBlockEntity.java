@@ -49,6 +49,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +69,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public static final int RESTRICTED_ITEM = 5;
     public static final int DAMAGED_ITEM = 6;
     public static final int ENCHANTED_ITEM = 7;
+    public static final int LOCKED_ITEM = 8;
+    public static final int PROGRESSION_NOT_DEFINED = 9;
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
@@ -265,6 +268,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 .toList();
 
         if (inputHandler.getStackInSlot(0).isEmpty()
+                || UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0)).getLeft()
                 || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
                 || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
                 || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
@@ -294,6 +298,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = NO_RECIPE;
+            }
+
+            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0));
+            if (isItemLocked.getLeft() && !inputHandler.getStackInSlot(0).isEmpty()){
+                this.status = isItemLocked.getRight();
             }
 
             currentRecipes.clear();
@@ -941,7 +950,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = NO_RECIPE;
             }
             else {
-                this.status = NO_SUITABLE_OUTPUT_SLOT;
+                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getStackInSlot(0)).getLeft()){
+                    this.status = LOCKED_ITEM;
+                }
+                else{
+                    this.status = NO_SUITABLE_OUTPUT_SLOT;
+                }
             }
         }
         else{

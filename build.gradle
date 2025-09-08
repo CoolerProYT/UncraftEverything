@@ -85,6 +85,10 @@ dependencies {
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
 //    runtimeOnly  "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+
+    compileOnly "curse.maven:ftb-quests-forge-289412:6874989"
+    compileOnly "curse.maven:ftb-library-forge-404465:6874538"
+    compileOnly "curse.maven:ftb-teams-forge-404468:6930910"
 }
 
 tasks.withType(ProcessResources).configureEach {

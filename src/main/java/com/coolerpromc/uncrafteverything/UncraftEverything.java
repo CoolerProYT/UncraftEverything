@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
@@ -37,7 +38,9 @@ public class UncraftEverything
         NeoForge.EVENT_BUS.register(this);
         modContainer.registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         PerItemExpCostConfig.load();
+        FTBQuestProgressionConfig.load();
         PerItemExpCostConfig.startWatcher();
+        FTBQuestProgressionConfig.startWatcher();
     }
 
     @SubscribeEvent
@@ -52,6 +55,7 @@ public class UncraftEverything
 
     public void onServerStopping(ServerStoppingEvent event) {
         PerItemExpCostConfig.stopWatcher();
+        FTBQuestProgressionConfig.stopWatcher();
     }
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
