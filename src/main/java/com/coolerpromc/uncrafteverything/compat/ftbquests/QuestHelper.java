@@ -1,24 +1,22 @@
 package com.coolerpromc.uncrafteverything.compat.ftbquests;
 
-import dev.ftb.mods.ftbquests.quest.Quest;
-import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
-import dev.ftb.mods.ftbquests.quest.ServerQuestFile;
-import dev.ftb.mods.ftbquests.quest.TeamData;
+import dev.ftb.mods.ftbquests.quest.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.ModList;
 
 public class QuestHelper {
     public static final boolean FTBQUESTS_LOADED = ModList.get().isLoaded("ftbquests");
 
-    public static boolean hasCompletedQuest(ServerPlayer player, String questId){
+    public static boolean hasCompletedQuestOrChapter(ServerPlayer player, String id){
         try{
             TeamData teamData = ServerQuestFile.INSTANCE.getTeamData(player).orElse(null);
             if (teamData == null) return false;
 
-            Quest quest = ServerQuestFile.INSTANCE.getQuest(QuestObjectBase.parseCodeString(questId));
-            if (quest == null) return false;
+            Quest quest = ServerQuestFile.INSTANCE.getQuest(QuestObjectBase.parseCodeString(id));
+            Chapter chapter = ServerQuestFile.INSTANCE.getChapter(DefaultChapterGroup.parseCodeString(id));
+            if (quest == null && chapter == null) return false;
 
-            return teamData.isCompleted(quest);
+            return teamData.isCompleted(quest != null ? quest : chapter);
         }
         catch (Exception e){
             return false;
