@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
@@ -73,6 +74,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)) {
             this.addRenderableWidget(new Button.Builder(Component.empty(), this::openConfigScreen).size(12, 12).pos(leftPos + imageWidth - 16, topPos + 3).build());
             this.addRenderableWidget(new Button.Builder(Component.empty(), this::openExpScreen).size(12, 12).pos(leftPos + imageWidth - 30, topPos + 3).build());
+
+            if (QuestHelper.FTBQUESTS_LOADED){
+                this.addRenderableWidget(new Button.Builder(Component.empty(), this::openProgressionScreen).size(12, 12).pos(leftPos + imageWidth - 44, topPos + 3).build());
+            }
         }
     }
 
@@ -89,6 +94,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
     }
 
+    private void openProgressionScreen(Button button){
+        this.getMinecraft().setScreen(new FTBQuestsProgressionConfigScreen(this));
+    }
+
     @Override
     protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -98,15 +107,24 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().translate(leftPos + imageWidth - 16 + 2, topPos + 5, 400);
-        pGuiGraphics.blit(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"), 0, 0, 0, 0,8, 8, 8, 8);
-        pGuiGraphics.pose().popPose();
+        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
+            pGuiGraphics.pose().pushPose();
+            pGuiGraphics.pose().translate(leftPos + imageWidth - 16 + 2, topPos + 5, 400);
+            pGuiGraphics.blit(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/config.png"), 0, 0, 0, 0,8, 8, 8, 8);
+            pGuiGraphics.pose().popPose();
 
-        pGuiGraphics.pose().pushPose();
-        pGuiGraphics.pose().translate(leftPos + imageWidth - 30 + 2, topPos + 5, 400);
-        pGuiGraphics.blit(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"), 0, 0, 0, 0,8, 8, 8, 8);
-        pGuiGraphics.pose().popPose();
+            pGuiGraphics.pose().pushPose();
+            pGuiGraphics.pose().translate(leftPos + imageWidth - 30 + 2, topPos + 5, 400);
+            pGuiGraphics.blit(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/exp.png"), 0, 0, 0, 0,8, 8, 8, 8);
+            pGuiGraphics.pose().popPose();
+
+            if(QuestHelper.FTBQUESTS_LOADED){
+                pGuiGraphics.pose().pushPose();
+                pGuiGraphics.pose().translate(leftPos + imageWidth - 44 + 2, topPos + 5, 400);
+                pGuiGraphics.blit(new ResourceLocation(UncraftEverything.MODID, "textures/gui/sprites/book.png"), 0, 0, 0, 0,8, 8, 8, 8);
+                pGuiGraphics.pose().popPose();
+            }
+        }
     }
 
     @Override
@@ -247,6 +265,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 case 5 -> "screen.uncrafteverything.restricted_by_config";
                 case 6 -> "screen.uncrafteverything.damaged_item";
                 case 7 -> "screen.uncrafteverything.enchanted_item";
+                case 8 -> "screen.uncrafteverything.locked_item";
+                case 9 -> "screen.uncrafteverything.progression_not_defined";
                 default -> "screen.uncrafteverything.blank";
             });
 
@@ -284,6 +304,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
                 pGuiGraphics.renderTooltip(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
+            }
+
+            if (pMouseX >= leftPos + imageWidth - 44 && pMouseX <= leftPos + imageWidth - 32 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15 && QuestHelper.FTBQUESTS_LOADED) {
+                pGuiGraphics.renderTooltip(this.font, Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
             }
         }
 

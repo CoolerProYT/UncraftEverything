@@ -113,6 +113,10 @@ dependencies {
 //    implementation fg.deobf("curse.maven:curios-309927:6418456")
 //    implementation fg.deobf("curse.maven:l2-complements-758349:6774087")
 //    implementation fg.deobf("curse.maven:l2library-620203:6806000")
+
+    compileOnly fg.deobf("curse.maven:ftb-quests-forge-289412:6829212")
+    compileOnly fg.deobf("curse.maven:ftb-library-forge-404465:6807424")
+    compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
 }
 
 tasks.named('processResources', ProcessResources).configure {
