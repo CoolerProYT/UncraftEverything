@@ -87,7 +87,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         protected void onContentsChanged(int slot) {
             setChanged();
             getOutputStacks();
-            if (level != null && !level.isClientSide()) {
+            if (level != null && !level.isClientSide() && player != null) {
                 if (currentStack.getItem() != getStackInSlot(0).getItem() && !getStackInSlot(0).isEmpty()){
                     for (int i = 0; i < getOutputHandler().getSlots(); i++) {
                         ItemStack outputStack = getOutputHandler().getStackInSlot(i);
@@ -255,7 +255,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void getOutputStacks() {
-        if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel serverLevel) || player == null) return;
 
         this.status = -1;
 
