@@ -22,6 +22,7 @@ import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.fml.network.PacketDistributor;
 
@@ -299,30 +300,33 @@ public class UncraftingTableScreen extends ContainerScreen<UncraftingTableMenu> 
                 default : statusText = "screen.uncrafteverything.blank";
             }
 
-            int textY = y;
+            int textY = y + 55;
 
-            pGuiGraphics.pushPose();
-            pGuiGraphics.translate(0, 0, 390);
-            fill(pGuiGraphics, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
-            pGuiGraphics.popPose();
-            List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(new TranslationTextComponent(statusText).getString()), 54);
+            float textScale = 0.75f;
+            int boxWidth = 52;
+            int boxLeft = x + 9;
+            float boxCenterX = boxLeft + boxWidth / 2f;
+
+            List<IReorderingProcessor> formattedText = font.split(ITextProperties.of(new TranslationTextComponent(statusText).getString()), (int) (boxWidth * 1.3));
 
             switch (formattedText.size()){
-                case 1 : textY += 38; break;
-                case 2 : textY += 34; break;
-                case 3 : textY += 30; break;
-                case 4 : textY += 23; break;
-                default : textY += 27;
+                case 1: textY += 14; break;
+                case 2: textY += 9; break;
+                default: textY += 5;
             }
 
-            for (IReorderingProcessor formattedcharsequence : formattedText) {
-                int textWidth = font.width(formattedcharsequence);
-                int centeredX = x + 97 + (54 - textWidth) / 2;
+            for (IReorderingProcessor line : formattedText) {
+                float rawWidth = font.width(line);
+                float drawX = -rawWidth / 2f;
+
                 pGuiGraphics.pushPose();
-                pGuiGraphics.translate(centeredX, textY, 390);
-                font.draw(pGuiGraphics, formattedcharsequence, 0, 0, 0xAA0000);
+                pGuiGraphics.translate(boxCenterX, textY, 0);
+                pGuiGraphics.scale(textScale, textScale, textScale);
+                font.draw(pGuiGraphics, line, Math.round(drawX), 0, TextFormatting.RED.getColor());
+
                 pGuiGraphics.popPose();
-                textY += 9;
+
+                textY += 7;
             }
         }
 

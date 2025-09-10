@@ -85,6 +85,7 @@ public class UncraftingTableBlockEntity extends TileEntity implements INamedCont
                             player.inventory.placeItemBackInInventory(level, outputStack);
                             getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
                             setChanged();
+                            player.containerMenu.broadcastChanges();
                         }
                     }
                 }

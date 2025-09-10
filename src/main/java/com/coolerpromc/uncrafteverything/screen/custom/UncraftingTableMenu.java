@@ -116,19 +116,22 @@ public class UncraftingTableMenu extends Container {
 
     @Override
     public void removed(PlayerEntity player) {
-        ItemStack stack = blockEntity.getInputHandler().getStackInSlot(0);
-        if (!stack.isEmpty()) {
-            player.inventory.placeItemBackInInventory(level, stack);
-            blockEntity.getInputHandler().setStackInSlot(0, ItemStack.EMPTY);
-            blockEntity.setChanged();
-        }
-
-        for (int i = 0; i < blockEntity.getOutputHandler().getSlots(); i++) {
-            ItemStack outputStack = blockEntity.getOutputHandler().getStackInSlot(i);
-            if (!outputStack.isEmpty()) {
-                player.inventory.placeItemBackInInventory(level, outputStack);
-                blockEntity.getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
+        super.removed(player);
+        if (!player.level.isClientSide){
+            ItemStack stack = blockEntity.getInputHandler().getStackInSlot(0);
+            if (!stack.isEmpty()) {
+                player.inventory.placeItemBackInInventory(level, stack);
+                blockEntity.getInputHandler().setStackInSlot(0, ItemStack.EMPTY);
                 blockEntity.setChanged();
+            }
+
+            for (int i = 0; i < blockEntity.getOutputHandler().getSlots(); i++) {
+                ItemStack outputStack = blockEntity.getOutputHandler().getStackInSlot(i);
+                if (!outputStack.isEmpty()) {
+                    player.inventory.placeItemBackInInventory(level, outputStack);
+                    blockEntity.getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
+                    blockEntity.setChanged();
+                }
             }
         }
     }
