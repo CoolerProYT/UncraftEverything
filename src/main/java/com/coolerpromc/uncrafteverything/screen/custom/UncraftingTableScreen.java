@@ -9,6 +9,7 @@ import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -284,7 +285,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 case 1 -> "screen.uncrafteverything.no_suitable_output_slot";
                 case 2 -> "screen.uncrafteverything.not_enough_exp";
                 case 3 -> "screen.uncrafteverything.not_enough_input";
-                case 4 -> "not_empty_shulker";
+                case 4 -> "screen.uncrafteverything.not_empty_shulker";
                 case 5 -> "screen.uncrafteverything.restricted_by_config";
                 case 6 -> "screen.uncrafteverything.damaged_item";
                 case 7 -> "screen.uncrafteverything.enchanted_item";
@@ -293,30 +294,33 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 default -> "screen.uncrafteverything.blank";
             });
 
-            int textY = y;
+            int textY = y + 55;
 
-            poseStack.pushPose();
-            poseStack.translate(0, 0, 390);
-            fill(poseStack, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
-            poseStack.popPose();
-            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), 54);
+            float scale = 0.75f;
+            int boxWidth = 52;
+            int boxLeft = x + 9;
+            float boxCenterX = boxLeft + boxWidth / 2f;
+
+            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), (int) (boxWidth * 1.3));
 
             switch (formattedText.size()){
-                case 1 -> textY += 38;
-                case 2 -> textY += 34;
-                case 3 -> textY += 30;
-                case 4 -> textY += 23;
-                default -> textY += 27;
+                case 1 -> textY += 14;
+                case 2 -> textY += 9;
+                default -> textY += 5;
             }
 
-            for (FormattedCharSequence formattedcharsequence : formattedText) {
-                int textWidth = font.width(formattedcharsequence);
-                int centeredX = x + 97 + (54 - textWidth) / 2;
+            for (FormattedCharSequence line : formattedText) {
+                float rawWidth = font.width(line);
+                float drawX = -rawWidth / 2f;
+
                 poseStack.pushPose();
-                poseStack.translate(centeredX, textY, 390);
-                font.draw(poseStack, formattedcharsequence, 0, 0, 0xAA0000);
+                poseStack.translate(boxCenterX, textY, 0);
+                poseStack.scale(scale, scale, scale);
+                font.draw(poseStack, line, Math.round(drawX), 0, ChatFormatting.RED.getColor());
+
                 poseStack.popPose();
-                textY += 9;
+
+                textY += 7;
             }
         }
 
