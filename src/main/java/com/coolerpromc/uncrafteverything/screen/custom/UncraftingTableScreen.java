@@ -8,6 +8,7 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonCl
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -141,7 +142,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, this.font, exp, 0, 0, 0xFF00AA00);
         pGuiGraphics.pose().popPose();
 
-
         int x = this.leftPos;
         int y = this.topPos;
         int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
@@ -259,7 +259,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 case 1 -> "screen.uncrafteverything.no_suitable_output_slot";
                 case 2 -> "screen.uncrafteverything.not_enough_exp";
                 case 3 -> "screen.uncrafteverything.not_enough_input";
-                case 4 -> "not_empty_shulker";
+                case 4 -> "screen.uncrafteverything.not_empty_shulker";
                 case 5 -> "screen.uncrafteverything.restricted_by_config";
                 case 6 -> "screen.uncrafteverything.damaged_item";
                 case 7 -> "screen.uncrafteverything.enchanted_item";
@@ -268,30 +268,33 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 default -> "screen.uncrafteverything.blank";
             });
 
-            int textY = y;
+            int textY = y + 55;
 
-            pGuiGraphics.pose().pushPose();
-            pGuiGraphics.pose().translate(0, 0, 390);
-            pGuiGraphics.fill(x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
-            pGuiGraphics.pose().popPose();
-            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), 54);
+            float scale = 0.75f;
+            int boxWidth = 52;
+            int boxLeft = x + 9;
+            float boxCenterX = boxLeft + boxWidth / 2f;
+
+            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), (int) (boxWidth * 1.3));
 
             switch (formattedText.size()){
-                case 1 -> textY += 38;
-                case 2 -> textY += 34;
-                case 3 -> textY += 30;
-                case 4 -> textY += 23;
-                default -> textY += 27;
+                case 1 -> textY += 14;
+                case 2 -> textY += 9;
+                default -> textY += 5;
             }
 
-            for (FormattedCharSequence formattedcharsequence : formattedText) {
-                int textWidth = font.width(formattedcharsequence);
-                int centeredX = x + 97 + (54 - textWidth) / 2;
+            for (FormattedCharSequence line : formattedText) {
+                float rawWidth = font.width(line);
+                float drawX = -rawWidth / 2f;
+
                 pGuiGraphics.pose().pushPose();
-                pGuiGraphics.pose().translate(centeredX, textY, 390);
-                pGuiGraphics.drawString(font, formattedcharsequence, 0, 0, 0xAA0000, false);
+                pGuiGraphics.pose().translate(boxCenterX, textY, 0);
+                pGuiGraphics.pose().scale(scale, scale, scale);
+                pGuiGraphics.drawString(font, line, Math.round(drawX), 0, ChatFormatting.RED.getColor(), false);
+
                 pGuiGraphics.pose().popPose();
-                textY += 9;
+
+                textY += 7;
             }
         }
 
