@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
@@ -33,6 +34,9 @@ public class UncraftEverything implements ModInitializer {
 
 		PerItemExpCostConfig.load();
 		PerItemExpCostConfig.startWatcher();
+
+		FTBQuestProgressionConfig.load();
+		FTBQuestProgressionConfig.startWatcher();
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.ID, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
 			try{
@@ -88,6 +92,8 @@ public class UncraftEverything implements ModInitializer {
 			UncraftEverythingConfig.allowDamaged = payload.allowDamaged();
 			UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = payload.preventModdedIngredientsFromVanillaItems();
 			UncraftEverythingConfig.restrictedModIngredients = payload.restrictedModIngredients();
+			UncraftEverythingConfig.enableProgression = payload.enableProgression();
+			UncraftEverythingConfig.onlyAllowDefinedProgression = payload.onlyAllowDefinedProgression();
 			UncraftEverythingConfig.save();
 		});
 
@@ -102,7 +108,10 @@ public class UncraftEverything implements ModInitializer {
 					UncraftEverythingConfig.allowDamaged,
 					UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
 					PerItemExpCostConfig.getPerItemExp(),
-					UncraftEverythingConfig.restrictedModIngredients
+					UncraftEverythingConfig.restrictedModIngredients,
+					FTBQuestProgressionConfig.getProgressionMap(),
+					UncraftEverythingConfig.enableProgression,
+					UncraftEverythingConfig.onlyAllowDefinedProgression
 			)));
 		});
 
@@ -136,9 +145,18 @@ public class UncraftEverything implements ModInitializer {
 			}
 		});
 
+		ServerPlayNetworking.registerGlobalReceiver(UEProgressionPayload.TYPE, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			UEProgressionPayload payload = UEProgressionPayload.decode(packetByteBuf);
+
+			FTBQuestProgressionConfig.getProgressionMap().clear();
+			FTBQuestProgressionConfig.getProgressionMap().putAll(payload.progressionMap());
+			FTBQuestProgressionConfig.save();
+		});
+
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
 			UncraftEverythingConfig.shutdown();
 			PerItemExpCostConfig.stopWatcher();
+			FTBQuestProgressionConfig.stopWatcher();
 		});
 	}
 }

@@ -37,6 +37,9 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -47,7 +50,7 @@ import java.util.stream.Collectors;
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
 @SuppressWarnings({"unused"})
-public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
+public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory {
     public static final int NO_RECIPE = 0;
     public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
     public static final int NO_ENOUGH_EXPERIENCE = 2;
@@ -56,6 +59,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     public static final int RESTRICTED_ITEM = 5;
     public static final int DAMAGED_ITEM = 6;
     public static final int ENCHANTED_ITEM = 7;
+    public static final int LOCKED_ITEM = 8;
+    public static final int PROGRESSION_NOT_DEFINED = 9;
 
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
@@ -70,6 +75,62 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(10, ItemStack.EMPTY);
     private final int[] inputSlots = {0};
     private final int[] outputSlots = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    private final ImplementedInventory slots = new ImplementedInventory(10){
+        @Override
+        public void setStack(int slot, ItemStack stack) {
+            super.setStack(slot, stack);
+            getOutputStacks();
+            if (world != null && !world.isClient() && slot == inputSlots[0] && player != null) {
+                if (currentStack.getItem() != this.getStack(0).getItem() && !this.getStack(0).isEmpty()){
+                    for (int outputSlot : outputSlots) {
+                        ItemStack outputStack = this.getStack(outputSlot);
+                        if (!outputStack.isEmpty()) {
+                            player.inventory.offerOrDrop(world, outputStack);
+                            this.setStack(outputSlot, ItemStack.EMPTY);
+                            markDirty();
+                            player.currentScreenHandler.sendContentUpdates();
+                        }
+                    }
+                }
+                currentStack = this.getStack(0);
+                world.updateListeners(pos, getCachedState(), getCachedState(), 3);
+                PacketByteBuf packetByteBuf = PacketByteBufs.create();
+                try{
+                    packetByteBuf.encode(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+                } catch (IOException e) {
+                    System.out.println("Failed to encode UncraftingTableDataPayload: " + e.getMessage());
+                }
+                ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, packetByteBuf);
+            }
+        }
+
+        @Override
+        public ItemStack removeStack(int slot) {
+            getOutputStacks();
+            if (slot != 0){
+                if (player != null){
+                    handleRecipeSelection(currentRecipe);
+                }
+            }
+            return super.removeStack(slot);
+        }
+
+        @Override
+        public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
+            return Arrays.asList(inputSlots).contains(slot) && side != Direction.DOWN;
+        }
+
+        @Override
+        public boolean canExtract(int slot, ItemStack stack, Direction side) {
+            return Arrays.asList(outputSlots).contains(slot) && side == Direction.DOWN;
+        }
+
+        @Override
+        public boolean isValid(int slot, ItemStack stack) {
+            return Arrays.stream(outputSlots).noneMatch(value -> value == slot);
+        }
+    };
 
     public UncraftingTableBlockEntity() {
         super(UEBlockEntities.UNCRAFTING_TABLE_BE);
@@ -103,54 +164,6 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 return 3;
             }
         };
-    }
-
-    @Override
-    public void setStack(int slot, ItemStack stack) {
-        ImplementedInventory.super.setStack(slot, stack);
-        getOutputStacks();
-        if (world != null && !world.isClient() && slot == inputSlots[0]) {
-            if (currentStack.getItem() != this.getStack(0).getItem() && !this.getStack(0).isEmpty()){
-                for (int outputSlot : outputSlots) {
-                    ItemStack outputStack = this.getStack(outputSlot);
-                    if (!outputStack.isEmpty()) {
-                        player.inventory.offerOrDrop(world, outputStack);
-                        this.setStack(outputSlot, ItemStack.EMPTY);
-                        markDirty();
-                    }
-                }
-            }
-            currentStack = this.getStack(0);
-            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-            PacketByteBuf packetByteBuf = PacketByteBufs.create();
-            try{
-                packetByteBuf.encode(UncraftingTableDataPayload.CODEC, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
-            } catch (IOException e) {
-                System.out.println("Failed to encode UncraftingTableDataPayload: " + e.getMessage());
-            }
-            ServerPlayNetworking.send(player, UncraftingTableDataPayload.ID, packetByteBuf);
-        }
-    }
-
-    @Override
-    public ItemStack removeStack(int slot) {
-        getOutputStacks();
-        if (slot != 0){
-            if (player != null){
-                handleRecipeSelection(currentRecipe);
-            }
-        }
-        return ImplementedInventory.super.removeStack(slot);
-    }
-
-    @Override
-    public boolean isValid(int slot, ItemStack stack) {
-        return Arrays.stream(outputSlots).noneMatch(value -> value == slot);
-    }
-
-    @Override
-    public DefaultedList<ItemStack> getItems() {
-        return inventory;
     }
 
     @Override
@@ -214,16 +227,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
     }
 
     public Identifier inputStackLocation() {
-        return Registry.ITEM.getId(this.getStack(inputSlots[0]).getItem());
+        return Registry.ITEM.getId(slots.getStack(inputSlots[0]).getItem());
     }
 
     public void getOutputStacks() {
-        if (!(world instanceof ServerWorld)) return;
+        if (!(world instanceof ServerWorld) || player == null) return;
         ServerWorld serverLevel = (ServerWorld) world;
 
         this.status = -1;
 
-        ItemStack inputStack = this.getStack(inputSlots[0]);
+        ItemStack inputStack = slots.getStack(inputSlots[0]);
 
         List<String> blacklist = UncraftEverythingConfig.restrictions;
         List<Pattern> wildcardBlacklist = blacklist.stream()
@@ -231,27 +244,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 .map(s -> Pattern.compile(s.replace("*", ".*")))
                 .collect(Collectors.toList());
 
-        if (this.getStack(inputSlots[0]).isEmpty()
-                || (this.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged())
-                || UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))
-                || UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))
-                || (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim"))
+        if (slots.getStack(inputSlots[0]).isEmpty()
+                || UncraftEverythingConfig.isItemLocked(player, slots.getStack(inputSlots[0])).getLeft()
+                || (slots.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged())
+                || UncraftEverythingConfig.isItemBlacklisted(slots.getStack(inputSlots[0]))
+                || UncraftEverythingConfig.isItemWhitelisted(slots.getStack(inputSlots[0]))
+                || (!UncraftEverythingConfig.isEnchantedItemsAllowed(slots.getStack(inputSlots[0])) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim"))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.hasTag())
                 || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
-            if (this.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged()){
+            if (slots.getStack(inputSlots[0]).getDamage() > 0 && !UncraftEverythingConfig.allowDamaged()){
                 this.status = DAMAGED_ITEM;
             }
 
-            if (UncraftEverythingConfig.isItemBlacklisted(this.getStack(inputSlots[0]))){
+            if (UncraftEverythingConfig.isItemBlacklisted(slots.getStack(inputSlots[0]))){
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (UncraftEverythingConfig.isItemWhitelisted(this.getStack(inputSlots[0]))){
+            if (UncraftEverythingConfig.isItemWhitelisted(slots.getStack(inputSlots[0]))){
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(this.getStack(inputSlots[0])) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim")){
+            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(slots.getStack(inputSlots[0])) && inputStack.getTag() != null && !inputStack.getTag().contains("Trim")){
                 this.status = ENCHANTED_ITEM;
             }
 
@@ -259,8 +273,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 this.status = SHULKER_WITH_ITEM;
             }
 
-            if (this.getStack(inputSlots[0]).isEmpty() || (inputStack.getItem() == Items.ENCHANTED_BOOK)){
+            if (slots.getStack(inputSlots[0]).isEmpty() || (inputStack.getItem() == Items.ENCHANTED_BOOK)){
                 this.status = NO_RECIPE;
+            }
+
+            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, slots.getStack(inputSlots[0]));
+            if (isItemLocked.getLeft() && !slots.getStack(inputSlots[0]).isEmpty()){
+                this.status = isItemLocked.getRight();
             }
 
             currentRecipes.clear();
@@ -582,7 +601,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                     .orElse(new ArrayList<>(Collections.singleton(Items.AIR)));
             List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
-                boolean isVanillaInput = Registry.ITEM.getId(this.getStack(0).getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = Registry.ITEM.getId(slots.getStack(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
                     return Registry.ITEM.getId(item).getNamespace().equals("minecraft");
@@ -644,7 +663,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
             List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
-                boolean isVanillaInput = Registry.ITEM.getId(this.getStack(0).getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = Registry.ITEM.getId(slots.getStack(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
                     return Registry.ITEM.getId(item).getNamespace().equals("minecraft");
@@ -765,13 +784,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         for (int i = 0; i < outputs.size(); i++) {
             ItemStack output = outputs.get(i);
             if (i < outputSlots.length) {
-                ItemStack slotStack = this.getStack(outputSlots[i]);
+                ItemStack slotStack = slots.getStack(outputSlots[i]);
 
                 if (slotStack.isEmpty()) {
-                    this.setStack(outputSlots[i], output.copy());
+                    slots.setStack(outputSlots[i], output.copy());
                 } else if (ItemStack.areItemsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
                     slotStack.increment(output.getCount());
-                    this.setStack(outputSlots[i], slotStack);
+                    slots.setStack(outputSlots[i], slotStack);
                 }
             }
         }
@@ -783,7 +802,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             player.addExperienceLevels(-getExperience());
         }
 
-        this.removeStack(0, this.currentRecipe.getInput().getCount());
+        slots.removeStack(0, this.currentRecipe.getInput().getCount());
         markDirty();
 
         getOutputStacks();
@@ -803,11 +822,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         this.currentRecipe = recipe;
 
         if(!hasRecipe()){
-            if (this.getStack(0).isEmpty()){
+            if (slots.getStack(0).isEmpty()){
                 this.status = NO_RECIPE;
             }
             else {
-                this.status = NO_SUITABLE_OUTPUT_SLOT;
+                if (UncraftEverythingConfig.isItemLocked(player, slots.getStack(inputSlots[0])).getLeft()){
+                    this.status = LOCKED_ITEM;
+                }
+                else{
+                    this.status = NO_SUITABLE_OUTPUT_SLOT;
+                }
             }
         }
         else{
@@ -839,7 +863,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             if (exp.getKey().startsWith("#")){
                 String tagName = exp.getKey().substring(1);
                 Optional<Tag<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && this.getStack(inputSlots[0]).getItem().isIn(tagKey.get())) {
+                if (tagKey.isPresent() && slots.getStack(inputSlots[0]).getItem().isIn(tagKey.get())) {
                     experience = exp.getValue();
                     break;
                 }
@@ -872,7 +896,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             return false;
         }
 
-        ItemStack inputStack = this.getStack(inputSlots[0]);
+        ItemStack inputStack = slots.getStack(inputSlots[0]);
         if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
             return false;
         }
@@ -882,7 +906,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             ItemStack result = results.get(i);
             if (i >= outputSlots.length) return false;
 
-            ItemStack slotStack = this.getStack(this.outputSlots[i]);
+            ItemStack slotStack = slots.getStack(this.outputSlots[i]);
 
             if (slotStack.isEmpty()) {
                 continue;
@@ -904,7 +928,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             return false;
         }
 
-        if (this.getStack(inputSlots[0]).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
+        if (slots.getStack(inputSlots[0]).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
             return false;
         }
 
@@ -914,7 +938,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             ItemStack result = results.get(i);
             if (i >= outputSlots.length) return false;
 
-            ItemStack slotStack = this.getStack(this.outputSlots[i]);
+            ItemStack slotStack = slots.getStack(this.outputSlots[i]);
 
             if (slotStack.isEmpty()) {
                 continue;
@@ -938,6 +962,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
     public PropertyDelegate getData() {
         return data;
+    }
+
+    public ImplementedInventory getSlots() {
+        return slots;
     }
 
     private static class Group {

@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
@@ -25,6 +26,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.awt.geom.Rectangle2D;
@@ -50,6 +52,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
     private ButtonWidget configButton;
     private ButtonWidget expConfigButton;
+    private ButtonWidget progressionButton;
 
     public UncraftingTableScreen(UncraftingTableMenu handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -90,6 +93,11 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             this.addChild(configButton);
             expConfigButton = new ButtonWidget(this.x + backgroundWidth - 30, this.y + 3, 12, 12, new TranslatableText("screen.uncrafteverything.blank"), this::openExpScreen);
             this.addChild(expConfigButton);
+
+            if (QuestHelper.FTBQUESTS_LOADED){
+                progressionButton = new ButtonWidget(this.x + backgroundWidth - 44, this.y + 3, 12, 12, new TranslatableText("screen.uncrafteverything.blank"), this::openProgressionScreen);
+                this.addChild(progressionButton);
+            }
         }
     }
 
@@ -109,6 +117,10 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
     private void openExpScreen(ButtonWidget button){
         this.client.openScreen(new PerItemExpConfigScreen(this));
+    }
+
+    private void openProgressionScreen(ButtonWidget button){
+        this.client.openScreen(new FTBQuestsProgressionConfigScreen(this));
     }
 
     @Override
@@ -135,6 +147,18 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             context.translate(x + backgroundWidth - 30 + 2, y + 5, 400);
             drawTexture(context, 0, 0, 0, 0, 8, 8, 8, 8);
             context.pop();
+
+            if(QuestHelper.FTBQUESTS_LOADED){
+                progressionButton.render(context, mouseX, mouseY, delta);
+
+                fill(context, x + backgroundWidth - 43, y + 3 + 11, x + backgroundWidth - 45 + 12, y + 3 + 12, expConfigButton.isHovered() || expConfigButton.isFocused() ? 0xFFFFFFFF : 0xFF000000);
+
+                this.client.getTextureManager().bindTexture(new Identifier(UncraftEverything.MODID, "textures/gui/sprites/book.png"));
+                context.push();
+                context.translate(x + backgroundWidth - 44 + 2, y + 5, 400);
+                drawTexture(context, 0, 0, 0, 0, 8, 8, 8, 8);
+                context.pop();
+           }
         }
     }
 
@@ -301,33 +325,37 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 case 5 : statusText = new TranslatableText("screen.uncrafteverything.restricted_by_config"); break;
                 case 6 : statusText = new TranslatableText("screen.uncrafteverything.damaged_item"); break;
                 case 7 : statusText = new TranslatableText("screen.uncrafteverything.enchanted_item"); break;
+                case 8 : statusText = new TranslatableText("screen.uncrafteverything.locked_item"); break;
+                case 9 : statusText = new TranslatableText("screen.uncrafteverything.progression_not_defined"); break;
                 default : statusText = new TranslatableText("screen.uncrafteverything.blank");
             }
 
-            int textY = y;
+            int textY = y + 55;
 
-            context.push();
-            context.translate(0,0,390);
-            fill(context, x + 97, y + 16, x + 151, y + 70, 0xAA8B8B8B);
-            context.pop();
-            List<OrderedText> formattedText = textRenderer.wrapLines(StringVisitable.plain(statusText.getString()), 54);
+            float scale = 0.75f;
+            int boxWidth = 52;
+            int boxLeft = x + 9;
+            float boxCenterX = boxLeft + boxWidth / 2f;
+
+            List<OrderedText> formattedText = textRenderer.wrapLines(StringVisitable.plain(statusText.getString()), (int) (boxWidth * 1.3));
 
             switch (formattedText.size()){
-                case 1 : textY += 38; break;
-                case 2 : textY += 34; break;
-                case 3 : textY += 30; break;
-                case 4 : textY += 23; break;
-                default : textY += 27;
+                case 1: textY += 14; break;
+                case 2: textY += 9; break;
+                default: textY += 5;
             }
 
-            for (OrderedText formattedcharsequence : formattedText) {
-                int textWidth = textRenderer.getWidth(formattedcharsequence);
-                int centeredX = x + 97 + (54 - textWidth) / 2;
+            for (OrderedText line : formattedText) {
+                float rawWidth = textRenderer.getWidth(line);
+                float drawX = -rawWidth / 2f;
+
                 context.push();
-                context.translate(centeredX,textY, 390);
-                textRenderer.draw(context, formattedcharsequence, 0, 0, 0xFFAA0000);
+                context.translate(boxCenterX, textY,0);
+                context.scale(scale, scale, scale);
+                textRenderer.draw(context, line, Math.round(drawX), 0, Formatting.RED.getColorValue());
                 context.pop();
-                textY += 9;
+
+                textY += 7;
             }
         }
 
@@ -338,6 +366,10 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
 
             if (mouseX >= x + backgroundWidth - 30 && mouseX <= x + backgroundWidth - 18 && mouseY >= y + 3 && mouseY <= y + 15) {
                 renderTooltip(context, new TranslatableText("screen.uncrafteverything.per_item_xp_config"), mouseX, mouseY);
+            }
+
+            if (mouseX >= x + backgroundWidth - 44 && mouseX <= x + backgroundWidth - 32 && mouseY >= y + 3 && mouseY <= y + 15 && QuestHelper.FTBQUESTS_LOADED) {
+                renderTooltip(context, new TranslatableText("screen.uncrafteverything.ftb_quest_progression_config"), mouseX, mouseY);
             }
         }
 

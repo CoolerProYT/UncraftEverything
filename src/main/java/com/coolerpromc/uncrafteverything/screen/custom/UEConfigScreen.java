@@ -14,14 +14,18 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.OrderedText;
+import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
     private final Screen parent;
@@ -36,21 +40,24 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean allowDamagedItems = config.allowDamaged();
     private boolean preventModdedIngredientsFromVanillaItems = config.preventModdedIngredientsFromVanillaItems();
     private List<String> restrictedModIngredients = config.restrictedModIngredients();
+    private boolean enableProgression = config.enableProgression();
+    private boolean onlyAllowDefinedProgression = config.onlyAllowDefinedProgression();
 
     private ButtonWidget restrictionTypeButton;
     private ButtonWidget toggleEnchantedBtn;
     private ButtonWidget toggleEnchantmentTypeBtn;
     private ButtonWidget toggleAllowUnsmithing;
     private ButtonWidget toggleAllowDamaged;
+    private ButtonWidget toggleEnableProgression;
+    private ButtonWidget toggleOnlyAllowDefinedProgression;
     private ButtonWidget togglePreventModdedIngredientsFromVanillaItems;
-
     private MultiLineEditBox restrictionsInput;
     private TextFieldWidget experienceInput;
     private MultiLineEditBox restrictedModInput;
     private ButtonWidget saveButton;
 
     protected UEConfigScreen(Text title, Screen parent) {
-        super(title, 338);
+        super(title, 388);
         this.parent = parent;
     }
 
@@ -66,7 +73,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         // Restrictions input box
         String joined = String.join("\n", restrictions);
-        restrictionsInput = new MultiLineEditBox(this.textRenderer, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 88, Integer.MAX_VALUE);
+        restrictionsInput = new MultiLineEditBox(this.textRenderer, x, (int) (baseY + 25 - scrollAmount), widgetWidth, 90, Integer.MAX_VALUE);
         restrictionsInput.setText(joined);
         this.addChild(restrictionsInput);
 
@@ -114,9 +121,21 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         // Restricted Mod input box
         String joinedMod = String.join("\n", restrictedModIngredients);
-        restrictedModInput = new MultiLineEditBox(textRenderer, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 88, Integer.MAX_VALUE);
+        restrictedModInput = new MultiLineEditBox(textRenderer, x, (int) (baseY + 270 - scrollAmount), widgetWidth, 90, Integer.MAX_VALUE);
         restrictedModInput.setText(joinedMod);
         this.addChild(restrictedModInput);
+
+        toggleEnableProgression = new ButtonWidget(x, (int) (baseY + 365 - scrollAmount), widgetWidth, 20, new TranslatableText(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)), btn -> {
+            enableProgression = !enableProgression;
+            btn.setMessage(new TranslatableText(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)));
+        });
+        this.addChild(toggleEnableProgression);
+
+        toggleOnlyAllowDefinedProgression = new ButtonWidget(x, (int) (baseY + 390 - scrollAmount), widgetWidth, 20, new TranslatableText(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)), btn -> {
+            onlyAllowDefinedProgression = !onlyAllowDefinedProgression;
+            btn.setMessage(new TranslatableText(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)));
+        });
+        this.addChild(toggleOnlyAllowDefinedProgression);
 
         // Save button (always at bottom)
         saveButton = new ButtonWidget(this.width / 2 - 100, (this.height - 45) + 15, 200, 20, new TranslatableText("screen.uncrafteverything.save"), this::pressSaveButton);
@@ -155,6 +174,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.toggleAllowDamaged.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.togglePreventModdedIngredientsFromVanillaItems.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.restrictedModInput.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.toggleEnableProgression.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.toggleOnlyAllowDefinedProgression.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         int x = 10;
         int textWidth = this.width / 2 - 10;
@@ -191,11 +212,19 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         TranslatableText restrictedMod = new TranslatableText("screen.uncrafteverything.config.prevent_modid");
         this.textRenderer.drawTrimmed(restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(restrictedMod.getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
+        TranslatableText enableProgression = new TranslatableText("screen.uncrafteverything.config.enable_progression");
+        this.textRenderer.drawTrimmed(enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(restrictedMod.getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        TranslatableText onlyAllowDefined = new TranslatableText("screen.uncrafteverything.config.only_allow_defined_progression");
+        this.textRenderer.drawTrimmed(onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getStringBoundedHeight(restrictedMod.getString(), textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         drawCenteredText(pGuiGraphics, this.textRenderer, new TranslatableText("screen.uncrafteverything.uncraft_everything_config"), this.width / 2, (23 - this.textRenderer.fontHeight) / 2, 0xFFFFFFFF);
 
         saveButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
+        renderButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
     @Override
@@ -278,9 +307,142 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         experience = Integer.parseInt(experienceInput.getText());
         restrictedModIngredients = Arrays.stream(restrictedModInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
         ClientPlayNetworking.send(UEConfigPayload.TYPE, UEConfigPayload.encode(PacketByteBufs.create(), configPayload));
         ClientPlayNetworking.send(RequestConfigPayload.TYPE, RequestConfigPayload.encode(PacketByteBufs.create(), new RequestConfigPayload()));
         this.client.openScreen(parent);
+    }
+    
+    private void renderWrappedTooltip(MatrixStack guiGraphics, List<StringVisitable> tooltip, int mouseX, int mouseY) {
+        int maxWidth = mouseX - 20;
+        List<OrderedText> wrappedTooltip = tooltip.stream()
+                .flatMap(text -> {
+                    if (text.getString().isEmpty()){
+                        return Stream.of(OrderedText.EMPTY);
+                    }
+                    return this.textRenderer.wrapLines(text, maxWidth).stream();
+                })
+                .collect(Collectors.toList());
+        renderOrderedTooltip(guiGraphics, wrappedTooltip, mouseX, mouseY);
+    }
+
+    private void renderButtonTooltip(MatrixStack guiGraphics, int mouseX, int mouseY){
+        if (restrictionTypeButton.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_restriction_type"),
+                    valueInfo("tooltip.uncrafteverything.config.blacklist", "tooltip.uncrafteverything.config.blacklist_info"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.whitelist", "tooltip.uncrafteverything.config.whitelist_info")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (restrictionsInput.isMouseOver(mouseX, mouseY)){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.edit_restricted_items"),
+                    description("tooltip.uncrafteverything.config.edit_restricted_items_description")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleEnchantedBtn.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_allow_enchanted_items"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.allow_enchanted_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.allow_enchanted_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleEnchantmentTypeBtn.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_experience_type"),
+                    valueInfo("tooltip.uncrafteverything.config.point", "tooltip.uncrafteverything.config.point_info"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.level", "tooltip.uncrafteverything.config.level_info")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (experienceInput.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.edit_experience_required"),
+                    description("tooltip.uncrafteverything.config.edit_experience_required_description")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleAllowUnsmithing.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_allow_unsmithing"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_allow_unsmithing_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_allow_unsmithing_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleAllowDamaged.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_allow_damaged_items"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_allow_damaged_items_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_allow_damaged_items_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (togglePreventModdedIngredientsFromVanillaItems.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_prevent_modded_ingredients_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (restrictedModInput.isMouseOver(mouseX, mouseY)){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.edit_restricted_mods"),
+                    description("tooltip.uncrafteverything.config.edit_restricted_mods_description")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleEnableProgression.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_enable_progression"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_enable_progression_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_enable_progression_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleOnlyAllowDefinedProgression.isHovered()){
+            List<StringVisitable> tooltip = Arrays.asList(
+                    title("tooltip.uncrafteverything.config.toggle_only_allow_defined_progression"),
+                    description("tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_description"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_yes"),
+                    Text.EMPTY,
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+    }
+
+    private Text title(String title){
+        return new TranslatableText(title).formatted(Formatting.BLUE);
+    }
+
+    private Text valueInfo(String value, String info){
+        return new TranslatableText(value).append(": ").formatted(Formatting.AQUA).append(new TranslatableText(info).formatted(Formatting.GRAY));
+    }
+
+    private Text description(String desc){
+        return new TranslatableText(desc).formatted(Formatting.GRAY);
     }
 }

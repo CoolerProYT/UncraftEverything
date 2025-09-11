@@ -38,6 +38,11 @@ dependencies {
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${rei_version}"
 	modRuntimeOnly "me.shedaniel:RoughlyEnoughItems:${rei_version}"
+
+	modCompileOnly "curse.maven:architectury-api-419699:4521288"
+	modCompileOnly "curse.maven:ftb-quests-fabric-438496:4297998"
+	modCompileOnly "curse.maven:ftb-teams-fabric-438497:3535952"
+	modCompileOnly "curse.maven:ftb-library-fabric-438495:3553839"
 }
 
 processResources {
