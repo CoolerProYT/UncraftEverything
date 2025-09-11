@@ -88,7 +88,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         public void setStack(int slot, ItemStack stack) {
             super.setStack(slot, stack);
             getOutputStacks();
-            if (world != null && !world.isClient() && slot == inputSlots[0]) {
+            if (world != null && !world.isClient() && slot == inputSlots[0] && player != null) {
                 if (currentStack.getItem() != this.getStack(0).getItem() && !this.getStack(0).isEmpty()){
                     for (int outputSlot : outputSlots) {
                         ItemStack outputStack = this.getStack(outputSlot);
