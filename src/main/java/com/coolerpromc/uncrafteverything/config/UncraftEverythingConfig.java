@@ -1,5 +1,7 @@
 package com.coolerpromc.uncrafteverything.config;
 
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileWatcher;
@@ -14,7 +16,9 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -34,6 +38,8 @@ public class UncraftEverythingConfig {
     public static boolean allowDamaged;
     public static boolean preventModdedIngredientsFromVanillaItems;
     public static List<String> restrictedModIngredients;
+    public static boolean enableProgression;
+    public static boolean onlyAllowDefinedProgression;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -87,6 +93,9 @@ public class UncraftEverythingConfig {
         preventModdedIngredientsFromVanillaItems = configFile.getOrElse("PreventModdedIngredientsFromVanillaItems.preventModdedIngredientsFromVanillaItems", true);
 
         restrictedModIngredients = configFile.getOrElse("RestrictedModIngredients.restrictedModIngredients", List.of("productivetrees", "chipped"));
+
+        enableProgression = configFile.getOrElse("FTBQuestProgression.enableProgression", false);
+        onlyAllowDefinedProgression = configFile.getOrElse("FTBQuestProgression.onlyAllowDefinedProgression", false);
     }
 
     public static void save() {
@@ -121,6 +130,12 @@ public class UncraftEverythingConfig {
         configFile.set("RestrictedModIngredients.restrictedModIngredients", restrictedModIngredients);
         configFile.setComment("RestrictedModIngredients.restrictedModIngredients", "A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues. \nFormat: modid");
 
+        configFile.set("FTBQuestProgression.enableProgression", enableProgression);
+        configFile.setComment("FTBQuestProgression.enableProgression","Enable progression based uncrafting recipe search (Only available when FTB Quests is added to the mod pack)");
+
+        configFile.set("FTBQuestProgression.onlyAllowDefinedProgression", onlyAllowDefinedProgression);
+        configFile.setComment("FTBQuestProgression.onlyAllowDefinedProgression", "When FTB Quests is added and progression enabled, only item defined in progression config able to uncraft, all other item will be disabled.");
+
         configFile.save();
     }
 
@@ -153,6 +168,27 @@ public class UncraftEverythingConfig {
     
     public static boolean preventModdedIngredientRecipes(){
         return preventModdedIngredientsFromVanillaItems;
+    }
+
+    public static boolean enableProgression(){
+        return enableProgression;
+    }
+
+    public static boolean onlyAllowDefinedProgression(){
+        return onlyAllowDefinedProgression;
+    }
+
+    public static Pair<Boolean, Integer> isItemLocked(ServerPlayerEntity player, ItemStack itemStack){
+        if (UncraftEverythingConfig.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
+            String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
+            if (UncraftEverythingConfig.onlyAllowDefinedProgression()){
+                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+            else{
+                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+            }
+        }
+        return Pair.of(false, -1);
     }
 
     public static boolean isItemBlacklisted(ItemStack itemStack) {

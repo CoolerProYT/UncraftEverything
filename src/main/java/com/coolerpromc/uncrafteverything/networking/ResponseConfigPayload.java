@@ -23,7 +23,10 @@ public record ResponseConfigPayload(
         boolean allowDamaged,
         boolean preventModdedIngredientsFromVanillaItems,
         Map<String, Integer> perItemExp,
-        List<String> restrictedModIngredients
+        List<String> restrictedModIngredients,
+        Map<String, String> ftbQuestProgression,
+        boolean enableProgression,
+        boolean onlyAllowDefinedProgression
 ) implements CustomPayload {
 
     public static final Id<ResponseConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "response_config"));
@@ -41,6 +44,9 @@ public record ResponseConfigPayload(
         PacketCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
         PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
         PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedModIngredients);
+        PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING).encode(buf, new HashMap<>(payload.ftbQuestProgression));
+        PacketCodecs.BOOL.encode(buf, payload.enableProgression);
+        PacketCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
     }
 
     private static ResponseConfigPayload decode(RegistryByteBuf buf){
@@ -54,8 +60,11 @@ public record ResponseConfigPayload(
         boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOL.decode(buf);
         Map<String, Integer> perItemExp = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).decode(buf);
         List<String> restrictedModIngredients = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
+        Map<String, String> ftbQuestProgression = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING).decode(buf);
+        boolean enableProgression = PacketCodecs.BOOL.decode(buf);
+        boolean onlyAllowDefinedProgression = PacketCodecs.BOOL.decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
     }
 
     @Override
