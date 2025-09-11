@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
@@ -40,6 +41,9 @@ public class UncraftEverything implements ModInitializer {
 		PerItemExpCostConfig.load();
 		PerItemExpCostConfig.startWatcher();
 
+		FTBQuestProgressionConfig.load();
+		FTBQuestProgressionConfig.startWatcher();
+
 		PayloadTypeRegistry.playC2S().register(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionPayload.TYPE, UncraftingRecipeSelectionPayload.STREAM_CODEC);
@@ -50,6 +54,7 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionDataPayload.TYPE, UncraftingRecipeSelectionDataPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UEProgressionPayload.TYPE, UEProgressionPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -90,6 +95,8 @@ public class UncraftEverything implements ModInitializer {
 				UncraftEverythingConfig.allowDamaged = payload.allowDamaged();
 				UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = payload.preventModdedIngredientsFromVanillaItems();
 				UncraftEverythingConfig.restrictedModIngredients = payload.restrictedModIngredients();
+				UncraftEverythingConfig.enableProgression = payload.enableProgression();
+				UncraftEverythingConfig.onlyAllowDefinedProgression = payload.onlyAllowDefinedProgression();
 				UncraftEverythingConfig.save();
 			}
 		});
@@ -106,7 +113,10 @@ public class UncraftEverything implements ModInitializer {
 						UncraftEverythingConfig.allowDamaged,
 						UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
 						PerItemExpCostConfig.getPerItemExp(),
-						UncraftEverythingConfig.restrictedModIngredients
+						UncraftEverythingConfig.restrictedModIngredients,
+						FTBQuestProgressionConfig.getProgressionMap(),
+						UncraftEverythingConfig.enableProgression,
+						UncraftEverythingConfig.onlyAllowDefinedProgression
 				));
 			}
 		});
@@ -134,6 +144,14 @@ public class UncraftEverything implements ModInitializer {
 			}
 		});
 
+		ServerPlayNetworking.registerGlobalReceiver(UEProgressionPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity){
+				FTBQuestProgressionConfig.getProgressionMap().clear();
+				FTBQuestProgressionConfig.getProgressionMap().putAll(payload.progressionMap());
+				FTBQuestProgressionConfig.save();
+			}
+		});
+
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
             ServerRecipeManager recipeManager = serverPlayerEntity.getWorld().getRecipeManager();
             List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
@@ -146,6 +164,7 @@ public class UncraftEverything implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
 			UncraftEverythingConfig.shutdown();
 			PerItemExpCostConfig.stopWatcher();
+			FTBQuestProgressionConfig.stopWatcher();
 		});
 	}
 }
