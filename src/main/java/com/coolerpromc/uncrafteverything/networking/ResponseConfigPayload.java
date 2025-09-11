@@ -19,7 +19,10 @@ public record ResponseConfigPayload(
     boolean allowDamaged, 
     boolean preventModdedIngredientsFromVanillaItems, 
     Map<String, Integer> perItemExp,
-    List<String> restrictedModIngredients
+    List<String> restrictedModIngredients,
+    Map<String, String> ftbQuestProgression,
+    boolean enableProgression,
+    boolean onlyAllowDefinedProgression
 ) {
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "response_config");
 
@@ -34,6 +37,9 @@ public record ResponseConfigPayload(
         buf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
         buf.writeMap(payload.perItemExp, PacketByteBuf::writeString, PacketByteBuf::writeVarInt);
         buf.writeCollection(payload.restrictedModIngredients, PacketByteBuf::writeString);
+        buf.writeMap(payload.ftbQuestProgression, PacketByteBuf::writeString, PacketByteBuf::writeString);
+        buf.writeBoolean(payload.enableProgression);
+        buf.writeBoolean(payload.onlyAllowDefinedProgression);
         return buf;
     }
 
@@ -48,7 +54,10 @@ public record ResponseConfigPayload(
         boolean preventModdedIngredientsFromVanillaItems = buf.readBoolean();
         Map<String, Integer> perItemExp = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readVarInt);
         List<String> restrictedModIngredients = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
+        Map<String, String> ftbQuestProgression = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
+        boolean enableProgression = buf.readBoolean();
+        boolean onlyAllowDefinedProgression = buf.readBoolean();
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
     }
 }
