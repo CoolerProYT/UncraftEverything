@@ -2,9 +2,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
-import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -15,7 +13,6 @@ import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -36,10 +33,10 @@ public class UncraftingTableMenu extends ScreenHandler {
         this.data = data;
         this.player = playerInventory.player;
 
-        this.addSlot(new Slot(this.blockEntity, this.blockEntity.getInputSlots()[0], 26, 35));
+        this.addSlot(new Slot(this.blockEntity.getSlots(), this.blockEntity.getInputSlots()[0], 26, 35));
 
         for (int i = 0; i < this.blockEntity.getOutputSlots().length; i++) {
-            this.addSlot(new Slot(this.blockEntity, this.blockEntity.getOutputSlots()[i], 98 + 18 * (i % 3), 17 + (i / 3) * 18){
+            this.addSlot(new Slot(this.blockEntity.getSlots(), this.blockEntity.getOutputSlots()[i], 98 + 18 * (i % 3), 17 + (i / 3) * 18){
                 @Override
                 public boolean canInsert(ItemStack stack) {
                     return false;
@@ -53,17 +50,23 @@ public class UncraftingTableMenu extends ScreenHandler {
     }
 
     @Override
+    public void onContentChanged(Inventory inventory) {
+        super.onContentChanged(inventory);
+        this.sendContentUpdates();
+    }
+
+    @Override
     public ItemStack quickMove(PlayerEntity player, int invSlot) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(invSlot);
         if (slot != null && slot.hasStack()) {
             ItemStack originalStack = slot.getStack();
             newStack = originalStack.copy();
-            if (invSlot < this.blockEntity.size()) {
-                if (!this.insertItem(originalStack, this.blockEntity.size(), this.slots.size(), true)) {
+            if (invSlot < this.blockEntity.getSlots().size()) {
+                if (!this.insertItem(originalStack, this.blockEntity.getSlots().size(), this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(originalStack, 0, this.blockEntity.size(), false)) {
+            } else if (!this.insertItem(originalStack, 0, this.blockEntity.getSlots().size(), false)) {
                 return ItemStack.EMPTY;
             }
 
@@ -97,19 +100,22 @@ public class UncraftingTableMenu extends ScreenHandler {
 
     @Override
     public void onClosed(PlayerEntity player) {
-        ItemStack stack = blockEntity.getStack(blockEntity.getInputSlots()[0]);
-        if (!stack.isEmpty()) {
-            player.getInventory().offerOrDrop(stack);
-            blockEntity.setStack(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
-            blockEntity.markDirty();
-        }
-
-        for (int i : blockEntity.getOutputSlots()) {
-            ItemStack outputStack = blockEntity.getStack(i);
-            if (!outputStack.isEmpty()) {
-                player.getInventory().offerOrDrop(outputStack);
-                blockEntity.setStack(i, ItemStack.EMPTY);
+        super.onClosed(player);
+        if (!player.getEntityWorld().isClient()){
+            ItemStack stack = blockEntity.getSlots().getStack(blockEntity.getInputSlots()[0]);
+            if (!stack.isEmpty()) {
+                player.getInventory().offerOrDrop(stack);
+                blockEntity.getSlots().setStack(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
                 blockEntity.markDirty();
+            }
+
+            for (int i : blockEntity.getOutputSlots()) {
+                ItemStack outputStack = blockEntity.getSlots().getStack(i);
+                if (!outputStack.isEmpty()) {
+                    player.getInventory().offerOrDrop(outputStack);
+                    blockEntity.getSlots().setStack(i, ItemStack.EMPTY);
+                    blockEntity.markDirty();
+                }
             }
         }
     }

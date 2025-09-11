@@ -8,12 +8,11 @@ import net.minecraft.client.gui.cursor.StandardCursors;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.client.input.AbstractKeyInput;
+import net.minecraft.client.input.AbstractInput;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.function.Supplier;
 
@@ -27,7 +26,7 @@ public class RecipeSelectionButton extends PressableWidget {
     }
 
     @Override
-    public void onPress(AbstractKeyInput input) {
+    public void onPress(AbstractInput input) {
         if (this.onPress != null) {
             this.onPress.onPress(this);
         }
