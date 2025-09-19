@@ -33,10 +33,10 @@ repositories {
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     maven { url "https://maven.architectury.dev/" }
     maven {
-        name 'Maven for PR #2297'
-        url 'https://prmaven.neoforged.net/NeoForge/pr2297'
+        name = "Maven for PR #2639"
+        url = uri("https://prmaven.neoforged.net/NeoForge/pr2639")
         content {
-            includeModule('net.neoforged', 'neoforge')
+            includeModule("net.neoforged", "neoforge")
         }
     }
 }
@@ -83,10 +83,11 @@ accessTransformers {
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
+//    implementation "net.neoforged:neoforge:${neo_version}"
+    implementation "net.neoforged:neoforge:21.5.0-alpha.1.21.9-pre1.20250918.184530"
 
     compileOnly "mezz.jei:jei-1.21.7-neoforge-api:${jei_version}"
-    implementation "mezz.jei:jei-1.21.7-neoforge:${jei_version}"
+    compileOnly "mezz.jei:jei-1.21.7-neoforge:${jei_version}"
 
     compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"

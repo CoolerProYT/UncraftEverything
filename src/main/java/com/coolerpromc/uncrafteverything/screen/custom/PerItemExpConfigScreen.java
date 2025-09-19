@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -177,32 +178,31 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent buttonEvent, boolean doubled) {
         int scrollTop = 25;
         int scrollBottom = this.height - 65;
 
-        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+        boolean inScrollArea = buttonEvent.y() >= scrollTop && buttonEvent.y() <= scrollBottom;
 
         if (!inScrollArea) {
-            if (!(addButton.isMouseOver(mouseX, mouseY) || cancelButton.isMouseOver(mouseX, mouseY) || saveButton.isMouseOver(mouseX, mouseY))) {
+            if (!(addButton.isMouseOver(buttonEvent.x(), buttonEvent.y()) || cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y()) || saveButton.isMouseOver(buttonEvent.x(), buttonEvent.y()))) {
                 return false;
             }
             else{
-                if (addButton.isMouseOver(mouseX, mouseY)){
-                    return addButton.mouseClicked(mouseX, mouseY, button);
+                if (addButton.isMouseOver(buttonEvent.x(), buttonEvent.y())){
+                    return addButton.mouseClicked(buttonEvent, doubled);
                 }
 
-                if (cancelButton.isMouseOver(mouseX, mouseY)){
-                    return cancelButton.mouseClicked(mouseX, mouseY, button);
+                if (cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y())){
+                    return cancelButton.mouseClicked(buttonEvent, doubled);
                 }
 
-                if (saveButton.isMouseOver(mouseX, mouseY)){
-                    return saveButton.mouseClicked(mouseX, mouseY, button);
+                if (saveButton.isMouseOver(buttonEvent.x(), buttonEvent.y())){
+                    return saveButton.mouseClicked(buttonEvent, doubled);
                 }
             }
         }
-
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(buttonEvent, doubled);
     }
 
     @Override
