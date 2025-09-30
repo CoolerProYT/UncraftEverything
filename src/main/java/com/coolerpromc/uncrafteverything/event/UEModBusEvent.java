@@ -38,7 +38,7 @@ public class UEModBusEvent {
         registrar.playToClient(
                 UncraftingTableDataPayload.TYPE,
                 UncraftingTableDataPayload.STREAM_CODEC,
-                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {
+                FMLEnvironment.getDist().isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {
                 }
         );
 
@@ -63,7 +63,7 @@ public class UEModBusEvent {
         registrar.playToClient(
                 ResponseConfigPayload.TYPE,
                 ResponseConfigPayload.STREAM_CODEC,
-                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {
+                FMLEnvironment.getDist().isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {
                 }
         );
 
@@ -76,7 +76,7 @@ public class UEModBusEvent {
         registrar.playToClient(
                 UncraftingRecipeSelectionRequestPayload.TYPE,
                 UncraftingRecipeSelectionRequestPayload.STREAM_CODEC,
-                FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {
+                FMLEnvironment.getDist().isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {
                 }
         );
 

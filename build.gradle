@@ -83,8 +83,7 @@ accessTransformers {
 }
 
 dependencies {
-//    implementation "net.neoforged:neoforge:${neo_version}"
-    implementation "net.neoforged:neoforge:21.5.0-alpha.1.21.9-pre1.20250918.184530"
+    implementation "net.neoforged:neoforge:${neo_version}"
 
     compileOnly "mezz.jei:jei-1.21.7-neoforge-api:${jei_version}"
     compileOnly "mezz.jei:jei-1.21.7-neoforge:${jei_version}"
