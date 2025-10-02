@@ -41,7 +41,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 ((ServerPlayer) player).openMenu(blockEntity, pos);

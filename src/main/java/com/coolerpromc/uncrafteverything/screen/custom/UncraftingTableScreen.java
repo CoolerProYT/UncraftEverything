@@ -7,12 +7,12 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPay
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
@@ -36,6 +36,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     private static final ResourceLocation RECIPE_PANEL_TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
     private List<UncraftingTableRecipe> recipes = List.of();
     private int selectedRecipe = 0;
+    private boolean hasShift = false;
 
     private static final int SCROLLBAR_WIDTH = 6;
     private static final int SCROLLBAR_PADDING = 2;
@@ -100,7 +101,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     private void onPressed(Button button) {
-        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShiftDown());
+        UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShift());
         UncraftingTableCraftButtonClickPayload.INSTANCE.send(payload, PacketDistributor.SERVER.noArg());
     }
 
@@ -356,5 +357,21 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 UncraftingRecipeSelectionPayload.INSTANCE.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe), PacketDistributor.SERVER.noArg());
             }
         }
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent input) {
+        this.hasShift = input.hasShiftDown();
+        return super.keyPressed(input);
+    }
+
+    @Override
+    public boolean keyReleased(KeyEvent keyInput) {
+        this.hasShift = false;
+        return super.keyReleased(keyInput);
+    }
+
+    public boolean hasShift(){
+        return hasShift;
     }
 }

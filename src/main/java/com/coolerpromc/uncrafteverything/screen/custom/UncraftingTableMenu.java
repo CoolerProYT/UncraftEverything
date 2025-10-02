@@ -113,7 +113,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (!player.level().isClientSide){
+        if (!player.level().isClientSide()){
             ItemStack stack = blockEntity.getInputHandler().getStackInSlot(0);
             if (!stack.isEmpty()) {
                 player.getInventory().placeItemBackInInventory(stack);

@@ -11,6 +11,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -242,22 +243,22 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent buttonEvent, boolean doubled) {
         int scrollTop = 25;
         int scrollBottom = this.height - 45;
 
-        boolean inScrollArea = mouseY >= scrollTop && mouseY <= scrollBottom;
+        boolean inScrollArea = buttonEvent.y() >= scrollTop && buttonEvent.y() <= scrollBottom;
 
         if (!inScrollArea) {
-            if (!saveButton.isMouseOver(mouseX, mouseY)) {
+            if (!saveButton.isMouseOver(buttonEvent.x(), buttonEvent.y())) {
                 return false;
             }
             else{
-                return saveButton.mouseClicked(mouseX, mouseY, button);
+                return saveButton.mouseClicked(buttonEvent, doubled);
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(buttonEvent, doubled);
     }
 
     protected void renderSeparator(GuiGraphics guiGraphics){
