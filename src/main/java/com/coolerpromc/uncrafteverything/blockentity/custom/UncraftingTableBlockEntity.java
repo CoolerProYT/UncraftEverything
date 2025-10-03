@@ -46,8 +46,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,28 +86,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     private final ModItemStackHandler inputHandler = new ModItemStackHandler(1){
         @Override
-        protected void onContentsChanged(int slot) {
+        protected void onContentsChanged(int index, ItemStack previousContents) {
             setChanged();
             getOutputStacks();
             if (level != null && !level.isClientSide() && player != null) {
-                if (currentStack.getItem() != getStackInSlot(0).getItem() && !getStackInSlot(0).isEmpty()){
-                    for (int i = 0; i < getOutputHandler().getSlots(); i++) {
-                        ItemStack outputStack = getOutputHandler().getStackInSlot(i);
+                if (currentStack.getItem() != getResource(0).getItem() && !getResource(0).isEmpty()){
+                    for (int i = 0; i < getOutputHandler().size(); i++) {
+                        ItemStack outputStack = getOutputHandler().copyToList().get(i);
                         if (!outputStack.isEmpty()) {
                             player.getInventory().placeItemBackInInventory(outputStack);
-                            getOutputHandler().setStackInSlot(i, ItemStack.EMPTY);
+                            getOutputHandler().set(i, ItemResource.EMPTY, 0);
                             setChanged();
                         }
                     }
                 }
-                currentStack = getStackInSlot(0);
+                currentStack = getResource(0).toStack();
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
                 PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
             }
         }
 
         @Override
-        public int getSlotLimit(int slot) {
+        protected int getCapacity(int index, ItemResource resource) {
             String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
             String fieldName = "defaultStackSize";
             try{
@@ -122,14 +124,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 return (int) value;
             } catch (Exception e) {
-                return super.getSlotLimit(slot);
+                return super.getCapacity(index, resource);
             }
         }
     };
 
-    private final ItemStackHandler outputHandler = new ItemStackHandler(9){
+    private final ItemStacksResourceHandler outputHandler = new ItemStacksResourceHandler(9){
         @Override
-        protected void onContentsChanged(int slot) {
+        protected void onContentsChanged(int index, ItemStack previousContents) {
             setChanged();
             if (player != null){
                 handleRecipeSelection(currentRecipe);
@@ -140,12 +142,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        public boolean isValid(int index, ItemResource resource) {
             return false;
         }
 
         @Override
-        public int getSlotLimit(int slot) {
+        protected int getCapacity(int index, ItemResource resource) {
             String stackableItems = "com.dplayend.stackableitems.handler.HandlerConfig$Server";
             String fieldName = "defaultStackSize";
             try{
@@ -153,7 +155,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 Field serverField = handlerConfigClass.getDeclaredField("SERVER");
                 serverField.setAccessible(true);
-                Object serverInstance = serverField.get(null); // because it's static
+                Object serverInstance = serverField.get(null);
 
                 Class<?> serverClass = serverField.getType();
                 Field defaultStackSizeField = serverClass.getDeclaredField("defaultStackSize");
@@ -162,7 +164,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 return (int) value;
             } catch (Exception e) {
-                return super.getSlotLimit(slot);
+                return super.getCapacity(index, resource);
             }
         }
     };
@@ -243,16 +245,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    public ItemStackHandler getInputHandler() {
+    public ItemStacksResourceHandler getInputHandler() {
         return inputHandler;
     }
 
-    public ItemStackHandler getOutputHandler() {
+    public ItemStacksResourceHandler getOutputHandler() {
         return outputHandler;
     }
 
     public ResourceLocation inputStackLocation() {
-        return BuiltInRegistries.ITEM.getKey(inputHandler.getStackInSlot(0).getItem());
+        return BuiltInRegistries.ITEM.getKey(inputHandler.getResource(0).getItem());
     }
 
     public void getOutputStacks() {
@@ -260,7 +262,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         this.status = -1;
 
-        ItemStack inputStack = this.inputHandler.getStackInSlot(0);
+        ItemStack inputStack = this.inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0));
 
         List<? extends String> blacklist = UncraftEverythingConfig.CONFIG.restrictions.get();
         List<Pattern> wildcardBlacklist = blacklist.stream()
@@ -268,28 +270,28 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 .map(s -> Pattern.compile(s.replace("*", ".*")))
                 .toList();
 
-        if (inputHandler.getStackInSlot(0).isEmpty()
-                || UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0)).getLeft()
-                || (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
-                || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))
-                || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))
-                || (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0)) && !inputStack.has(DataComponents.TRIM))
+        if (inputHandler.getResource(0).isEmpty()
+                || UncraftEverythingConfig.isItemLocked(player, inputHandler.getResource(0).toStack()).getLeft()
+                || (inputHandler.getResource(0).toStack().getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
+                || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getResource(0).toStack())
+                || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getResource(0).toStack())
+                || (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getResource(0).toStack()) && !inputStack.has(DataComponents.TRIM))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY)
                 || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
-            if (inputHandler.getStackInSlot(0).getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged()){
+            if (inputHandler.getResource(0).toStack().getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged()){
                 this.status = DAMAGED_ITEM;
             }
 
-            if (UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getStackInSlot(0))){
+            if (UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getResource(0).toStack())){
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getStackInSlot(0))){
+            if (UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getResource(0).toStack())){
                 this.status = RESTRICTED_ITEM;
             }
 
-            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getStackInSlot(0)) && !inputStack.has(DataComponents.TRIM)){
+            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getResource(0).toStack()) && !inputStack.has(DataComponents.TRIM)){
                 this.status = ENCHANTED_ITEM;
             }
 
@@ -297,12 +299,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = SHULKER_WITH_ITEM;
             }
 
-            if (inputHandler.getStackInSlot(0).isEmpty() || inputHandler.getStackInSlot(0).getItem() == Items.ENCHANTED_BOOK) {
+            if (inputHandler.getResource(0).isEmpty() || inputHandler.getResource(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = NO_RECIPE;
             }
 
-            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getStackInSlot(0));
-            if (isItemLocked.getLeft() && !inputHandler.getStackInSlot(0).isEmpty()){
+            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getResource(0).toStack());
+            if (isItemLocked.getLeft() && !inputHandler.getResource(0).isEmpty()){
                 this.status = isItemLocked.getRight();
             }
 
@@ -720,7 +722,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     .orElse(List.of(Items.AIR));
             List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
-                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getResource(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
                     return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
@@ -782,7 +784,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             List<Item> finalItems1 = items;
             items = items.stream().filter(item -> {
-                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getStackInSlot(0).getItem()).getNamespace().equals("minecraft");
+                boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(this.inputHandler.getResource(0).getItem()).getNamespace().equals("minecraft");
 
                 if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()) {
                     return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
@@ -908,14 +910,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (int i = 0; i < outputs.size(); i++) {
             ItemStack output = outputs.get(i);
-            if (i < outputHandler.getSlots()) {
-                ItemStack slotStack = outputHandler.getStackInSlot(i);
+            if (i < outputHandler.size()) {
+                ItemStack slotStack = outputHandler.getResource(i).toStack(outputHandler.getAmountAsInt(i));
 
                 if (slotStack.isEmpty()) {
-                    outputHandler.setStackInSlot(i, output.copy());
+                    outputHandler.set(i, ItemResource.of(output.copy()), output.getCount());
                 } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
                     slotStack.grow(output.getCount());
-                    outputHandler.setStackInSlot(i, slotStack);
+                    outputHandler.set(i, ItemResource.of(slotStack), slotStack.getCount());
                 }
             }
         }
@@ -931,7 +933,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             inputHandler.extractItemWithoutTriggerChanges(0, this.currentRecipe.getInput().getCount(), false);
         }
         else{
-            inputHandler.extractItem(0, this.currentRecipe.getInput().getCount(), false);
+            try(Transaction tx = Transaction.open(null)){
+                if (inputHandler.extract(0,ItemResource.of(this.currentRecipe.getInput()), this.currentRecipe.getInput().getCount(), tx) == this.currentRecipe.getInput().getCount()){
+                    tx.commit();
+                }
+            }
         }
         setChanged();
 
@@ -944,11 +950,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         this.currentRecipe = recipe;
 
         if(!hasRecipe()){
-            if (inputHandler.getStackInSlot(0).isEmpty()){
+            if (inputHandler.getResource(0).isEmpty()){
                 this.status = NO_RECIPE;
             }
             else {
-                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getStackInSlot(0)).getLeft()){
+                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0))).getLeft()){
                     this.status = LOCKED_ITEM;
                 }
                 else{
@@ -979,7 +985,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             if (exp.getKey().startsWith("#")){
                 String tagName = exp.getKey().substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && inputHandler.getStackInSlot(0).is(tagKey.get())) {
+                if (tagKey.isPresent() && inputHandler.getResource(0).is(tagKey.get())) {
                     experience = exp.getValue();
                     break;
                 }
@@ -1012,7 +1018,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return false;
         }
 
-        ItemStack inputStack = inputHandler.getStackInSlot(0);
+        ItemStack inputStack = inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0));
         if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
             return false;
         }
@@ -1021,9 +1027,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (int i = 0; i < results.size(); i++) {
             ItemStack result = results.get(i);
-            if (i >= outputHandler.getSlots()) return false;
+            if (i >= outputHandler.size()) return false;
 
-            ItemStack slotStack = outputHandler.getStackInSlot(i);
+            ItemStack slotStack = outputHandler.getResource(i).toStack(this.inputHandler.getAmountAsInt(0));
 
             if (slotStack.isEmpty()) {
                 continue;
@@ -1046,7 +1052,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             return false;
         }
 
-        if (inputHandler.getStackInSlot(0).getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
+        if (inputHandler.getResource(0).toStack().getCount() - currentRecipe.getInput().getCount() < currentRecipe.getInput().getCount()){
             return false;
         }
 
@@ -1054,9 +1060,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         for (int i = 0; i < results.size(); i++) {
             ItemStack result = results.get(i);
-            if (i >= outputHandler.getSlots()) return false;
+            if (i >= outputHandler.size()) return false;
 
-            ItemStack slotStack = outputHandler.getStackInSlot(i);
+            ItemStack slotStack = outputHandler.getResource(i).toStack(outputHandler.getAmountAsInt(i));
 
             if (slotStack.isEmpty()) {
                 continue;

@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -17,7 +16,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class UEModBusEvent {
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, UEBlockEntities.UNCRAFTING_TABLE_BE.get(), (blockEntity, direction) -> {
+        event.registerBlockEntity(Capabilities.Item.BLOCK, UEBlockEntities.UNCRAFTING_TABLE_BE.get(), (blockEntity, direction) -> {
             if (direction == Direction.DOWN){
                 return blockEntity.getOutputHandler();
             }
