@@ -117,6 +117,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:ftb-quests-forge-289412:6829212")
     compileOnly fg.deobf("curse.maven:ftb-library-forge-404465:6807424")
     compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
+    implementation fg.deobf("curse.maven:jade-324717:6855440")
 }
 
 tasks.named('processResources', ProcessResources).configure {

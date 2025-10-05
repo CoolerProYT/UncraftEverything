@@ -44,6 +44,7 @@ import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.items.ItemStackHandler;
@@ -213,11 +214,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (side == Direction.DOWN){
-            return LazyOptional.of(() -> outputHandler).cast();
+        if (cap == ForgeCapabilities.ITEM_HANDLER){
+            if (side == Direction.DOWN){
+                return LazyOptional.of(() -> outputHandler).cast();
+            }
+
+            return LazyOptional.of(() -> inputHandler).cast();
         }
 
-        return LazyOptional.of(() -> inputHandler).cast();
+        return super.getCapability(cap, side);
     }
 
     @Override
