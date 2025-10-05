@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": "minecraft:crafting_table"
-    "D": "minecraft:diamond"
-    "P": "minecraft:planks"
+    "#": "minecraft:crafting_table",
+    "D": "minecraft:diamond",
+    "P": "#minecraft:planks"
   },
   "pattern": [
     "   ",
