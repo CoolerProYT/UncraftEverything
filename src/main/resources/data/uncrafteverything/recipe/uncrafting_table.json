@@ -3,11 +3,13 @@
   "category": "misc",
   "key": {
     "#": "minecraft:crafting_table"
+    "D": "minecraft:diamond"
+    "P": "minecraft:planks"
   },
   "pattern": [
-    "## ",
-    "## ",
-    "   "
+    "   ",
+    "P#P",
+    "PDP"
   ],
   "result": {
     "count": 1,
