@@ -42,7 +42,7 @@ public class UncraftEverythingConfig {
 
     private UncraftEverythingConfig(ForgeConfigSpec.Builder builder){
         builder.push("Experience");
-        experienceType = builder.comment("The type of experience to be used.").defineEnum("experienceType", ExperienceType.POINT, ExperienceType.values());
+        experienceType = builder.comment("The type of experience to be used.").defineEnum("experienceType", ExperienceType.LEVEL, ExperienceType.values());
         experience = builder.comment("The default amount of experience point/level required to uncraft an item. More detailed exp can me configured in uncrafteverything-exp.json").defineInRange("experiences", 1, 0, Integer.MAX_VALUE);
         builder.pop();
 
