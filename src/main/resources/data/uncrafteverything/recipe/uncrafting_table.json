@@ -4,12 +4,18 @@
   "key": {
     "#": {
       "item": "minecraft:crafting_table"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    "## ",
-    "## ",
-    "   "
+    "   ",
+    "P#P",
+    "PDP"
   ],
   "result": {
     "count": 1,

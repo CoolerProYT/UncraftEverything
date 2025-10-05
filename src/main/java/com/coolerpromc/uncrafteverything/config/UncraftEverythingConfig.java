@@ -68,7 +68,7 @@ public class UncraftEverythingConfig {
     }
 
     private static void applyConfig() {
-        experienceType = configFile.getEnumOrElse("Experience.experienceType", ExperienceType.POINT);
+        experienceType = configFile.getEnumOrElse("Experience.experienceType", ExperienceType.LEVEL);
         experience = Math.max(0, configFile.getOrElse("Experience.experiences", 1));
 
         restrictionType = configFile.getEnumOrElse("Restrictions.restrictionType", RestrictionType.BLACKLIST);
