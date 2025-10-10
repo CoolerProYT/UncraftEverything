@@ -20,10 +20,10 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.command.GameModeCommand;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.awt.geom.Rectangle2D;
@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("DataFlowIssue")
 public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
     private static final Identifier TEXTURE = Identifier.of(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
     private static final Identifier RECIPE_PANEL_TEXTURE = Identifier.of(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
@@ -75,7 +74,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 .builder(Text.translatable("screen.uncrafteverything.uncraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
                 .build());
 
-        if (this.handler.player.isCreative() || this.handler.player.hasPermissionLevel(4)){
+        if (this.handler.player.isCreative() || GameModeCommand.field_63167.method_75022(this.handler.player.method_75004())){
             TextIconButtonWidget configButton = TextIconButtonWidget
                     .builder(Text.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).dimension(12, 12).texture(Identifier.of(UncraftEverything.MODID, "config"), 8, 8)
                     .build();
@@ -288,7 +287,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             }
         }
 
-        if (this.handler.player.hasPermissionLevel(4) || this.handler.player.isCreative()){
+        if (GameModeCommand.field_63167.method_75022(this.handler.player.method_75004()) || this.handler.player.isCreative()){
             if (mouseX >= x + backgroundWidth - 16 && mouseX <= x + backgroundWidth - 4 && mouseY >= y + 3 && mouseY <= y + 15) {
                 context.drawTooltip(this.textRenderer, Text.translatable("screen.uncrafteverything.uncraft_everything_config"), mouseX, mouseY);
             }
