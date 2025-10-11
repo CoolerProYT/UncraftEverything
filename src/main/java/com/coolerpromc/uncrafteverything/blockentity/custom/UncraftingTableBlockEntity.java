@@ -327,7 +327,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
+                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 Equippable component = inputStack.get(DataComponents.EQUIPPABLE);
@@ -427,7 +427,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputs.add(outputStack);
         }
 
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && recipes.isEmpty()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && recipes.isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
             ItemEnchantments enchantments = inputStack.get(DataComponents.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
