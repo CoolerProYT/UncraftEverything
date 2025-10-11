@@ -292,7 +292,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT){
+                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.outputEnchantedBook()){
                     return false;
                 }
                 EquippableComponent component = inputStack.get(DataComponentTypes.EQUIPPABLE);
@@ -311,7 +311,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT){
+                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.outputEnchantedBook()){
                     return false;
                 }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
@@ -325,7 +325,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 if (!UncraftEverythingConfig.allowUnSmithing()){
                     return false;
                 }
-                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT){
+                if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.outputEnchantedBook()){
                     return false;
                 }
                 EquippableComponent component = inputStack.get(DataComponentTypes.EQUIPPABLE);
@@ -389,7 +389,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
             outputs.add(outputStack);
         }
 
-        if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && recipes.isEmpty()){
+        if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && recipes.isEmpty() && UncraftEverythingConfig.outputEnchantedBook()){
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
             ItemEnchantmentsComponent enchantments = inputStack.get(DataComponentTypes.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
