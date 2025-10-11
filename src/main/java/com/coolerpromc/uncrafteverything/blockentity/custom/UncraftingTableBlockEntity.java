@@ -339,7 +339,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
@@ -349,7 +349,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
@@ -363,7 +363,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
                     return false;
                 }
-                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty()){
+                if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 return inputStack.is(smithingTransformRecipe.result.getItem());
@@ -493,7 +493,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             outputs.add(outputStack);
         }
 
-        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty() && !inputStack.getItem().equals(Items.ENCHANTED_BOOK)){
+        if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty() && !inputStack.getItem().equals(Items.ENCHANTED_BOOK) && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
             Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(inputStack);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);

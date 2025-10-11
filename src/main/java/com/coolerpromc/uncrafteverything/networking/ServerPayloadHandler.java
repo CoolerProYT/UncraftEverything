@@ -73,6 +73,7 @@ public class ServerPayloadHandler {
                 config.restrictedModIngredients.set(payload.restrictedModIngredients());
                 config.enableProgression.set(payload.enableProgression());
                 config.onlyAllowDefinedProgression.set(payload.onlyAllowDefinedProgression());
+                config.outputEnchantedBook.set(payload.outputEnchantedBook());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -98,7 +99,8 @@ public class ServerPayloadHandler {
                         (List<String>) config.restrictedModIngredients.get(),
                         FTBQuestProgressionConfig.getProgressionMap(),
                         config.enableProgression.get(),
-                        config.onlyAllowDefinedProgression.get()
+                        config.onlyAllowDefinedProgression.get(),
+                        config.outputEnchantedBook.get()
                 );
                 ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> context.get().getSender()), configPayload);
             }
