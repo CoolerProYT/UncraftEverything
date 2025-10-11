@@ -116,7 +116,7 @@ public class UncraftEverythingConfig {
     }
 
     public boolean outputEnchantedBook(){
-        return outputEnchantedBook.getAsBoolean();
+        return outputEnchantedBook.get();
     }
 
     public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
