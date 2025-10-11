@@ -35,6 +35,7 @@ public class UncraftEverythingConfig {
     public final ModConfigSpec.ConfigValue<List<? extends String>> restrictedModIngredients;
     public final ModConfigSpec.BooleanValue enableProgression;
     public final ModConfigSpec.BooleanValue onlyAllowDefinedProgression;
+    public final ModConfigSpec.BooleanValue outputEnchantedBook;
 
     static {
         Pair<UncraftEverythingConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -56,7 +57,7 @@ public class UncraftEverythingConfig {
         builder.pop();
 
         builder.push("AllowEnchantedItems");
-        allowEnchantedItems = builder.comment("Allow uncrafting of enchanted items. [true/false]").define("allowEnchantedItems", false);
+        allowEnchantedItems = builder.comment("Allow uncrafting of enchanted items. [true/false]").define("allowEnchantedItems", true);
         builder.pop();
 
         builder.push("AllowUnSmithing");
@@ -81,6 +82,10 @@ public class UncraftEverythingConfig {
         builder.push("FTBQuestProgression");
         enableProgression = builder.comment("Enable progression based uncrafting recipe search (Only available when FTB Quests is added to the mod pack)").define("enableProgression", false);
         onlyAllowDefinedProgression = builder.comment("When FTB Quests is added and progression enabled, only item defined in progression config able to uncraft, all other item will be disabled.").define("onlyAllowDefinedProgression", false);
+        builder.pop();
+
+        builder.push("OutputEnchantedBook");
+        outputEnchantedBook = builder.comment("Output Enchanted Book for enchanted item. [true/false]").define("outputEnchantedBook", false);
         builder.pop();
     }
 
@@ -110,6 +115,10 @@ public class UncraftEverythingConfig {
 
     public boolean onlyAllowDefinedProgression(){
         return onlyAllowDefinedProgression.getAsBoolean();
+    }
+
+    public boolean outputEnchantedBook(){
+        return outputEnchantedBook.getAsBoolean();
     }
 
     public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
