@@ -22,7 +22,8 @@ public record ResponseConfigPayload(
     List<String> restrictedModIngredients,
     Map<String, String> ftbQuestProgression,
     boolean enableProgression,
-    boolean onlyAllowDefinedProgression
+    boolean onlyAllowDefinedProgression,
+    boolean outputEnchantedBook
 ) {
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "response_config");
 
@@ -40,6 +41,7 @@ public record ResponseConfigPayload(
         buf.writeMap(payload.ftbQuestProgression, PacketByteBuf::writeString, PacketByteBuf::writeString);
         buf.writeBoolean(payload.enableProgression);
         buf.writeBoolean(payload.onlyAllowDefinedProgression);
+        buf.writeBoolean(payload.outputEnchantedBook);
         return buf;
     }
 
@@ -57,7 +59,8 @@ public record ResponseConfigPayload(
         Map<String, String> ftbQuestProgression = buf.readMap(PacketByteBuf::readString, PacketByteBuf::readString);
         boolean enableProgression = buf.readBoolean();
         boolean onlyAllowDefinedProgression = buf.readBoolean();
+        boolean outputEnchantedBook = buf.readBoolean();
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
     }
 }

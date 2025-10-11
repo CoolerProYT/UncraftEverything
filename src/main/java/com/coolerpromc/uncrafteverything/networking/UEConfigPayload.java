@@ -19,7 +19,8 @@ public record UEConfigPayload(
         boolean preventModdedIngredientsFromVanillaItems,
         List<String> restrictedModIngredients,
         boolean enableProgression,
-        boolean onlyAllowDefinedProgression
+        boolean onlyAllowDefinedProgression,
+        boolean outputEnchantedBook
 ) {
 
     public static final Identifier TYPE = new Identifier(UncraftEverything.MODID, "ue_config");
@@ -36,6 +37,7 @@ public record UEConfigPayload(
         buf.writeCollection(payload.restrictedModIngredients, PacketByteBuf::writeString);
         buf.writeBoolean(payload.enableProgression);
         buf.writeBoolean(payload.onlyAllowDefinedProgression);
+        buf.writeBoolean(payload.outputEnchantedBook);
 
         return buf;
     }
@@ -52,7 +54,8 @@ public record UEConfigPayload(
         List<String> restrictedModIngredients = buf.readCollection(ArrayList::new, PacketByteBuf::readString);
         boolean enableProgression = buf.readBoolean();
         boolean onlyAllowDefinedProgression = buf.readBoolean();
+        boolean outputEnchantedBook = buf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
     }
 }

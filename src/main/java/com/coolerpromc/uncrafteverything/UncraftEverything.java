@@ -81,6 +81,7 @@ public class UncraftEverything implements ModInitializer {
 			UncraftEverythingConfig.restrictedModIngredients = payload.restrictedModIngredients();
 			UncraftEverythingConfig.enableProgression = payload.enableProgression();
 			UncraftEverythingConfig.onlyAllowDefinedProgression = payload.onlyAllowDefinedProgression();
+			UncraftEverythingConfig.outputEnchantedBook = payload.outputEnchantedBook();
 			UncraftEverythingConfig.save();
 		});
 
@@ -98,7 +99,8 @@ public class UncraftEverything implements ModInitializer {
 					UncraftEverythingConfig.restrictedModIngredients,
 					FTBQuestProgressionConfig.getProgressionMap(),
 					UncraftEverythingConfig.enableProgression,
-					UncraftEverythingConfig.onlyAllowDefinedProgression
+					UncraftEverythingConfig.onlyAllowDefinedProgression,
+					UncraftEverythingConfig.outputEnchantedBook
 			)));
 		});
 
