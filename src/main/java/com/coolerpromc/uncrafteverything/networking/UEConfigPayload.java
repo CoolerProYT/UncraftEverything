@@ -24,8 +24,9 @@ public record UEConfigPayload(
         boolean preventModdedIngredientsFromVanillaItems,
         List<String> restrictedModIngredients,
         boolean enableProgression,
-        boolean onlyAllowDefinedProgression
-){
+        boolean onlyAllowDefinedProgression,
+        boolean outputEnchantedBook
+) {
 
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config");
     private static final int PROTOCOL_VERSION = 0;
@@ -44,6 +45,7 @@ public record UEConfigPayload(
         ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedModIngredients);
         ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
+        ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
     }
 
     private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -58,8 +60,9 @@ public record UEConfigPayload(
         List<String> restrictedModIngredients = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
         boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
+        boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
     }
 
     public static final SimpleChannel INSTANCE = ChannelBuilder

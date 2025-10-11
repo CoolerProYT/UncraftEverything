@@ -31,8 +31,9 @@ public record ResponseConfigPayload(
         List<String> restrictedModIngredients,
         Map<String, String> ftbQuestProgression,
         boolean enableProgression,
-        boolean onlyAllowDefinedProgression
-) {
+        boolean onlyAllowDefinedProgression,
+        boolean outputEnchantedBook
+){
 
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config");
     private static final int PROTOCOL_VERSION = 0;
@@ -53,6 +54,7 @@ public record ResponseConfigPayload(
         ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8).encode(buf, new HashMap<>(payload.ftbQuestProgression));
         ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
+        ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
     }
 
     private static ResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -69,8 +71,9 @@ public record ResponseConfigPayload(
         Map<String, String> ftbQuestProgression = ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8).decode(buf);
         boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
+        boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
     }
 
     public static final SimpleChannel INSTANCE = ChannelBuilder
