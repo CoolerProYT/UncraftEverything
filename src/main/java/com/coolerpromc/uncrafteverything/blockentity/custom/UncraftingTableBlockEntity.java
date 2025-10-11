@@ -333,7 +333,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
                     this.status = NO_ENOUGH_INPUT;
                 }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
+                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
@@ -347,7 +347,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
                     return false;
                 }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY){
+                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
                 }
                 return inputStack.is(smithingTransformRecipe.result.getItem());
