@@ -13,8 +13,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.EditBoxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Style;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -41,6 +39,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private List<String> restrictedModIngredients = config.restrictedModIngredients();
     private boolean enableProgression = config.enableProgression();
     private boolean onlyAllowDefinedProgression = config.onlyAllowDefinedProgression();
+    private boolean outputEnchantedBook = config.outputEnchantedBook();
 
     private ButtonWidget restrictionTypeButton;
     private ButtonWidget toggleEnchantedBtn;
@@ -48,6 +47,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private ButtonWidget toggleAllowUnsmithing;
     private ButtonWidget toggleAllowDamaged;
     private ButtonWidget toggleEnableProgression;
+    private ButtonWidget toggleOutputEnchantedBook;
     private ButtonWidget toggleOnlyAllowDefinedProgression;
     private ButtonWidget togglePreventModdedIngredientsFromVanillaItems;
     private EditBoxWidget restrictionsInput;
@@ -56,7 +56,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private ButtonWidget saveButton;
 
     protected UEConfigScreen(Text title, Screen parent) {
-        super(title, 388);
+        super(title, 413);
         this.parent = parent;
     }
 
@@ -140,6 +140,13 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         }).dimensions(x, (int) (baseY + 390 - scrollAmount), widgetWidth, 20).build();
         this.addDrawableChild(toggleOnlyAllowDefinedProgression);
 
+        // Toggle for toggleOutputEnchantedBook
+        toggleOutputEnchantedBook = ButtonWidget.builder(Text.translatable(getLabel("screen.uncrafteverything.config.output_enchanted_book_", outputEnchantedBook)), btn -> {
+            outputEnchantedBook = !outputEnchantedBook;
+            btn.setMessage(Text.translatable(getLabel("screen.uncrafteverything.config.output_enchanted_book_", outputEnchantedBook)));
+        }).dimensions(x, (int) (baseY + 415 - scrollAmount), widgetWidth, 20).build();
+        this.addDrawableChild(toggleOutputEnchantedBook);
+
         // Save button (always at bottom)
         saveButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.save"), this::pressSaveButton).dimensions(this.width / 2 - 100, (this.height - 45) + 15, 200, 20).build();
         this.addDrawableChild(saveButton);
@@ -198,10 +205,13 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Text enableProgression = Text.translatable("screen.uncrafteverything.config.enable_progression");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(enableProgression, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Text onlyAllowDefined = Text.translatable("screen.uncrafteverything.config.only_allow_defined_progression");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(onlyAllowDefined, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        Text allowEnchantedBook = Text.translatable("screen.uncrafteverything.config.output_enchanted_book");
+        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, allowEnchantedBook, x, (int) (baseY + 417 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 1 - this.textRenderer.getWrappedLinesHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
@@ -290,7 +300,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         experience = Integer.parseInt(experienceInput.getText());
         restrictedModIngredients = Arrays.stream(restrictedModInput.getText().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
         this.client.setScreen(parent);
@@ -412,6 +422,18 @@ public class UEConfigScreen extends AbstractScrollableScreen {
                     valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_yes"),
                     Text.empty(),
                     valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleOutputEnchantedBook.isHovered()){
+            List<Text> tooltip = List.of(
+                    title("tooltip.uncrafteverything.config.toggle_output_enchanted_book"),
+                    description("tooltip.uncrafteverything.config.toggle_output_enchanted_book_description"),
+                    Text.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_output_enchanted_book_yes"),
+                    Text.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_output_enchanted_book_no")
             );
             renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
         }
