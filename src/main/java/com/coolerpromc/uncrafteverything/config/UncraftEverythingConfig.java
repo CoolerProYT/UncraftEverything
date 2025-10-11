@@ -40,6 +40,7 @@ public class UncraftEverythingConfig {
     public static List<String> restrictedModIngredients;
     public static boolean enableProgression;
     public static boolean onlyAllowDefinedProgression;
+    public static boolean outputEnchantedBook;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -84,7 +85,7 @@ public class UncraftEverythingConfig {
                 })
                 .toList();
 
-        allowEnchantedItems = configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", false);
+        allowEnchantedItems = configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", true);
 
         allowUnSmithing = configFile.getOrElse("AllowUnSmithing.allowUnSmithing", true);
 
@@ -96,6 +97,8 @@ public class UncraftEverythingConfig {
 
         enableProgression = configFile.getOrElse("FTBQuestProgression.enableProgression", false);
         onlyAllowDefinedProgression = configFile.getOrElse("FTBQuestProgression.onlyAllowDefinedProgression", false);
+
+        outputEnchantedBook = configFile.getOrElse("OutputEnchantedBook.outputEnchantedBook", false);
     }
 
     public static void save() {
@@ -135,6 +138,9 @@ public class UncraftEverythingConfig {
 
         configFile.set("FTBQuestProgression.onlyAllowDefinedProgression", onlyAllowDefinedProgression);
         configFile.setComment("FTBQuestProgression.onlyAllowDefinedProgression", "When FTB Quests is added and progression enabled, only item defined in progression config able to uncraft, all other item will be disabled.");
+
+        configFile.set("OutputEnchantedBook.outputEnchantedBook", outputEnchantedBook);
+        configFile.setComment("OutputEnchantedBook.outputEnchantedBook", "Output Enchanted Book for enchanted item. [true/false]");
 
         configFile.save();
     }
@@ -176,6 +182,10 @@ public class UncraftEverythingConfig {
 
     public static boolean onlyAllowDefinedProgression(){
         return onlyAllowDefinedProgression;
+    }
+
+    public static boolean outputEnchantedBook(){
+        return outputEnchantedBook;
     }
 
     public static Pair<Boolean, Integer> isItemLocked(ServerPlayerEntity player, ItemStack itemStack){
