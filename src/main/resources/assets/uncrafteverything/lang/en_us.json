@@ -99,5 +99,12 @@
   "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression": "Toggle Only Allow Defined Progression",
   "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_description": "This config value only work when progression is enabled",
   "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_yes": "Item that are not defined in Progression Config will never be able to uncraft",
-  "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no": "Everything will be able to uncraft except the item that are defined with a quest that is not completed"
+  "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no": "Everything will be able to uncraft except the item that are defined with a quest that is not completed",
+  "screen.uncrafteverything.config.output_enchanted_book_yes": "Output Enchanted Book: YES",
+  "screen.uncrafteverything.config.output_enchanted_book_no": "Output Enchanted Book: NO",
+  "tooltip.uncrafteverything.config.toggle_output_enchanted_book": "Toggle Output Enchanted Book",
+  "tooltip.uncrafteverything.config.toggle_output_enchanted_book_description": "Toggle if uncrafting enchanted item should output enchanted book",
+  "tooltip.uncrafteverything.config.toggle_output_enchanted_book_yes": "Enchanted book will be outputted when uncrafting enchanted item",
+  "tooltip.uncrafteverything.config.toggle_output_enchanted_book_no": "Enchanted book will not be outputted when uncrafting enchanted item",
+  "screen.uncrafteverything.config.output_enchanted_book": "Output Enchanted Book"
 }
