@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.ServerRecipeManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -155,7 +156,10 @@ public class UncraftEverything implements ModInitializer {
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
             ServerRecipeManager recipeManager = serverPlayerEntity.getWorld().getRecipeManager();
             List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
-            recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING));
+			recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING).stream().filter(recipeEntry -> {
+				RecipeSerializer<?> serializer = recipeEntry.value().getSerializer();
+				return !serializer.getClass().getName().equals("eu.pb4.factorytools.api.recipe.LazyRecipeSerializer");
+			}).toList());
             recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));
             List<List<RecipeEntry<?>>> recipes = Lists.partition(recipeEntries, 100);
             recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
