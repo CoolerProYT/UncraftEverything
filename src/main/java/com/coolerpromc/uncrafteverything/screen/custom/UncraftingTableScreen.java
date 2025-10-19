@@ -74,7 +74,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
                 .builder(Text.translatable("screen.uncrafteverything.uncraft"), this::onPressed).position(buttonX, buttonY).size(64, 16)
                 .build());
 
-        if (this.handler.player.isCreative() || GameModeCommand.field_63167.method_75022(this.handler.player.method_75004())){
+        if (this.handler.player.isCreative() || GameModeCommand.PERMISSION_CHECK.allows(this.handler.player.getPermissions())){
             TextIconButtonWidget configButton = TextIconButtonWidget
                     .builder(Text.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).dimension(12, 12).texture(Identifier.of(UncraftEverything.MODID, "config"), 8, 8)
                     .build();
@@ -287,7 +287,7 @@ public class UncraftingTableScreen extends HandledScreen<UncraftingTableMenu> {
             }
         }
 
-        if (GameModeCommand.field_63167.method_75022(this.handler.player.method_75004()) || this.handler.player.isCreative()){
+        if (GameModeCommand.PERMISSION_CHECK.allows(this.handler.player.getPermissions()) || this.handler.player.isCreative()){
             if (mouseX >= x + backgroundWidth - 16 && mouseX <= x + backgroundWidth - 4 && mouseY >= y + 3 && mouseY <= y + 15) {
                 context.drawTooltip(this.textRenderer, Text.translatable("screen.uncrafteverything.uncraft_everything_config"), mouseX, mouseY);
             }
