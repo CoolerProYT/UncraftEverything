@@ -98,6 +98,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     }
                 }
                 currentStack = getStackInSlot(0);
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
                 int fromIndex = page * 7;
                 if (fromIndex >= currentRecipes.size()) {
                     fromIndex = currentRecipes.size();
