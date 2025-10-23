@@ -23,7 +23,6 @@ import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.*;
 import net.minecraft.item.trim.ArmorTrim;
 import net.minecraft.item.trim.ArmorTrimMaterial;
@@ -102,7 +101,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                 }
                 currentStack = this.getStack(0);
                 world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+                int fromIndex = page * 7;
+                if (fromIndex >= currentRecipes.size()) {
+                    fromIndex = currentRecipes.size();
+                }
+                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()));
                 player.currentScreenHandler.sendContentUpdates();
             }
         }
@@ -867,7 +871,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         if (world != null && !world.isClient()) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
             if (!hasNext){
-                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+                int fromIndex = page * 7;
+                if (fromIndex >= currentRecipes.size()) {
+                    fromIndex = currentRecipes.size();
+                }
+                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()));
             }
         }
     }
