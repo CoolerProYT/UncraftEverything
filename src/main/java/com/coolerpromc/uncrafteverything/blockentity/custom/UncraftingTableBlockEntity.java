@@ -101,8 +101,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     }
                 }
                 currentStack = getResource(0).toStack();
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+                int fromIndex = page * 7;
+                if (fromIndex >= currentRecipes.size()) {
+                    fromIndex = currentRecipes.size();
+                }
+                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()));
             }
         }
 
