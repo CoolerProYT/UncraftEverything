@@ -908,7 +908,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         if (world != null && !world.isClient()) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
             if (!hasNext){
-                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(this.getPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+                int fromIndex = page * 7;
+                if (fromIndex >= currentRecipes.size()) {
+                    fromIndex = currentRecipes.size();
+                }
+                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()));
             }
         }
     }
