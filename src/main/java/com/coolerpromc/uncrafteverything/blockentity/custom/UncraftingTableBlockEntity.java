@@ -9,11 +9,7 @@ import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ModItemStackHandler;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
+import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -101,8 +97,13 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
                 currentStack = getStackInSlot(0);
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+                int fromIndex = page * 7;
+                if (fromIndex >= currentRecipes.size()) {
+                    fromIndex = currentRecipes.size();
+                }
+                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
                 PacketDistributor.PacketTarget target = PacketDistributor.PLAYER.with(player);
-                UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(currentRecipes.isEmpty() ? 0 : page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()), target);
+                UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()), target);
             }
         }
 
