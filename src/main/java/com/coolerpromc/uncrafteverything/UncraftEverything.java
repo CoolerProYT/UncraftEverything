@@ -53,6 +53,7 @@ public class UncraftEverything
         event.sendRecipes(RecipeType.CRAFTING, RecipeType.SMITHING);
     }
 
+    @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         PerItemExpCostConfig.stopWatcher();
         FTBQuestProgressionConfig.stopWatcher();
