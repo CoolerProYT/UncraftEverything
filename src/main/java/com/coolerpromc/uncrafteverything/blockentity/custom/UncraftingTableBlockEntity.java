@@ -689,7 +689,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
                         if (!colors.contains(color)){
                             color += id.substring(id.indexOf("_"), id.indexOf("_", id.indexOf("_") + 1));
                         }
-                        return (!colors.contains(color) || this.slots.getStack(getInputSlots()[0]).getItem().getRegistryEntry().getKey().get().getValue().getPath().contains(color)) && !item.equals(this.slots.getStack(getInputSlots()[0]).getItem());
+                        return (!colors.contains(color) || this.slots.getStack(getInputSlots()[0]).getItem().getRegistryEntry().getKey().get().getValue().getPath().startsWith(color)) && !item.equals(this.slots.getStack(getInputSlots()[0]).getItem());
                     }
                     return item.getRecipeRemainder(item.getDefaultStack()) == ItemStack.EMPTY || item.getRecipeRemainder(item.getDefaultStack()).getItem() != item.getDefaultStack().getItem();
                 })
