@@ -100,7 +100,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                         }
                     }
                 }
-                currentStack = getResource(0).toStack();
+                currentStack = getResource(0).toStack(getAmountAsInt(0));
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
                 int fromIndex = page * 7;
                 if (fromIndex >= currentRecipes.size()) {
                     fromIndex = currentRecipes.size();
@@ -414,7 +415,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         if (inputStack.is(Items.TIPPED_ARROW)){
             PotionContents potionContents = inputStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
-            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8));
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem().builtInRegistryHolder(), 8, inputStack.getComponentsPatch()));
             ItemStack potion = new ItemStack(Items.LINGERING_POTION);
             potion.set(DataComponents.POTION_CONTENTS, potionContents);
 
@@ -432,7 +433,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && recipes.isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
-            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1));
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
             ItemEnchantments enchantments = inputStack.get(DataComponents.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             book.set(DataComponents.STORED_ENCHANTMENTS, enchantments);
@@ -452,7 +453,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 ItemContainerContents itemContainerContents = inputStack.get(DataComponents.CONTAINER);
 
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
@@ -480,7 +481,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem().builtInRegistryHolder(), shapedRecipe.result.getCount(), inputStack.getComponentsPatch()));
                     Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
@@ -532,7 +533,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem().builtInRegistryHolder(), shapelessRecipe.result.getCount(), inputStack.getComponentsPatch()));
                     Map<Item, Integer> allIngredients = new HashMap<>();
 
                     for (Item item : ingredientCombination) {
@@ -585,7 +586,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
                 // Create a recipe for each combination
                 for (List<Item> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.item().value(), 1));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.item().value().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
 
                     for (Item item : ingredientCombination) {
                         if (outputStack.getOutputs().contains(item.getDefaultInstance())) {
@@ -938,7 +939,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }
         else{
             try(Transaction tx = Transaction.open(null)){
-                if (inputHandler.extract(0,ItemResource.of(this.currentRecipe.getInput()), this.currentRecipe.getInput().getCount(), tx) == this.currentRecipe.getInput().getCount()){
+                int count = inputHandler.extract(0,ItemResource.of(this.currentRecipe.getInput().getItem(), this.currentRecipe.getInput().getComponentsPatch()), this.currentRecipe.getInput().getCount(), tx);
+                if (count == this.currentRecipe.getInput().getCount()){
                     tx.commit();
                 }
             }
