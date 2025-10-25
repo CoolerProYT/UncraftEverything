@@ -43,6 +43,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -191,7 +192,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
         super.writeNbt(nbt, registries);
 
         Inventories.writeNbt(nbt, inventory, registries);
-  
+
         nbt.putInt("experience", experience);
         nbt.putInt("experienceType", experienceType);
     }
@@ -644,7 +645,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements ExtendedS
 
         return items.stream()
                 .filter(item -> {
-                    if (item.getTranslationKey().contains("shulker_box")){
+                    if (item.getTranslationKey().contains("shulker_box") && item.getTranslationKey().contains("minecraft")){
+                        if (this.slots.getStack(getInputSlots()[0]).getItem().getRegistryEntry().getKey().get().getValue().getNamespace().equals("reinfshulker")){
+                            return true;
+                        }
                         return item == Items.SHULKER_BOX;
                     }
                     return item.getRecipeRemainder(item.getDefaultStack()) == ItemStack.EMPTY || item.getRecipeRemainder(item.getDefaultStack()).getItem() != item.getDefaultStack().getItem();
