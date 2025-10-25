@@ -24,12 +24,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
@@ -308,7 +307,17 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
         }
 
-        renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+        if (this.getSlotUnderMouse() instanceof ResourceHandlerSlot slot && slot.getResourceHandler().size() == 1){
+            List<Component> tooltip = new ArrayList<>();
+            if (slot.hasItem()){
+                tooltip.addAll(this.getTooltipFromContainerItem(slot.getItem()));
+            }
+            tooltip.add(Component.literal("Testing"));
+            pGuiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), pMouseX, pMouseY);
+        }
+        else{
+            renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+        }
     }
 
     @Override
