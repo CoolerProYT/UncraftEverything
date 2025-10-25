@@ -7,6 +7,7 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionReq
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ModItemStackHandler;
+import com.coolerpromc.uncrafteverything.util.Status;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
@@ -63,24 +64,13 @@ import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.t
 
 @SuppressWarnings("unused")
 public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvider {
-    public static final int NO_RECIPE = 0;
-    public static final int NO_SUITABLE_OUTPUT_SLOT = 1;
-    public static final int NO_ENOUGH_EXPERIENCE = 2;
-    public static final int NO_ENOUGH_INPUT = 3;
-    public static final int SHULKER_WITH_ITEM = 4;
-    public static final int RESTRICTED_ITEM = 5;
-    public static final int DAMAGED_ITEM = 6;
-    public static final int ENCHANTED_ITEM = 7;
-    public static final int LOCKED_ITEM = 8;
-    public static final int PROGRESSION_NOT_DEFINED = 9;
-
     private List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     private UncraftingTableRecipe currentRecipe = null;
     private ServerPlayer player;
     private final ContainerData data;
     private int experience = 0;
     private int experienceType; // 0 = POINT, 1 = LEVEL
-    private int status = -1;
+    private Status status = Status.BLANK;
     private ItemStack currentStack = ItemStack.EMPTY;
     private int page = 0;
 
@@ -183,7 +173,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 return switch (index){
                     case 0 -> experience;
                     case 1 -> experienceType;
-                    case 2 -> status;
+                    case 2 -> status.getIndex();
                     default -> 0;
                 };
             }
@@ -193,7 +183,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 switch (index){
                     case 0 -> experience = value;
                     case 1 -> experienceType = value;
-                    case 2 -> status = value;
+                    case 2 -> status = Status.byIndex(value);
                 }
             }
 
@@ -265,7 +255,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
     public void getOutputStacks() {
         if (!(level instanceof ServerLevel serverLevel) || player == null) return;
 
-        this.status = -1;
+        this.status = Status.BLANK;
 
         ItemStack inputStack = this.inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0));
 
@@ -285,30 +275,30 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
             if (inputHandler.getResource(0).toStack().getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged()){
-                this.status = DAMAGED_ITEM;
+                this.status = Status.DAMAGED_ITEM;
             }
 
             if (UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputHandler.getResource(0).toStack())){
-                this.status = RESTRICTED_ITEM;
+                this.status = Status.RESTRICTED_BY_CONFIG;
             }
 
             if (UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputHandler.getResource(0).toStack())){
-                this.status = RESTRICTED_ITEM;
+                this.status = Status.RESTRICTED_BY_CONFIG;
             }
 
             if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputHandler.getResource(0).toStack()) && !inputStack.has(DataComponents.TRIM)){
-                this.status = ENCHANTED_ITEM;
+                this.status = Status.ENCHANTED_ITEM;
             }
 
             if(inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY){
-                this.status = SHULKER_WITH_ITEM;
+                this.status = Status.NOT_EMPTY_SHULKER;
             }
 
             if (inputHandler.getResource(0).isEmpty() || inputHandler.getResource(0).getItem() == Items.ENCHANTED_BOOK) {
-                this.status = NO_RECIPE;
+                this.status = Status.NO_RECIPE_FOUND;
             }
 
-            Pair<Boolean, Integer> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getResource(0).toStack());
+            Pair<Boolean, Status> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getResource(0).toStack());
             if (isItemLocked.getLeft() && !inputHandler.getResource(0).isEmpty()){
                 this.status = isItemLocked.getRight();
             }
@@ -330,7 +320,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
-                    this.status = NO_ENOUGH_INPUT;
+                    this.status = Status.NOT_ENOUGH_INPUT_ITEM;
                 }
                 if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
@@ -349,7 +339,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
                 if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
-                    this.status = NO_ENOUGH_INPUT;
+                    this.status = Status.NOT_ENOUGH_INPUT_ITEM;
                 }
                 if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
                     return false;
@@ -399,14 +389,14 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
             }
 
-            if (this.status == -1){
-                this.status = NO_RECIPE;
+            if (this.status == Status.BLANK){
+                this.status = Status.NO_RECIPE_FOUND;
             }
             return false;
         }).toList();
 
         if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems.getAsBoolean() && inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY)) {
-            this.status = -1;
+            this.status = Status.BLANK;
             this.experience = getExperience();
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType.getRaw() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
@@ -511,7 +501,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             }
                         }
                         else{
-                            this.status = DAMAGED_ITEM;
+                            this.status = Status.DAMAGED_ITEM;
                             outputs.clear();
                             return;
                         }
@@ -566,7 +556,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             }
                         }
                         else{
-                            this.status = DAMAGED_ITEM;
+                            this.status = Status.DAMAGED_ITEM;
                             outputs.clear();
                             return;
                         }
@@ -665,17 +655,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (!currentRecipes.isEmpty()) {
             PacketDistributor.sendToPlayer(player, new UncraftingRecipeSelectionRequestPayload());
             if(!hasRecipe()){
-                this.status = NO_SUITABLE_OUTPUT_SLOT;
+                this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
             }
             else{
                 if (!hasEnoughExperience()) {
-                    this.status = NO_ENOUGH_EXPERIENCE;
+                    this.status = Status.NOT_ENOUGH_EXP;
                 }
             }
         }
         else{
-            if (this.status == -1){
-                this.status = NO_RECIPE;
+            if (this.status == Status.BLANK){
+                this.status = Status.NO_RECIPE_FOUND;
             }
         }
     }
@@ -957,23 +947,23 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         if(!hasRecipe()){
             if (inputHandler.getResource(0).isEmpty()){
-                this.status = NO_RECIPE;
+                this.status = Status.NO_RECIPE_FOUND;
             }
             else {
                 if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0))).getLeft()){
-                    this.status = LOCKED_ITEM;
+                    this.status = Status.LOCKED_ITEM;
                 }
                 else{
-                    this.status = NO_SUITABLE_OUTPUT_SLOT;
+                    this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
                 }
             }
         }
         else{
             if (hasEnoughExperience()){
-                this.status = -1;
+                this.status = Status.BLANK;
             }
             else{
-                this.status = NO_ENOUGH_EXPERIENCE;
+                this.status = Status.NOT_ENOUGH_EXP;
             }
         }
     }

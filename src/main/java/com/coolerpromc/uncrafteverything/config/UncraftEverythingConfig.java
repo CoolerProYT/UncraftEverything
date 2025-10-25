@@ -1,7 +1,7 @@
 package com.coolerpromc.uncrafteverything.config;
 
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
+import com.coolerpromc.uncrafteverything.util.Status;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -120,17 +120,17 @@ public class UncraftEverythingConfig {
         return outputEnchantedBook.getAsBoolean();
     }
 
-    public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
+    public static Pair<Boolean, Status> isItemLocked(ServerPlayer player, ItemStack itemStack){
         if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
             if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
-                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? Status.PROGRESSION_NOT_DEFINED : Status.LOCKED_ITEM);
             }
             else{
-                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), Status.LOCKED_ITEM);
             }
         }
-        return Pair.of(false, -1);
+        return Pair.of(false, Status.BLANK);
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {

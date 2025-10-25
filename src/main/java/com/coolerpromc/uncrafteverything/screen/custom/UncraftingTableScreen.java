@@ -6,6 +6,7 @@ import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDat
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
+import com.coolerpromc.uncrafteverything.util.Status;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -250,19 +251,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int status = this.menu.getStatus();
 
         if (status != -1){
-            Component statusText = Component.translatable(switch (status){
-                case 0 -> "screen.uncrafteverything.no_recipe_found";
-                case 1 -> "screen.uncrafteverything.no_suitable_output_slot";
-                case 2 -> "screen.uncrafteverything.not_enough_exp";
-                case 3 -> "screen.uncrafteverything.not_enough_input";
-                case 4 -> "screen.uncrafteverything.not_empty_shulker";
-                case 5 -> "screen.uncrafteverything.restricted_by_config";
-                case 6 -> "screen.uncrafteverything.damaged_item";
-                case 7 -> "screen.uncrafteverything.enchanted_item";
-                case 8 -> "screen.uncrafteverything.locked_item";
-                case 9 -> "screen.uncrafteverything.progression_not_defined";
-                default -> "screen.uncrafteverything.blank";
-            });
+            Component statusText = Component.translatable(Status.byIndex(status).getTranslationKey());
 
             int textY = y + 55;
 
