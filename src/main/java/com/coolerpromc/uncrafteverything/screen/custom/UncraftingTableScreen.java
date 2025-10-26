@@ -2,7 +2,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
+import com.coolerpromc.uncrafteverything.networking.UncraftingPageChangePayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
@@ -17,8 +17,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -54,7 +54,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         if (size < 7 && this.page != 0){
             this.page = 0;
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
+            ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
+        }
+
+        if (!recipes.isEmpty()){
+            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
         }
     }
 
@@ -70,10 +74,12 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int buttonX = leftPos + (imageWidth - 64) - 20;
         int buttonY = topPos + 72;
 
-        this.addRenderableWidget(Button
-                .builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
-                .build());
+        this.addRenderableWidget(Button.builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16).build());
 
+        addConfigButtons();
+    }
+
+    private void addConfigButtons(){
         if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
             SpriteIconButton configButton = SpriteIconButton
                     .builder(Component.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
@@ -119,10 +125,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
     @Override
     protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = this.leftPos;
-        int y = this.topPos;
-
-        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
@@ -130,16 +133,63 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.clearWidgets();
         this.init();
 
-        Component exp = Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
-        int expX = leftPos + (imageWidth - 64) - 20 + 32;
-        pGuiGraphics.pose().pushMatrix();
-        pGuiGraphics.pose().scale(0.75f, 0.75f);
-        pGuiGraphics.pose().translate(expX * 1.3334f, this.topPos * 1.3334f + 121);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, this.font, exp, 0, 0, 0xFF00AA00);
-        pGuiGraphics.pose().popMatrix();
+        this.renderExpRequired(pGuiGraphics, pMouseX, pMouseY);
+        this.renderRecipeSelection(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.renderOutputPreview(pGuiGraphics);
+        super.renderContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.renderInputSlotOverlay(pGuiGraphics);
+        super.renderCarriedItem(pGuiGraphics, pMouseX, pMouseY);
+        super.renderSnapbackItem(pGuiGraphics);
+        this.renderConfigButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
+        this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+    }
 
-        int x = this.leftPos;
-        int y = this.topPos;
+    private void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY){
+        ResourceLocation icon = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/sprites/exp.png");
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(0.5f, 0.5f);
+        guiGraphics.pose().translate((this.leftPos + imageWidth - 17) * 2, (this.topPos + 72) * 2);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, icon, 0, 0, 0, 0, 16, 16, 16, 16);
+        guiGraphics.pose().popMatrix();
+
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(0.75f, 0.75f);
+        guiGraphics.pose().translate((this.leftPos + imageWidth - 12) * 1.3334f, (this.topPos + 82) * 1.3334f);
+        this.drawCenteredWordWrapWithoutShadow(guiGraphics, this.font, Component.literal(this.menu.getExpAmount() + ""), 0, 0, 0xFF00AA00);
+        guiGraphics.pose().popMatrix();
+
+        if (mouseX >= (this.leftPos + imageWidth - 19) && mouseX <= (this.leftPos + imageWidth - 7) && mouseY >= this.topPos + 72 && mouseY <= this.topPos + 87){
+            Component exp = Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
+            guiGraphics.setTooltipForNextFrame(this.font, exp, mouseX, mouseY);
+        }
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+        Status status = Status.byIndex(this.menu.getStatus());
+
+        if (this.getSlotUnderMouse() instanceof ResourceHandlerSlot slot && slot.getResourceHandler().size() == 1 && status != Status.BLANK){
+            List<Component> tooltip = new ArrayList<>();
+            if (slot.hasItem()){
+                tooltip.addAll(this.getTooltipFromContainerItem(slot.getItem()));
+            }
+            tooltip.add(Component.translatable(status.getTranslationKey()).withColor(status.getOverlay()));
+            guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), x, y);
+        }
+        else{
+            super.renderTooltip(guiGraphics, x, y);
+        }
+    }
+
+    private void renderInputSlotOverlay(GuiGraphics guiGraphics){
+        Status status = Status.byIndex(this.menu.getStatus());
+
+        if (status != Status.BLANK){
+            guiGraphics.fill(this.leftPos + 25, this.topPos + 34, this.leftPos + 43, this.topPos + 52, ARGB.color(70, status.getOverlay()));
+        }
+    }
+
+    private void renderRecipeSelection(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
         int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
         int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
 
@@ -147,9 +197,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             page = 0;
         }
 
-        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), x - 75, y + 7, 0xFF404040);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), x - 75, y + imageHeight - 18, 0xFF404040);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, this.leftPos - 152, this.topPos, 0, 0, 152, 184, 152, 184);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), this.leftPos - 75, this.topPos + 7, 0xFF404040);
+        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), this.leftPos - 75, this.topPos + imageHeight - 18, 0xFF404040);
 
         Button prevButton = Button.builder(Component.translatable("screen.uncrafteverything.prev_button"), button -> {
             if (this.page > 0) {
@@ -158,8 +208,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             else{
                 this.page = Math.max(maxPageCount - 1, 0);
             }
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        }).pos(x - 152 + 5, y + imageHeight - 23).size(16, 16).build();
+            ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
+        }).pos(this.leftPos - 152 + 5, this.topPos + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         Button nextButton = Button.builder(Component.translatable("screen.uncrafteverything.next_button"), button -> {
@@ -169,8 +219,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             else{
                 this.page = 0;
             }
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        }).pos(x - 21, y + imageHeight - 23).size(16, 16).build();
+            ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
+        }).pos(this.leftPos - 21, this.topPos + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         // Render visible recipes
@@ -180,10 +230,13 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             int displayIndex = visibleCount;
 
             int recipeWidth = 9 * 16 + 5;
-            Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
+            Rectangle2D bounds = new Rectangle2D.Double(this.leftPos - recipeWidth, this.topPos + (displayIndex * 18) + 30, recipeWidth - 3, 18);
 
             int finalJ = j;
-            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Component.translatable("screen.uncrafteverything.blank"), ignored -> selectedRecipe = finalJ);
+            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Component.translatable("screen.uncrafteverything.blank"), ignored -> {
+                selectedRecipe = finalJ;
+                ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
+            });
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
@@ -210,9 +263,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 if (inputComponents.containsKey(entry.getKey())){
                     itemStack.applyComponents(inputComponents.get(entry.getKey()));
                 }
-                pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
-                pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
-                if (pMouseX >= x - recipeWidth + (i * 16) + 1 && pMouseX <= x - recipeWidth + (i * 16) + 17 && pMouseY >= y + (displayIndex * 18) + 31 && pMouseY <= y + (displayIndex * 18) + 31 + 16) {
+                pGuiGraphics.renderFakeItem(itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
+                pGuiGraphics.renderItemDecorations(this.font, itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
+                if (pMouseX >= this.leftPos - recipeWidth + (i * 16) + 1 && pMouseX <= this.leftPos - recipeWidth + (i * 16) + 17 && pMouseY >= this.topPos + (displayIndex * 18) + 31 && pMouseY <= this.topPos + (displayIndex * 18) + 31 + 16) {
                     pGuiGraphics.setTooltipForNextFrame(this.font, itemStack, pMouseX, pMouseY);
                 }
                 i++;
@@ -224,88 +277,40 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         if (selectedRecipe >= recipes.size()) {
             selectedRecipe = 0;
         }
+    }
 
+    private void renderOutputPreview(GuiGraphics guiGraphics){
         if (!recipes.isEmpty()) {
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(
-                    this.menu.blockEntity.getBlockPos(),
-                    this.recipes.get(selectedRecipe)));
-
             List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
             for (int i = 0; i < outputs.size(); i++) {
                 ItemStack itemStack = outputs.get(i);
-                pGuiGraphics.renderFakeItem(
+                guiGraphics.renderFakeItem(
                         itemStack,
-                        x + 98 + 18 * (i % 3),
-                        y + 17 + (i / 3) * 18);
-                pGuiGraphics.fill(
-                        x + 98 + 18 * (i % 3),
-                        y + 17 + (i / 3) * 18,
-                        x + 98 + 18 * (i % 3) + 16,
-                        y + 17 + (i / 3) * 18 + 16,
+                        this.leftPos + 98 + 18 * (i % 3),
+                        this.topPos + 17 + (i / 3) * 18);
+                guiGraphics.fill(
+                        this.leftPos + 98 + 18 * (i % 3),
+                        this.topPos + 17 + (i / 3) * 18,
+                        this.leftPos + 98 + 18 * (i % 3) + 16,
+                        this.topPos + 17 + (i / 3) * 18 + 16,
                         0xAA8B8B8B);
             }
         }
+    }
 
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
-        int status = this.menu.getStatus();
-
-        if (status != -1){
-            Component statusText = Component.translatable(Status.byIndex(status).getTranslationKey());
-
-            int textY = y + 55;
-
-            float scale = 0.75f;
-            int boxWidth = 52;
-            int boxLeft = x + 9;
-            float boxCenterX = boxLeft + boxWidth / 2f;
-
-            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), (int) (boxWidth * 1.3));
-
-            switch (formattedText.size()){
-                case 1 -> textY += 14;
-                case 2 -> textY += 9;
-                default -> textY += 5;
-            }
-
-            for (FormattedCharSequence line : formattedText) {
-                float rawWidth = font.width(line);
-                float drawX = -rawWidth / 2f;
-
-                pGuiGraphics.pose().pushMatrix();
-                pGuiGraphics.pose().translate(boxCenterX, textY);
-                pGuiGraphics.pose().scale(scale, scale);
-                pGuiGraphics.drawString(font, line, Math.round(drawX), 0, 0xFFFF5555, false);
-                pGuiGraphics.pose().popMatrix();
-
-                textY += 7;
-            }
-        }
-
+    private void renderConfigButtonTooltip(GuiGraphics guiGraphics, int pMouseX, int pMouseY){
         if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
             if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
+                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
             }
 
             if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
+                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
             }
 
             if (pMouseX >= leftPos + imageWidth - 44 && pMouseX <= leftPos + imageWidth - 32 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15 && QuestHelper.FTBQUESTS_LOADED) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
+                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
             }
-        }
-
-        if (this.getSlotUnderMouse() instanceof ResourceHandlerSlot slot && slot.getResourceHandler().size() == 1){
-            List<Component> tooltip = new ArrayList<>();
-            if (slot.hasItem()){
-                tooltip.addAll(this.getTooltipFromContainerItem(slot.getItem()));
-            }
-            tooltip.add(Component.literal("Testing"));
-            pGuiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), pMouseX, pMouseY);
-        }
-        else{
-            renderTooltip(pGuiGraphics, pMouseX, pMouseY);
         }
     }
 
@@ -321,7 +326,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipeSize) {
             this.page = 0;
         }
-        ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
+        ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
     }
 

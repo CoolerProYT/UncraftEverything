@@ -80,8 +80,8 @@ public class UEModBusEvent {
         );
 
         registrar.playToServer(
-                UncraftingRecipeSelectionDataPayload.TYPE,
-                UncraftingRecipeSelectionDataPayload.STREAM_CODEC,
+                UncraftingPageChangePayload.TYPE,
+                UncraftingPageChangePayload.STREAM_CODEC,
                 ServerPayloadHandler::handleRecipeSelectionData
         );
 

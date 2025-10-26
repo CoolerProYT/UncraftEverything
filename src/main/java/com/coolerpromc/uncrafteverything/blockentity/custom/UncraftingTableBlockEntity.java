@@ -294,8 +294,12 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 this.status = Status.NOT_EMPTY_SHULKER;
             }
 
-            if (inputHandler.getResource(0).isEmpty() || inputHandler.getResource(0).getItem() == Items.ENCHANTED_BOOK) {
+            if (inputHandler.getResource(0).getItem() == Items.ENCHANTED_BOOK) {
                 this.status = Status.NO_RECIPE_FOUND;
+            }
+
+            if (inputHandler.getResource(0).isEmpty()){
+                this.status = Status.BLANK;
             }
 
             Pair<Boolean, Status> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputHandler.getResource(0).toStack());
@@ -389,7 +393,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 }
             }
 
-            if (this.status == Status.BLANK){
+            if (this.status == Status.BLANK && !inputHandler.getResource(0).isEmpty()){
                 this.status = Status.NO_RECIPE_FOUND;
             }
             return false;
@@ -664,7 +668,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
         }
         else{
-            if (this.status == Status.BLANK){
+            if (this.status == Status.BLANK && !inputHandler.getResource(0).isEmpty()){
                 this.status = Status.NO_RECIPE_FOUND;
             }
         }
@@ -947,7 +951,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
 
         if(!hasRecipe()){
             if (inputHandler.getResource(0).isEmpty()){
-                this.status = Status.NO_RECIPE_FOUND;
+                this.status = Status.BLANK;
             }
             else {
                 if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getResource(0).toStack(this.inputHandler.getAmountAsInt(0))).getLeft()){

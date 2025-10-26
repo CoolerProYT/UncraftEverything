@@ -132,7 +132,7 @@ public class ServerPayloadHandler {
         });
     }
 
-    public static void handleRecipeSelectionData(UncraftingRecipeSelectionDataPayload payload, IPayloadContext context){
+    public static void handleRecipeSelectionData(UncraftingPageChangePayload payload, IPayloadContext context){
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player){
                 ServerLevel level = player.level();
