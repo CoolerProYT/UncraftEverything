@@ -58,6 +58,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         }
 
         if (!recipes.isEmpty()){
+            if (selectedRecipe >= this.recipes.size()){
+                selectedRecipe = 0;
+            }
             ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
         }
     }
@@ -135,7 +138,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
 
         this.renderExpRequired(pGuiGraphics, pMouseX, pMouseY);
         this.renderRecipeSelection(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        this.renderOutputPreview(pGuiGraphics);
         super.renderContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.renderInputSlotOverlay(pGuiGraphics);
         super.renderCarriedItem(pGuiGraphics, pMouseX, pMouseY);
@@ -165,7 +167,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+    protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
         Status status = Status.byIndex(this.menu.getStatus());
 
         if (this.getSlotUnderMouse() instanceof ResourceHandlerSlot slot && slot.getResourceHandler().size() == 1 && status != Status.BLANK){
@@ -201,6 +203,16 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), this.leftPos - 75, this.topPos + 7, 0xFF404040);
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), this.leftPos - 75, this.topPos + imageHeight - 18, 0xFF404040);
 
+
+        this.renderNavigationButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick, maxPageCount);
+        this.renderRecipeButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
+        if (selectedRecipe >= recipes.size()) {
+            selectedRecipe = 0;
+        }
+    }
+
+    private void renderNavigationButton(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick, int maxPageCount){
         Button prevButton = Button.builder(Component.translatable("screen.uncrafteverything.prev_button"), button -> {
             if (this.page > 0) {
                 this.page--;
@@ -222,8 +234,9 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
         }).pos(this.leftPos - 21, this.topPos + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+    }
 
-        // Render visible recipes
+    private void renderRecipeButton(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
         int visibleCount = 0;
         for (int j = 0; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
             UncraftingTableRecipe recipe = recipes.get(j);
@@ -272,29 +285,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
 
             visibleCount++;
-        }
-
-        if (selectedRecipe >= recipes.size()) {
-            selectedRecipe = 0;
-        }
-    }
-
-    private void renderOutputPreview(GuiGraphics guiGraphics){
-        if (!recipes.isEmpty()) {
-            List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
-            for (int i = 0; i < outputs.size(); i++) {
-                ItemStack itemStack = outputs.get(i);
-                guiGraphics.renderFakeItem(
-                        itemStack,
-                        this.leftPos + 98 + 18 * (i % 3),
-                        this.topPos + 17 + (i / 3) * 18);
-                guiGraphics.fill(
-                        this.leftPos + 98 + 18 * (i % 3),
-                        this.topPos + 17 + (i / 3) * 18,
-                        this.leftPos + 98 + 18 * (i % 3) + 16,
-                        this.topPos + 17 + (i / 3) * 18 + 16,
-                        0xAA8B8B8B);
-            }
         }
     }
 
@@ -369,7 +359,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     }
 
     @Override
-    public boolean keyReleased(KeyEvent keyInput) {
+    public boolean keyReleased(@NotNull KeyEvent keyInput) {
         this.hasShift = false;
         return super.keyReleased(keyInput);
     }
