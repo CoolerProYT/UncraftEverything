@@ -108,7 +108,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         if (!player.level().isClientSide()){
-            ItemStack stack = blockEntity.getInputHandler().getResource(0).toStack();
+            ItemStack stack = blockEntity.getInputHandler().getResource(0).toStack(blockEntity.getInputHandler().getAmountAsInt(0));
             if (!stack.isEmpty()) {
                 player.getInventory().placeItemBackInInventory(stack);
                 blockEntity.getInputHandler().set(0, ItemResource.EMPTY, 0);
@@ -116,7 +116,7 @@ public class UncraftingTableMenu extends AbstractContainerMenu {
             }
 
             for (int i = 0; i < blockEntity.getOutputHandler().size(); i++) {
-                ItemStack outputStack = blockEntity.getOutputHandler().getResource(i).toStack();
+                ItemStack outputStack = blockEntity.getOutputHandler().getResource(i).toStack(blockEntity.getOutputHandler().getAmountAsInt(i));
                 if (!outputStack.isEmpty()) {
                     player.getInventory().placeItemBackInInventory(outputStack);
                     blockEntity.getOutputHandler().set(i, ItemResource.EMPTY, 0);
