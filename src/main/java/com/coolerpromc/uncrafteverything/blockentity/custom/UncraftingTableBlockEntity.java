@@ -512,9 +512,9 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             for (var x : allIngredients.entrySet()){
                                 if (repairableComponent.isValidRepairItem(new ItemStack(x.getKey().getA(), x.getValue()))){
                                     int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).is(x.getKey().getA())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
+                                    while (outputStack.getStack(x.getKey()).getCount() > 0 && damagedPercentage != 0){
+                                        if (outputStack.getStack(x.getKey()).is(x.getKey().getA())){
+                                            outputStack.getStack(x.getKey()).shrink(1);
                                             damagedPercentage--;
                                         }
                                     }
@@ -560,16 +560,15 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                             allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
                         }
                     }
-                    // Check if the input stack is damaged and if so, remove the corresponding number of damaged items from the outputAdd commentMore actions
                     if (inputStack.isDamaged()){
                         Repairable repairableComponent = inputStack.get(DataComponents.REPAIRABLE);
                         if (repairableComponent != null){
                             for (var x : allIngredients.entrySet()){
                                 if (repairableComponent.isValidRepairItem(new ItemStack(x.getKey().getA(), x.getValue()))){
                                     int damagedPercentage = (int) Math.ceil((double) inputStack.getDamageValue() / inputStack.getMaxDamage() * x.getValue());
-                                    for (int i = 0;i < outputStack.getOutputs().size() && damagedPercentage != 0;i++){
-                                        if (outputStack.getOutputs().get(i).is(x.getKey().getA())){
-                                            outputStack.setOutput(i, ItemStack.EMPTY);
+                                    while (outputStack.getStack(x.getKey()).getCount() > 0 && damagedPercentage != 0){
+                                        if (outputStack.getStack(x.getKey()).is(x.getKey().getA())){
+                                            outputStack.getStack(x.getKey()).shrink(1);
                                             damagedPercentage--;
                                         }
                                     }
