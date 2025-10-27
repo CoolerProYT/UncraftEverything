@@ -29,7 +29,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -38,12 +37,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.enchantment.Repairable;
-import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -354,49 +353,22 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             }
 
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                if (shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapedRecipe.result.getCount()){
-                    this.status = Status.NOT_ENOUGH_INPUT_ITEM;
-                }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
-                    return false;
-                }
-                Equippable component = inputStack.get(DataComponents.EQUIPPABLE);
-                if (component != null && component.slot() == EquipmentSlot.CHEST){
-                    if (component.assetId().isPresent()){
-                        ResourceLocation assetId = component.assetId().get().location();
-                        if (assetId.getNamespace().equals("elytra_chestplate")){
-                            return false;
-                        }
-                    }
-                }
-                if (inputStack.isDamaged()){
-                    return shapedRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapedRecipe.result.getCount();
-                }
-                return ItemStack.isSameItemSameComponents(shapedRecipe.result, inputStack) && inputStack.getCount() >= shapedRecipe.result.getCount();
+                return this.validateRecipe(shapedRecipe.result, inputStack);
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                if (shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() < shapelessRecipe.result.getCount()){
-                    this.status = Status.NOT_ENOUGH_INPUT_ITEM;
-                }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
-                    return false;
-                }
-                if (inputStack.isDamaged()){
-                    return shapelessRecipe.result.getItem() == inputStack.getItem() && inputStack.getCount() >= shapelessRecipe.result.getCount();
-                }
-                return ItemStack.isSameItemSameComponents(shapelessRecipe.result, inputStack) && inputStack.getCount() >= shapelessRecipe.result.getCount();
+                return this.validateRecipe(shapelessRecipe.result, inputStack);
             }
 
             if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
-                return ItemStack.isSameItemSameComponents(inputStack, new ItemStack(transmuteRecipe.result.item(), transmuteRecipe.result.count(), transmuteRecipe.result.components()));
+                ItemStack stack = inputStack.copy();
+                if (stack.has(DataComponents.CONTAINER)) stack.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+                if (stack.has(DataComponents.BUNDLE_CONTENTS)) stack.set(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
+                return ItemStack.isSameItemSameComponents(stack, new ItemStack(transmuteRecipe.result.item(), transmuteRecipe.result.count(), transmuteRecipe.result.components()));
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
-                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
-                    return false;
-                }
-                if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
+                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing() || (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook())){
                     return false;
                 }
                 return ItemStack.isSameItemSameComponents(inputStack, new ItemStack(smithingTransformRecipe.result.item(), smithingTransformRecipe.result.count(), smithingTransformRecipe.result.components()));
@@ -407,9 +379,10 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     return false;
                 }
                 ArmorTrim armorTrim = inputStack.get(DataComponents.TRIM);
+
                 if (armorTrim != null){
                     Optional<Ingredient> ingredient = smithingTrimRecipe.additionIngredient();
-                    if (ingredient.isPresent() && armorTrim.pattern().equals(smithingTrimRecipe.pattern)){
+                    if (ingredient.isPresent() && armorTrim.pattern().is(smithingTrimRecipe.pattern)){
                         return true;
                     }
                 }
@@ -422,6 +395,19 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         }).toList();
     }
 
+    private boolean validateRecipe(ItemStack result, ItemStack inputStack){
+        if (result.getItem() == inputStack.getItem() && inputStack.getCount() < result.getCount()){
+            this.status = Status.NOT_ENOUGH_INPUT_ITEM;
+        }
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
+            return false;
+        }
+        if (inputStack.isDamaged()){
+            return result.getItem() == inputStack.getItem() && inputStack.getCount() >= result.getCount();
+        }
+        return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
+    }
+
     private Tuple<List<UncraftingTableRecipe>, Boolean> getOutputs(ItemStack inputStack, List<RecipeHolder<?>> recipes){
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
 
@@ -431,16 +417,8 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             ItemStack potion = new ItemStack(Items.LINGERING_POTION);
             potion.set(DataComponents.POTION_CONTENTS, potionContents);
 
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
+            outputStack.addOutput(new ItemStack(Items.ARROW, 8));
             outputStack.addOutput(potion);
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-            outputStack.addOutput(new ItemStack(Items.ARROW, 1));
-
             outputs.add(outputStack);
         }
 
@@ -462,24 +440,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
             if (r.value() instanceof TransmuteRecipe transmuteRecipe){
                 List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
                 List<List<Tuple<Item, DataComponentPatch>>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients);
-                ItemContainerContents itemContainerContents = inputStack.get(DataComponents.CONTAINER);
 
                 for (List<Tuple<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
 
                     for (Tuple<Item, DataComponentPatch> item : ingredientCombination) {
                         if (outputStack.contains(item)) {
-                            ItemStack stack = outputStack.getStack(item);
-                            if (stack.has(DataComponents.CONTAINER)){
-                                stack.set(DataComponents.CONTAINER, itemContainerContents);
-                            }
-                            stack.setCount(stack.getCount() + 1);
-                            outputStack.setOutput(outputStack.indexOf(item), stack);
+                            outputStack.getStack(item).grow(1);
                         } else {
                             ItemStack itemStack = new ItemStack(item.getA().builtInRegistryHolder(), 1, item.getB());
-                            if (itemStack.has(DataComponents.CONTAINER)){
-                                itemStack.set(DataComponents.CONTAINER, itemContainerContents);
-                            }
+                            if (itemStack.has(DataComponents.CONTAINER)) itemStack.set(DataComponents.CONTAINER, inputStack.get(DataComponents.CONTAINER));
+                            if (itemStack.has(DataComponents.BUNDLE_CONTENTS)) itemStack.set(DataComponents.BUNDLE_CONTENTS, inputStack.get(DataComponents.BUNDLE_CONTENTS));
                             outputStack.addOutput(itemStack);
                         }
                     }
