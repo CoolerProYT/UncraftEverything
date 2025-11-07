@@ -49,6 +49,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -405,6 +406,16 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
         if (inputStack.isDamaged()){
             return result.getItem() == inputStack.getItem() && inputStack.getCount() >= result.getCount();
         }
+        try{
+            if (ModList.get().isLoaded("travelersbackpack")) {
+                if (result.getItem() instanceof com.tiviacz.travelersbackpack.items.TravelersBackpackItem) {
+                    return ItemStack.isSameItem(result, inputStack);
+                }
+            }
+        }
+        catch (Exception ignored){
+
+        }
         return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
     }
 
@@ -683,7 +694,7 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     if (item.getA().getDescriptionId().contains("wool") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getPath().contains("_wool")){
                         return item.getA() == Items.WHITE_WOOL;
                     }
-                    if (item.getA().getDescriptionId().contains("bed") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getPath().contains("_bed")){
+                    if (item.getA().getDescriptionId().contains("bed") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getPath().contains("_bed") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getNamespace().contains("minecraft")){
                         return item.getA() == Items.WHITE_BED;
                     }
                     if (item.getA().getDescriptionId().contains("carpet") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getPath().contains("_carpet")){
@@ -691,6 +702,17 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                     }
                     if (item.getA().getDescriptionId().contains("harness") && inputHandler.getResource(0).getItem().builtInRegistryHolder().key().location().getPath().contains("_harness")){
                         return inputHandler.getResource(0).getItem() == Items.WHITE_HARNESS ? item.getA() == Items.GRAY_HARNESS : item.getA() == Items.WHITE_HARNESS;
+                    }
+                    try{
+                        if (ModList.get().isLoaded("travelersbackpack")) {
+                            if (item.getA() instanceof com.tiviacz.travelersbackpack.items.SleepingBagItem) {
+                                return inputHandler.getResource(0).getItem() == com.tiviacz.travelersbackpack.init.ModItems.WHITE_SLEEPING_BAG.get() ?
+                                        item.getA() == com.tiviacz.travelersbackpack.init.ModItems.GRAY_SLEEPING_BAG.get() : item.getA() == com.tiviacz.travelersbackpack.init.ModItems.WHITE_SLEEPING_BAG.get();
+                            }
+                        }
+                    }
+                    catch (Exception ignored){
+
                     }
                     return item.getA().getCraftingRemainder(item.getA().getDefaultInstance()) == ItemStack.EMPTY || item.getA().getCraftingRemainder(item.getA().getDefaultInstance()).getItem() != item.getA().getDefaultInstance().getItem();
                 })
