@@ -48,7 +48,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
                 blockEntity.getOutputStacks();
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
-//                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes())));
+                    blockEntity.updatePage(0);
                 }
             }
             else {
