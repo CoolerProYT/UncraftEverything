@@ -29,19 +29,25 @@ public class ModCommands {
     }
 
     private static int common(CommandContext<CommandSourceStack> context){
-        ClientPacketDistributor.sendToServer(new RequestConfigPayload());
-        Minecraft.getInstance().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config")));
+        Minecraft.getInstance().schedule(() -> {
+            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
+            Minecraft.getInstance().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config")));
+        });
         return 1;
     }
 
     private static int exp(CommandContext<CommandSourceStack> context){
-        ClientPacketDistributor.sendToServer(new RequestConfigPayload());
-        Minecraft.getInstance().setScreen(new PerItemExpConfigScreen(Component.translatable("screen.uncrafteverything.per_item_xp_config")));
+        Minecraft.getInstance().schedule(() -> {
+            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
+            Minecraft.getInstance().setScreen(new PerItemExpConfigScreen(Component.translatable("screen.uncrafteverything.per_item_xp_config")));
+        });
         return 1;
     }
 
     private static int client(CommandContext<CommandSourceStack> context){
-        Minecraft.getInstance().setScreen(new UEClientConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_client_config")));
+        Minecraft.getInstance().schedule(() -> {
+            Minecraft.getInstance().setScreen(new UEClientConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_client_config")));
+        });
         return 1;
     }
 }
