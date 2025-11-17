@@ -171,13 +171,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
     protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
         Status status = Status.byIndex(this.menu.getStatus());
 
-        if (this.getSlotUnderMouse() instanceof ResourceHandlerSlot slot && slot.getResourceHandler().size() == 1 && status != Status.BLANK){
-            List<Component> tooltip = new ArrayList<>();
-            if (slot.hasItem()){
-                tooltip.addAll(this.getTooltipFromContainerItem(slot.getItem()));
-            }
+        if (this.hoveredSlot != null && status != Status.BLANK){
+            ItemStack itemStack = this.hoveredSlot.getItem();
+            List<Component> tooltip = new ArrayList<>(this.getTooltipFromContainerItem(itemStack));
             tooltip.add(Component.translatable(status.getTranslationKey()).withColor(status.getOverlay()));
-            ItemStack itemStack = slot.getResourceHandler().getResource(0).toStack();
             guiGraphics.setTooltipForNextFrame(this.font, tooltip, itemStack.getTooltipImage(), itemStack, x, y, itemStack.get(DataComponents.TOOLTIP_STYLE));
         }
         else{
