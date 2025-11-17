@@ -145,22 +145,26 @@ public class ColorPickerWidget extends AbstractWidget {
         graphics.drawString(Minecraft.getInstance().font, String.format("#%08X", previewColor), pickerX + 60, previewTop - 12, 0xFFFFFF);
 
         // --- Buttons ---
-        int btnY = screenHeight / 2 + PICKER_SIZE / 2;
-        int confirmX = screenWidth / 2 + 10;
-        int cancelX = screenWidth / 2 - buttonWidth / 2 - 10;
+        double scale = Minecraft.getInstance().getWindow().getGuiScale();
 
-        this.isSaveHoveredOrFocused = mouseX >= confirmX && mouseX <= confirmX + buttonWidth / 2 && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT;
-        this.isCancelHoveredOrFocused = mouseX >= cancelX && mouseX <= cancelX + buttonWidth / 2 && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT;
+        int scaledButtonWidth = 260 / 2 - 10;
+
+        int btnY = screenHeight / 2 + PICKER_SIZE / 2;
+        int confirmX = screenWidth / 2 + 5;
+        int cancelX = screenWidth / 2 - scaledButtonWidth - 5;
+
+        this.isSaveHoveredOrFocused = mouseX >= confirmX && mouseX <= confirmX + scaledButtonWidth && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT;
+        this.isCancelHoveredOrFocused = mouseX >= cancelX && mouseX <= cancelX + scaledButtonWidth && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT;
 
         if (this.isSaveHoveredOrFocused || this.isCancelHoveredOrFocused) {
             graphics.requestCursor(this.isActive() ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
         }
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isSaveHoveredOrFocused), confirmX, btnY, buttonWidth / 2, BUTTON_HEIGHT, ARGB.white(this.alpha));
-        graphics.drawCenteredString(Minecraft.getInstance().font, "Confirm", confirmX + ((buttonWidth / 2) / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isSaveHoveredOrFocused), confirmX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
+        graphics.drawCenteredString(Minecraft.getInstance().font, "Confirm", confirmX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isCancelHoveredOrFocused), cancelX, btnY, buttonWidth / 2, BUTTON_HEIGHT, ARGB.white(this.alpha));
-        graphics.drawCenteredString(Minecraft.getInstance().font, "Cancel", cancelX + ((buttonWidth / 2) / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isCancelHoveredOrFocused), cancelX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
+        graphics.drawCenteredString(Minecraft.getInstance().font, "Cancel", cancelX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
     }
 
     @Override
