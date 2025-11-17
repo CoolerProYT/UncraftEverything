@@ -2,10 +2,12 @@ package com.coolerpromc.uncrafteverything.event;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.networking.*;
 import net.minecraft.core.Direction;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -22,6 +24,20 @@ public class UEModBusEvent {
             }
             return blockEntity.getInputHandler();
         });
+    }
+
+    @SubscribeEvent
+    public static void onLoad(final ModConfigEvent.Loading event) {
+        if (event.getConfig().getSpec() == UncraftEverythingClientConfig.CONFIG_SPEC) {
+            UncraftEverythingClientConfig.CONFIG.onChanged();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onReload(final ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() == UncraftEverythingClientConfig.CONFIG_SPEC) {
+            UncraftEverythingClientConfig.CONFIG.onChanged();
+        }
     }
 
     @SubscribeEvent

@@ -7,6 +7,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
+import java.util.function.Consumer;
+
 public class ColorPickerScreen extends Screen {
     private static final int HUE_BAR_WIDTH = 15;
     private static final int PICKER_SIZE = 100;
@@ -18,8 +20,13 @@ public class ColorPickerScreen extends Screen {
 
     private int pickerX, pickerY, hueBarX, hueBarY;
 
-    public ColorPickerScreen() {
+    private final Screen parent;
+    private final Consumer<Integer> consumer;
+
+    public ColorPickerScreen(Screen parent, Consumer<Integer> consumer) {
         super(Component.literal("HSV Color Picker"));
+        this.parent = parent;
+        this.consumer = consumer;
     }
 
     @Override
@@ -33,8 +40,8 @@ public class ColorPickerScreen extends Screen {
 
         addRenderableWidget(Button.builder(Component.literal("Confirm"), btn -> {
             int selected = hsvToRgbInt(hue, saturation, value);
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Selected: #" + String.format("%08X", selected)), false);
-            onClose();
+            consumer.accept(selected);
+            this.minecraft.setScreen(parent);
         }).bounds(this.width / 2 - 80, pickerY + PICKER_SIZE + 28, 70, 20).build());
 
         addRenderableWidget(Button.builder(Component.literal("Cancel"), btn -> onClose()).bounds(this.width / 2 + 10, pickerY + PICKER_SIZE + 28, 70, 20).build());
