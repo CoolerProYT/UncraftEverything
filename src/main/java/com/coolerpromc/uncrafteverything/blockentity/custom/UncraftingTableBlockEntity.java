@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
@@ -987,6 +988,11 @@ public class UncraftingTableBlockEntity extends BlockEntity implements MenuProvi
                 } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
                     slotStack.grow(output.getCount());
                     outputHandler.set(slot, ItemResource.of(slotStack), slotStack.getCount());
+                }
+
+                if (UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.getAsBoolean()){
+                    player.getInventory().placeItemBackInInventory(outputHandler.copyToList().get(slot));
+                    outputHandler.set(slot, ItemResource.EMPTY, 0);
                 }
             }
         }
