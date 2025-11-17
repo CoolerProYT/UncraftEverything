@@ -16,6 +16,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
@@ -176,7 +177,8 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
                 tooltip.addAll(this.getTooltipFromContainerItem(slot.getItem()));
             }
             tooltip.add(Component.translatable(status.getTranslationKey()).withColor(status.getOverlay()));
-            guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), x, y);
+            ItemStack itemStack = slot.getResourceHandler().getResource(0).toStack();
+            guiGraphics.setTooltipForNextFrame(this.font, tooltip, itemStack.getTooltipImage(), itemStack, x, y, itemStack.get(DataComponents.TOOLTIP_STYLE));
         }
         else{
             super.renderTooltip(guiGraphics, x, y);
