@@ -9,7 +9,9 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
+import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -22,9 +24,10 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.List;
 
 @Mod(UncraftEverything.MODID)
 public class UncraftEverything
@@ -56,6 +59,26 @@ public class UncraftEverything
     @SubscribeEvent
     public void onOnDatapackSync(OnDatapackSyncEvent event) {
         event.sendRecipes(RecipeType.CRAFTING, RecipeType.SMITHING);
+        if (event.getPlayer() instanceof ServerPlayer player) {
+            UncraftEverythingConfig config = UncraftEverythingConfig.CONFIG;
+            ResponseConfigPayload configPayload = new ResponseConfigPayload(
+                    config.restrictionType.get(),
+                    (List<String>) config.restrictions.get(),
+                    config.allowEnchantedItems.get(),
+                    config.experienceType.get(),
+                    config.experience.get(),
+                    config.allowUnSmithing.get(),
+                    config.allowDamaged.get(),
+                    config.preventModdedIngredientsFromVanillaItems.get(),
+                    PerItemExpCostConfig.getPerItemExp(),
+                    (List<String>) config.restrictedModIngredients.get(),
+                    FTBQuestProgressionConfig.getProgressionMap(),
+                    config.enableProgression.get(),
+                    config.onlyAllowDefinedProgression.get(),
+                    config.outputEnchantedBook.get()
+            );
+            PacketDistributor.sendToPlayer(player, configPayload);
+        }
     }
 
     @SubscribeEvent

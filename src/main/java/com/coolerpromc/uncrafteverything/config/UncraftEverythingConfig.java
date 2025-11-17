@@ -201,7 +201,7 @@ public class UncraftEverythingConfig {
         return restrictedModIngredients.get();
     }
 
-    public ResourceLocation inputStackLocation(ItemStack itemStack) {
+    public static ResourceLocation inputStackLocation(ItemStack itemStack) {
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
