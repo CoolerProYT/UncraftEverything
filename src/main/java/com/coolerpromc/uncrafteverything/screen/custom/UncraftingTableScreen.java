@@ -1,7 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.UncraftingPageChangePayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
@@ -11,7 +10,6 @@ import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -26,11 +24,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
@@ -79,52 +79,11 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int buttonY = topPos + 72;
 
         this.addRenderableWidget(Button.builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16).build());
-
-        addConfigButtons();
-    }
-
-    private void addConfigButtons(){
-        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
-            SpriteIconButton configButton = SpriteIconButton
-                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
-                    .build();
-            configButton.setX(leftPos + imageWidth - 16);
-            configButton.setY(topPos + 3);
-            this.addRenderableWidget(configButton);
-
-            SpriteIconButton expButton = SpriteIconButton
-                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openExpScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp"), 8, 8)
-                    .build();
-            expButton.setX(leftPos + imageWidth - 30);
-            expButton.setY(topPos + 3);
-            this.addRenderableWidget(expButton);
-
-            if (QuestHelper.FTBQUESTS_LOADED){
-                SpriteIconButton progressionButton = SpriteIconButton
-                        .builder(Component.translatable("screen.uncrafteverything.blank"), this::openProgressionScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "book"), 8, 8)
-                        .build();
-                progressionButton.setX(leftPos + imageWidth - 44);
-                progressionButton.setY(topPos + 3);
-                this.addRenderableWidget(progressionButton);
-            }
-        }
     }
 
     private void onPressed(Button button) {
         UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShift());
         ClientPacketDistributor.sendToServer(payload);
-    }
-
-    private void openConfigScreen(Button button){
-        this.getMinecraft().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this));
-    }
-
-    private void openExpScreen(Button button){
-        this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
-    }
-
-    private void openProgressionScreen(Button button){
-        this.getMinecraft().setScreen(new FTBQuestsProgressionConfigScreen(this));
     }
 
     @Override
@@ -143,7 +102,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.renderInputSlotOverlay(pGuiGraphics);
         super.renderCarriedItem(pGuiGraphics, pMouseX, pMouseY);
         super.renderSnapbackItem(pGuiGraphics);
-        this.renderConfigButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
         this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
@@ -284,22 +242,6 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
             }
 
             visibleCount++;
-        }
-    }
-
-    private void renderConfigButtonTooltip(GuiGraphics guiGraphics, int pMouseX, int pMouseY){
-        if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
-            if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
-            }
-
-            if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
-            }
-
-            if (pMouseX >= leftPos + imageWidth - 44 && pMouseX <= leftPos + imageWidth - 32 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15 && QuestHelper.FTBQUESTS_LOADED) {
-                guiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
-            }
         }
     }
 

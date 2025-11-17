@@ -36,7 +36,7 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     private Button cancelButton;
     private Button saveButton;
 
-    protected UEClientConfigScreen(Component title) {
+    public UEClientConfigScreen(Component title) {
         super(title, 250);
         ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, (int) (baseY + 25 - scrollAmount), 0, noRecipeFoundColor, Component.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
         ColorPickerWidget noSuitableOutputSlotButton = new ColorPickerWidget(0, (int) (baseY + 50 - scrollAmount), 0, noSuitableOutputSlotColor, Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot"), this, this::setNoSuitableOutputSlotColor);
@@ -224,6 +224,18 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
             }
         }
 
+        if (!inScrollArea && visible == null) {
+            if (!saveButton.isMouseOver(buttonEvent.x(), buttonEvent.y()) && !cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y())) {
+                return false;
+            }
+            else{
+                if (cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y())){
+                    return cancelButton.mouseClicked(buttonEvent, doubled);
+                }
+                return saveButton.mouseClicked(buttonEvent, doubled);
+            }
+        }
+
         if (visible != null){
             return visible.mouseClicked(buttonEvent, doubled);
         }
@@ -233,18 +245,6 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
                 if (x.isVisible()){
                     return result;
                 }
-            }
-        }
-
-        if (!inScrollArea) {
-            if (!saveButton.isMouseOver(buttonEvent.x(), buttonEvent.y()) && !cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y())) {
-                return false;
-            }
-            else{
-                if (cancelButton.isMouseOver(buttonEvent.x(), buttonEvent.y())){
-                    return cancelButton.mouseClicked(buttonEvent, doubled);
-                }
-                return saveButton.mouseClicked(buttonEvent, doubled);
             }
         }
 
