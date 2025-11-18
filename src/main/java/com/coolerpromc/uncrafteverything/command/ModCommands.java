@@ -1,6 +1,8 @@
 package com.coolerpromc.uncrafteverything.command;
 
+import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
+import com.coolerpromc.uncrafteverything.screen.custom.FTBQuestsProgressionConfigScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.PerItemExpConfigScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.UEClientConfigScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.UEConfigScreen;
@@ -18,6 +20,7 @@ public class ModCommands {
         dispatcher.register(Commands.literal("ueconfig")
                 .then(Commands.literal("common").requires(ModCommands::isCreativeOrHasPermission).executes(ModCommands::common))
                 .then(Commands.literal("exp").requires(ModCommands::isCreativeOrHasPermission).executes(ModCommands::exp))
+                .then(Commands.literal("progression").requires(ModCommands::hasFTBQuest).executes(ModCommands::progression))
                 .then(Commands.literal("client").executes(ModCommands::client)));
     }
 
@@ -26,6 +29,10 @@ public class ModCommands {
         if (player == null) return false;
 
         return player.isCreative() || commandSourceStack.hasPermission(4);
+    }
+
+    private static boolean hasFTBQuest(CommandSourceStack commandSourceStack){
+        return isCreativeOrHasPermission(commandSourceStack) && !QuestHelper.FTBQUESTS_LOADED;
     }
 
     private static int common(CommandContext<CommandSourceStack> context){
@@ -47,6 +54,14 @@ public class ModCommands {
     private static int client(CommandContext<CommandSourceStack> context){
         Minecraft.getInstance().schedule(() -> {
             Minecraft.getInstance().setScreen(new UEClientConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_client_config")));
+        });
+        return 1;
+    }
+
+    private static int progression(CommandContext<CommandSourceStack> context){
+        Minecraft.getInstance().schedule(() -> {
+            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
+            Minecraft.getInstance().setScreen(new FTBQuestsProgressionConfigScreen(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config")));
         });
         return 1;
     }

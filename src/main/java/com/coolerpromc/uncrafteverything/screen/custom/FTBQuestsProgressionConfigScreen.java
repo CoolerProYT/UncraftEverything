@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
     private final int ENTRIES_START_Y = 30;
@@ -34,9 +33,8 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
     private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
     private final List<Button> scrollableButtons = new ArrayList<>();
 
-    public FTBQuestsProgressionConfigScreen(Screen parent) {
-        super(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), 200);
-        this.parent = parent;
+    public FTBQuestsProgressionConfigScreen(Component text) {
+        super(text, 200);
     }
 
     @Override
@@ -96,7 +94,7 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         UEProgressionPayload configPayload = new UEProgressionPayload(newConfig);
         ClientPacketDistributor.sendToServer(configPayload);
         ClientPacketDistributor.sendToServer(new RequestConfigPayload());
-        this.getMinecraft().setScreen(parent);
+        onClose();
     }
 
     private void saveCurrentValues() {
@@ -148,8 +146,6 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
-
         guiGraphics.drawCenteredString(font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         guiGraphics.enableScissor(0, ENTRIES_START_Y - 5, width, this.height - 65);
@@ -206,11 +202,6 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         }
 
         return super.mouseClicked(buttonEvent, doubled);
-    }
-
-    @Override
-    public void onClose() {
-        this.getMinecraft().setScreen(parent);
     }
 
     protected void renderSeparator(GuiGraphics guiGraphics){
