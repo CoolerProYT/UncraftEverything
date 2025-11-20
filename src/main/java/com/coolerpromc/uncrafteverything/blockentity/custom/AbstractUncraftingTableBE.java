@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -150,7 +150,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
         return experience;
     }
 
-    public ResourceLocation inputStackLocation(ItemStacksResourceHandler inputHandler) {
+    public Identifier inputStackLocation(ItemStacksResourceHandler inputHandler) {
         return BuiltInRegistries.ITEM.getKey(inputHandler.getResource(0).getItem());
     }
 

@@ -316,7 +316,6 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     public void tick(Level level, BlockPos pos, BlockState state){
         if (!level.isClientSide()){
             if (isActive && hasRecipe() && hasEnoughExperience()){
-                System.out.println("crafting");
                 processUncraft();
             }
         }

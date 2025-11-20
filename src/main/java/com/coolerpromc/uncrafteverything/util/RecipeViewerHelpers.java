@@ -11,7 +11,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -148,7 +148,7 @@ public class RecipeViewerHelpers {
                     smithingTrimRecipe.additionIngredient().get().getValues().forEach(itemHolder1 -> {
                         output.set(1, Ingredient.of(itemHolder1.value()));
                         Optional<Holder<TrimMaterial>> trimMaterialReference = TrimMaterials.getFromIngredient(registryAccess, itemHolder1.value().getDefaultInstance());
-                        if (trimMaterialReference.isPresent() && itemHolder.getKey().location().getPath().contains("diamond")){
+                        if (trimMaterialReference.isPresent() && itemHolder.getKey().identifier().getPath().contains("diamond")){
                             ItemStack stack = itemHolder.value().asItem().getDefaultInstance();
                             stack.set(DataComponents.TRIM, new ArmorTrim(trimMaterialReference.get(), smithingTrimRecipe.pattern));
                             entries.add(new JEIUncraftingTableRecipe(stack, output));
@@ -166,7 +166,7 @@ public class RecipeViewerHelpers {
             return false;
         }
 
-        ResourceLocation itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
+        Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (ClientPayloadHandler.payloadFromServer.restrictedItems().contains(itemLocationString)) {
@@ -198,7 +198,7 @@ public class RecipeViewerHelpers {
             return false;
         }
 
-        ResourceLocation itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
+        Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (ClientPayloadHandler.payloadFromServer.restrictedItems().contains(itemLocationString)) {

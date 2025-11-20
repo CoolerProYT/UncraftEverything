@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.commands.GameModeCommand;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
@@ -28,11 +29,11 @@ public class ModCommands {
         Player player = Minecraft.getInstance().player;
         if (player == null) return false;
 
-        return player.isCreative() || commandSourceStack.hasPermission(4);
+        return player.isCreative() || GameModeCommand.PERMISSION_CHECK.check(player.permissions());
     }
 
     private static boolean hasFTBQuest(CommandSourceStack commandSourceStack){
-        return isCreativeOrHasPermission(commandSourceStack) && !QuestHelper.FTBQUESTS_LOADED;
+        return isCreativeOrHasPermission(commandSourceStack) && QuestHelper.FTBQUESTS_LOADED;
     }
 
     private static int common(CommandContext<CommandSourceStack> context){

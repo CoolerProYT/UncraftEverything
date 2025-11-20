@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 
 public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTableBE, T extends AbstractUncraftingMenu<B>> extends AbstractContainerScreen<T> {
-    protected static final ResourceLocation RECIPE_PANEL_TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
+    protected static final Identifier RECIPE_PANEL_TEXTURE = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
 
     protected List<UncraftingTableRecipe> recipes = List.of();
     protected int selectedRecipe = 0;

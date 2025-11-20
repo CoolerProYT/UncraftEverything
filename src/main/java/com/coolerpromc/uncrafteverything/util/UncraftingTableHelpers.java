@@ -9,7 +9,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Tuple;
@@ -86,7 +86,7 @@ public class UncraftingTableHelpers {
 
     public static <T extends AbstractUncraftingTableBE> List<RecipeHolder<?>> findRecipe(ServerLevel serverLevel, ItemStack inputStack, T blockEntity){
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
-            if (!recipeHolder.id().location().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
+            if (!recipeHolder.id().identifier().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
                 return false;
             }
 
@@ -354,7 +354,7 @@ public class UncraftingTableHelpers {
                         ResourceKey<Item> itemResourceKey = itemHolder.getKey();
                         ResourceKey<TrimMaterial> armorTrimKey = armorTrim.material().getKey();
                         if (itemResourceKey != null && armorTrimKey != null){
-                            return itemResourceKey.location().getPath().contains(armorTrimKey.location().getPath());
+                            return itemResourceKey.identifier().getPath().contains(armorTrimKey.identifier().getPath());
                         }
                         return false;
                     }).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.of(itemHolder.value()))));
@@ -427,22 +427,22 @@ public class UncraftingTableHelpers {
     }
 
     private static boolean filterIngredient(Tuple<Item, DataComponentPatch> item, ItemStack inputStack){
-        if (item.getA().getDescriptionId().contains("shulker_box") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_shulker_box")){
+        if (item.getA().getDescriptionId().contains("shulker_box") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_shulker_box")){
             return item.getA() == Items.SHULKER_BOX;
         }
-        if (item.getA().getDescriptionId().contains("bundle") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_bundle")){
+        if (item.getA().getDescriptionId().contains("bundle") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_bundle")){
             return item.getA() == Items.BUNDLE;
         }
-        if (item.getA().getDescriptionId().contains("wool") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_wool")){
+        if (item.getA().getDescriptionId().contains("wool") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_wool")){
             return item.getA() == Items.WHITE_WOOL;
         }
-        if (item.getA().getDescriptionId().contains("bed") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_bed") && inputStack.getItem().builtInRegistryHolder().key().location().getNamespace().contains("minecraft")){
+        if (item.getA().getDescriptionId().contains("bed") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_bed") && inputStack.getItem().builtInRegistryHolder().key().identifier().getNamespace().contains("minecraft")){
             return item.getA() == Items.WHITE_BED;
         }
-        if (item.getA().getDescriptionId().contains("carpet") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_carpet")){
+        if (item.getA().getDescriptionId().contains("carpet") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_carpet")){
             return item.getA() == Items.WHITE_CARPET;
         }
-        if (item.getA().getDescriptionId().contains("harness") && inputStack.getItem().builtInRegistryHolder().key().location().getPath().contains("_harness")){
+        if (item.getA().getDescriptionId().contains("harness") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_harness")){
             return inputStack.getItem() == Items.WHITE_HARNESS ? item.getA() == Items.GRAY_HARNESS : item.getA() == Items.WHITE_HARNESS;
         }
         try{
@@ -477,7 +477,7 @@ public class UncraftingTableHelpers {
                     return BuiltInRegistries.ITEM.getKey(item.getA()).getNamespace().equals("minecraft");
                 }
                 else if(finalItems1.size() > 1){
-                    ResourceLocation ingredientRL = BuiltInRegistries.ITEM.getKey(item.getA());
+                    Identifier ingredientRL = BuiltInRegistries.ITEM.getKey(item.getA());
                     return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
@@ -513,7 +513,7 @@ public class UncraftingTableHelpers {
                     return BuiltInRegistries.ITEM.getKey(item.getA()).getNamespace().equals("minecraft");
                 }
                 else if(finalItems1.size() > 1){
-                    ResourceLocation ingredientRL = BuiltInRegistries.ITEM.getKey(item.getA());
+                    Identifier ingredientRL = BuiltInRegistries.ITEM.getKey(item.getA());
                     return !UncraftEverythingConfig.CONFIG.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
@@ -609,12 +609,12 @@ public class UncraftingTableHelpers {
         for (Optional<Ingredient> ingredient : ingredients) {
             if (ingredient.isPresent()){
                 if (ingredient.get().getCustomIngredient() != null && !ingredient.get().getCustomIngredient().items().toList().isEmpty()) {
-                    if (!ingredient.get().getCustomIngredient().items().map(Holder::value).map(BuiltInRegistries.ITEM::getKey).map(ResourceLocation::getNamespace).toList().contains("minecraft")) {
+                    if (!ingredient.get().getCustomIngredient().items().map(Holder::value).map(BuiltInRegistries.ITEM::getKey).map(Identifier::getNamespace).toList().contains("minecraft")) {
                         return false;
                     }
                 }
                 else{
-                    if (!ingredient.get().getValues().stream().map(Holder::value).map(BuiltInRegistries.ITEM::getKey).map(ResourceLocation::getNamespace).toList().contains("minecraft")) {
+                    if (!ingredient.get().getValues().stream().map(Holder::value).map(BuiltInRegistries.ITEM::getKey).map(Identifier::getNamespace).toList().contains("minecraft")) {
                         return false;
                     }
                 }
