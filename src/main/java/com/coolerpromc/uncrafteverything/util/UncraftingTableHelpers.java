@@ -29,13 +29,14 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
 public class UncraftingTableHelpers {
-    public static <T extends AbstractUncraftingTableBE> boolean validateInput(ItemStack inputStack, ServerPlayer player, T blockEntity){
+    public static <T extends AbstractUncraftingTableBE> boolean validateInput(ItemStack inputStack, @Nullable ServerPlayer player, T blockEntity){
         if (inputStack.isEmpty()
                 || UncraftEverythingConfig.isItemLocked(player, inputStack).getLeft()
                 || (inputStack.getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
@@ -588,6 +589,7 @@ public class UncraftingTableHelpers {
         return result;
     }
 
+    @SuppressWarnings("unused")
     public static boolean isVanillaIngredientRecipe(Recipe<?> recipe) {
         List<Optional<Ingredient>> ingredients;
 

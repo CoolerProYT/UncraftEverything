@@ -1,7 +1,6 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
-import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +14,6 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class UncraftingTableBlock extends BaseEntityBlock {
@@ -45,7 +43,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 player.openMenu(blockEntity, pos);
-                blockEntity.getOutputStacks();
+                blockEntity.getOutputStacks(blockEntity.getInputHandler(), false);
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
                     blockEntity.updatePage(0);
@@ -54,9 +52,6 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
-        }
-        else{
-            ClientPacketDistributor.sendToServer(new RequestConfigPayload());
         }
 
         return InteractionResult.SUCCESS;

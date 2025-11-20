@@ -24,6 +24,13 @@ public class UEModBusEvent {
             }
             return blockEntity.getInputHandler();
         });
+
+        event.registerBlockEntity(Capabilities.Item.BLOCK, UEBlockEntities.AUTO_UNCRAFTING_TABLE_BE.get(), (blockEntity, direction) -> {
+            if (direction == Direction.DOWN){
+                return blockEntity.getOutputHandler();
+            }
+            return blockEntity.getInputHandler();
+        });
     }
 
     @SubscribeEvent
@@ -105,6 +112,36 @@ public class UEModBusEvent {
                 UEProgressionPayload.TYPE,
                 UEProgressionPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleProgression
+        );
+
+        registrar.playToServer(
+                ExpTransferPayload.TYPE,
+                ExpTransferPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleExpTransfer
+        );
+
+        registrar.playToServer(
+                SelectedIndexSyncPayload.TYPE,
+                SelectedIndexSyncPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleIndexSync
+        );
+
+        registrar.playToServer(
+                AmountToAddPayload.TYPE,
+                AmountToAddPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleAmountChange
+        );
+
+        registrar.playToServer(
+                TypeChangePayload.TYPE,
+                TypeChangePayload.STREAM_CODEC,
+                ServerPayloadHandler::handleTypeChange
+        );
+
+        registrar.playToServer(
+                CloseMenuPayload.TYPE,
+                CloseMenuPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleCloseMenu
         );
     }
 }

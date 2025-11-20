@@ -98,6 +98,7 @@ dependencies {
     compileOnly "curse.maven:ftb-teams-forge-404468:6930910"
 
     implementation "curse.maven:travelers-backpack-321117:7165135"
+    implementation "curse.maven:jade-324717:7056468"
 }
 
 tasks.withType(ProcessResources).configureEach {

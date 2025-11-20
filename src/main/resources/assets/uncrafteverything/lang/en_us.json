@@ -1,6 +1,7 @@
 {
   "creativetab.uncrafteverything": "Uncrafting Everything",
   "block.uncrafteverything.uncrafting_table": "Uncrafting Table",
+  "block.uncrafteverything.auto_uncrafting_table": "Auto Uncrafting Table",
   "screen.uncrafteverything.uncraft": "UnCraft",
   "screen.uncrafteverything.uncraft_everything_config": "Uncraft Everything Config",
   "screen.uncrafteverything.uncraft_recipe_selection": "Uncrafting Recipes Selection",
