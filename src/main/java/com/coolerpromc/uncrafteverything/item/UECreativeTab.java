@@ -18,6 +18,7 @@ public class UECreativeTab {
                     .title(Component.translatable("creativetab.uncrafteverything"))
                     .displayItems((pParameters, pOutput) -> {
                         pOutput.accept(UEBlocks.UNCRAFTING_TABLE);
+                        pOutput.accept(UEBlocks.AUTO_UNCRAFTING_TABLE);
                     }).build());
 
     public static void register(IEventBus eventBus) {

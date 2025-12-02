@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -16,6 +17,7 @@ public class UEMenuTypes {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, UncraftEverything.MODID);
 
     public static final Supplier<MenuType<UncraftingTableMenu>> UNCRAFTING_TABLE_MENU = registerMenuType("uncrafting_table_menu", UncraftingTableMenu::new);
+    public static final Supplier<MenuType<AutoUncraftingTableMenu>> AUTO_UNCRAFTING_TABLE_MENU = registerMenuType("auto_uncrafting_table_menu", AutoUncraftingTableMenu::new);
 
     private static <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenuType(String name, IContainerFactory<T> factory) {
         return MENUS.register(name, () -> IMenuTypeExtension.create(factory));

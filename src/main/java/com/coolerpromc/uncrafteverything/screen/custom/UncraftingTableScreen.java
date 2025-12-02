@@ -1,61 +1,22 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionDataPayload;
-import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionPayload;
+import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
-import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
-import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.SpriteIconButton;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTableMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
-    private static final ResourceLocation RECIPE_PANEL_TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/recipe_selection_panel.png");
-    private List<UncraftingTableRecipe> recipes = List.of();
-    private int selectedRecipe = 0;
-    private boolean hasShift = false;
-
-    private static final int SCROLLBAR_WIDTH = 6;
-    private static final int SCROLLBAR_PADDING = 2;
-    private int page = 0;
-    private final int MAX_PAGE_SIZE = 7;
-    private int recipeSize = 0;
+public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTableBlockEntity, UncraftingTableMenu> {
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
 
     public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-    }
-
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
-        this.recipes = recipes;
-        this.recipeSize = size;
-
-        if (size < 7 && this.page != 0){
-            this.page = 0;
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        }
     }
 
     @Override
@@ -70,34 +31,7 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         int buttonX = leftPos + (imageWidth - 64) - 20;
         int buttonY = topPos + 72;
 
-        this.addRenderableWidget(Button
-                .builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16)
-                .build());
-
-        if (this.menu.player.isCreative() || this.menu.player.hasPermissions(4)){
-            SpriteIconButton configButton = SpriteIconButton
-                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openConfigScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "config"), 8, 8)
-                    .build();
-            configButton.setX(leftPos + imageWidth - 16);
-            configButton.setY(topPos + 3);
-            this.addRenderableWidget(configButton);
-
-            SpriteIconButton expButton = SpriteIconButton
-                    .builder(Component.translatable("screen.uncrafteverything.blank"), this::openExpScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp"), 8, 8)
-                    .build();
-            expButton.setX(leftPos + imageWidth - 30);
-            expButton.setY(topPos + 3);
-            this.addRenderableWidget(expButton);
-
-            if (QuestHelper.FTBQUESTS_LOADED){
-                SpriteIconButton progressionButton = SpriteIconButton
-                        .builder(Component.translatable("screen.uncrafteverything.blank"), this::openProgressionScreen, true).size(12, 12).sprite(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "book"), 8, 8)
-                        .build();
-                progressionButton.setX(leftPos + imageWidth - 44);
-                progressionButton.setY(topPos + 3);
-                this.addRenderableWidget(progressionButton);
-            }
-        }
+        this.addRenderableWidget(Button.builder(Component.translatable("screen.uncrafteverything.uncraft"), this::onPressed).pos(buttonX, buttonY).size(64, 16).build());
     }
 
     private void onPressed(Button button) {
@@ -105,24 +39,10 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         ClientPacketDistributor.sendToServer(payload);
     }
 
-    private void openConfigScreen(Button button){
-        this.getMinecraft().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this));
-    }
-
-    private void openExpScreen(Button button){
-        this.getMinecraft().setScreen(new PerItemExpConfigScreen(this));
-    }
-
-    private void openProgressionScreen(Button button){
-        this.getMinecraft().setScreen(new FTBQuestsProgressionConfigScreen(this));
-    }
-
     @Override
     protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = this.leftPos;
-        int y = this.topPos;
-
-        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 256, 256);
+        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+        super.renderBg(pGuiGraphics, partialTick, mouseX, mouseY);
     }
 
     @Override
@@ -130,248 +50,33 @@ public class UncraftingTableScreen extends AbstractContainerScreen<UncraftingTab
         this.clearWidgets();
         this.init();
 
-        Component exp = Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
-        int expX = leftPos + (imageWidth - 64) - 20 + 32;
-        pGuiGraphics.pose().pushMatrix();
-        pGuiGraphics.pose().scale(0.75f, 0.75f);
-        pGuiGraphics.pose().translate(expX * 1.3334f, this.topPos * 1.3334f + 121);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, this.font, exp, 0, 0, 0xFF00AA00);
-        pGuiGraphics.pose().popMatrix();
-
-        int x = this.leftPos;
-        int y = this.topPos;
-        int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
-        int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
-
-        if (page > maxPageCount - 1) {
-            page = 0;
-        }
-
-        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, x - 152, y, 0, 0, 152, 184, 152, 184);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), x - 75, y + 7, 0xFF404040);
-        this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), x - 75, y + imageHeight - 18, 0xFF404040);
-
-        Button prevButton = Button.builder(Component.translatable("screen.uncrafteverything.prev_button"), button -> {
-            if (this.page > 0) {
-                this.page--;
-            }
-            else{
-                this.page = Math.max(maxPageCount - 1, 0);
-            }
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        }).pos(x - 152 + 5, y + imageHeight - 23).size(16, 16).build();
-        this.addRenderableWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
-        Button nextButton = Button.builder(Component.translatable("screen.uncrafteverything.next_button"), button -> {
-            if (this.page < maxPageCount - 1) {
-                this.page++;
-            }
-            else{
-                this.page = 0;
-            }
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        }).pos(x - 21, y + imageHeight - 23).size(16, 16).build();
-        this.addRenderableWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
-        // Render visible recipes
-        int visibleCount = 0;
-        for (int j = 0; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
-            UncraftingTableRecipe recipe = recipes.get(j);
-            int displayIndex = visibleCount;
-
-            int recipeWidth = 9 * 16 + 5;
-            Rectangle2D bounds = new Rectangle2D.Double(x - recipeWidth, y + (displayIndex * 18) + 30, recipeWidth - 3, 18);
-
-            int finalJ = j;
-            RecipeSelectionButton button = new RecipeSelectionButton((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight(), Component.translatable("screen.uncrafteverything.blank"), ignored -> selectedRecipe = finalJ);
-            if (selectedRecipe == j) {
-                button.setFocused(true);
-            }
-            this.addWidget(button).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
-            int i = 0;
-            Map<Item, Integer> inputs = new HashMap<>();
-            Map<Item, DataComponentMap> inputComponents = new HashMap<>();
-
-            for (ItemStack itemStack : recipe.getOutputs()) {
-                if (inputs.containsKey(itemStack.getItem())){
-                    inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
-                }
-                else{
-                    inputs.put(itemStack.getItem(), itemStack.getCount());
-                    inputComponents.put(itemStack.getItem(), itemStack.getComponents());
-                }
-            }
-
-            for (Map.Entry<Item, Integer> entry : inputs.entrySet()) {
-                if (entry.getKey() == Items.AIR) continue;
-                ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
-                if (inputComponents.containsKey(entry.getKey())){
-                    itemStack.applyComponents(inputComponents.get(entry.getKey()));
-                }
-                pGuiGraphics.renderFakeItem(itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
-                pGuiGraphics.renderItemDecorations(this.font, itemStack, x - recipeWidth + (i * 16) + 1, y + (displayIndex * 18) + 31);
-                if (pMouseX >= x - recipeWidth + (i * 16) + 1 && pMouseX <= x - recipeWidth + (i * 16) + 17 && pMouseY >= y + (displayIndex * 18) + 31 && pMouseY <= y + (displayIndex * 18) + 31 + 16) {
-                    pGuiGraphics.setTooltipForNextFrame(this.font, itemStack, pMouseX, pMouseY);
-                }
-                i++;
-            }
-
-            visibleCount++;
-        }
-
-        if (selectedRecipe >= recipes.size()) {
-            selectedRecipe = 0;
-        }
-
-        if (!recipes.isEmpty()) {
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(
-                    this.menu.blockEntity.getBlockPos(),
-                    this.recipes.get(selectedRecipe)));
-
-            List<ItemStack> outputs = this.recipes.get(selectedRecipe).getOutputs();
-            for (int i = 0; i < outputs.size(); i++) {
-                ItemStack itemStack = outputs.get(i);
-                pGuiGraphics.renderFakeItem(
-                        itemStack,
-                        x + 98 + 18 * (i % 3),
-                        y + 17 + (i / 3) * 18);
-                pGuiGraphics.fill(
-                        x + 98 + 18 * (i % 3),
-                        y + 17 + (i / 3) * 18,
-                        x + 98 + 18 * (i % 3) + 16,
-                        y + 17 + (i / 3) * 18 + 16,
-                        0xAA8B8B8B);
-            }
-        }
-
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-
-        int status = this.menu.getStatus();
-
-        if (status != -1){
-            Component statusText = Component.translatable(switch (status){
-                case 0 -> "screen.uncrafteverything.no_recipe_found";
-                case 1 -> "screen.uncrafteverything.no_suitable_output_slot";
-                case 2 -> "screen.uncrafteverything.not_enough_exp";
-                case 3 -> "screen.uncrafteverything.not_enough_input";
-                case 4 -> "screen.uncrafteverything.not_empty_shulker";
-                case 5 -> "screen.uncrafteverything.restricted_by_config";
-                case 6 -> "screen.uncrafteverything.damaged_item";
-                case 7 -> "screen.uncrafteverything.enchanted_item";
-                case 8 -> "screen.uncrafteverything.locked_item";
-                case 9 -> "screen.uncrafteverything.progression_not_defined";
-                default -> "screen.uncrafteverything.blank";
-            });
-
-            int textY = y + 55;
-
-            float scale = 0.75f;
-            int boxWidth = 52;
-            int boxLeft = x + 9;
-            float boxCenterX = boxLeft + boxWidth / 2f;
-
-            List<FormattedCharSequence> formattedText = font.split(FormattedText.of(statusText.getString()), (int) (boxWidth * 1.3));
-
-            switch (formattedText.size()){
-                case 1 -> textY += 14;
-                case 2 -> textY += 9;
-                default -> textY += 5;
-            }
-
-            for (FormattedCharSequence line : formattedText) {
-                float rawWidth = font.width(line);
-                float drawX = -rawWidth / 2f;
-
-                pGuiGraphics.pose().pushMatrix();
-                pGuiGraphics.pose().translate(boxCenterX, textY);
-                pGuiGraphics.pose().scale(scale, scale);
-                pGuiGraphics.drawString(font, line, Math.round(drawX), 0, 0xFFFF5555, false);
-                pGuiGraphics.pose().popMatrix();
-
-                textY += 7;
-            }
-        }
-
-        if (this.menu.player.hasPermissions(4) || this.menu.player.isCreative()){
-            if (pMouseX >= leftPos + imageWidth - 16 && pMouseX <= leftPos + imageWidth - 4 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), pMouseX, pMouseY);
-            }
-
-            if (pMouseX >= leftPos + imageWidth - 30 && pMouseX <= leftPos + imageWidth - 18 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.per_item_xp_config"), pMouseX, pMouseY);
-            }
-
-            if (pMouseX >= leftPos + imageWidth - 44 && pMouseX <= leftPos + imageWidth - 32 && pMouseY >= topPos + 3 && pMouseY <= topPos + 15 && QuestHelper.FTBQUESTS_LOADED) {
-                pGuiGraphics.setTooltipForNextFrame(this.font, Component.translatable("screen.uncrafteverything.ftb_quest_progression_config"), pMouseX, pMouseY);
-            }
-        }
-
-        renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+        this.renderExpRequired(pGuiGraphics, pMouseX, pMouseY);
+        this.renderRecipeSelection(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.renderContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.renderInputSlotOverlay(pGuiGraphics);
+        super.renderCarriedItem(pGuiGraphics, pMouseX, pMouseY);
+        super.renderSnapbackItem(pGuiGraphics);
+        this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollDelta) {
-        if (scrollDelta == 1.0d && this.page > 0) {
-            this.page--;
-        } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE < recipeSize) {
-            this.page++;
+    protected void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        Identifier icon = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/sprites/exp.png");
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(0.5f, 0.5f);
+        guiGraphics.pose().translate((this.leftPos + imageWidth - 17) * 2, (this.topPos + 72) * 2);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, icon, 0, 0, 0, 0, 16, 16, 16, 16);
+        guiGraphics.pose().popMatrix();
+
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(0.75f, 0.75f);
+        guiGraphics.pose().translate((this.leftPos + imageWidth - 12) * 1.3334f, (this.topPos + 82) * 1.3334f);
+        this.drawCenteredWordWrapWithoutShadow(guiGraphics, this.font, Component.literal(this.menu.getExpAmount() + ""), 0, 0, 0xFF00AA00);
+        guiGraphics.pose().popMatrix();
+
+        if (mouseX >= (this.leftPos + imageWidth - 19) && mouseX <= (this.leftPos + imageWidth - 7) && mouseY >= this.topPos + 72 && mouseY <= this.topPos + 87){
+            Component exp = Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount());
+            guiGraphics.setTooltipForNextFrame(this.font, exp, mouseX, mouseY);
         }
-        else if (scrollDelta == 1.0d && this.page == 0 && !recipes.isEmpty()) {
-            this.page = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE) - 1;
-        } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipeSize) {
-            this.page = 0;
-        }
-        ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionDataPayload(page, this.menu.blockEntity.getBlockPos()));
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
-    }
-
-    public void drawCenteredWordWrapWithoutShadow(GuiGraphics context, Font textRenderer, Component text, int centerX, int y, int color) {
-        List<FormattedCharSequence> lines = textRenderer.split(text, 140);
-
-        int lineHeight = textRenderer.lineHeight + 2;
-
-        for (int i = 0; i < lines.size(); i++) {
-            FormattedCharSequence line = lines.get(i);
-            int lineWidth = textRenderer.width(line);
-            int lineX = centerX - lineWidth / 2;
-            int lineY = y + (i * lineHeight);
-
-            context.drawString(textRenderer, line, lineX, lineY, color, false);
-        }
-    }
-
-    public void getRecipeSelection(){
-        UncraftingTableRecipe recipe = null;
-        try{
-            if (!recipes.isEmpty()){
-                recipe = this.recipes.get(this.selectedRecipe);
-            }
-        }
-        catch (Exception ignored){
-
-        }
-        finally {
-            if (recipe != null){
-                ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe));
-            }
-        }
-    }
-
-    @Override
-    public boolean keyPressed(KeyEvent input) {
-        this.hasShift = input.hasShiftDown();
-        return super.keyPressed(input);
-    }
-
-    @Override
-    public boolean keyReleased(KeyEvent keyInput) {
-        this.hasShift = false;
-        return super.keyReleased(keyInput);
-    }
-
-    public boolean hasShift(){
-        return hasShift;
     }
 }

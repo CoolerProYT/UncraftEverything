@@ -1,3 +1,4 @@
+/*
 package com.coolerpromc.uncrafteverything.compat.jei;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
@@ -11,7 +12,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
 
     @Override
     public @NotNull IDrawable getBackground() {
-        return guiHelper.createDrawable(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 20, 15, 137, 56);
+        return guiHelper.createDrawable(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 20, 15, 137, 56);
     }
 
     @Override
@@ -47,3 +48,4 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
         }
     }
 }
+*/

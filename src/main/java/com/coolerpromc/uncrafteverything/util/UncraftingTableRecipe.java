@@ -2,15 +2,13 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +37,8 @@ public class UncraftingTableRecipe {
         this.outputs.addAll(outputs);
     }
 
-    public boolean addOutput(ItemStack output) {
-        return outputs.add(output);
+    public void addOutput(ItemStack output) {
+        outputs.add(output);
     }
 
     public void setOutput(int index, ItemStack output) {
@@ -53,5 +51,33 @@ public class UncraftingTableRecipe {
 
     public List<ItemStack> getOutputs() {
         return outputs;
+    }
+
+    public boolean contains(Tuple<Item, DataComponentPatch> tuple){
+        for (ItemStack output : this.outputs){
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int indexOf(Tuple<Item, DataComponentPatch> tuple){
+        for (int i = 0;i < this.outputs.size();i++){
+            ItemStack output = this.outputs.get(i);
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public ItemStack getStack(Tuple<Item, DataComponentPatch> tuple){
+        for (ItemStack output : this.outputs) {
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))) {
+                return output;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 }

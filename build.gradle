@@ -34,7 +34,7 @@ repositories {
     maven { url "https://maven.architectury.dev/" }
     maven {
         name = "Maven for PR #2639"
-        url = uri("https://prmaven.neoforged.net/NeoForge/pr2639")
+        url = uri("https://prmaven.neoforged.net/NeoForge/pr2815")
         content {
             includeModule("net.neoforged", "neoforge")
         }
@@ -85,8 +85,8 @@ accessTransformers {
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
-    compileOnly "mezz.jei:jei-1.21.9-neoforge-api:${jei_version}"
-    compileOnly "mezz.jei:jei-1.21.9-neoforge:${jei_version}"
+    compileOnly "mezz.jei:jei-1.21.10-neoforge-api:${jei_version}"
+    compileOnly "mezz.jei:jei-1.21.10-neoforge:${jei_version}"
 
     compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
@@ -96,6 +96,9 @@ dependencies {
     compileOnly "curse.maven:ftb-quests-forge-289412:6874989"
     compileOnly "curse.maven:ftb-library-forge-404465:6874538"
     compileOnly "curse.maven:ftb-teams-forge-404468:6930910"
+
+    compileOnly "curse.maven:travelers-backpack-321117:7165135"
+    compileOnly "curse.maven:jade-324717:7056468"
 }
 
 tasks.withType(ProcessResources).configureEach {

@@ -1,12 +1,9 @@
 package com.coolerpromc.uncrafteverything.config;
 
-import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.ftb.mods.ftbquests.quest.BaseQuestFile;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -146,7 +143,7 @@ public class FTBQuestProgressionConfig {
         return null;
     }
 
-    private static ResourceLocation getItemLocation(ItemStack itemStack){
+    private static Identifier getItemLocation(ItemStack itemStack){
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 }

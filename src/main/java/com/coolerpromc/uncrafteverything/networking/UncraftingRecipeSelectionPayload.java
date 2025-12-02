@@ -6,10 +6,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<UncraftingRecipeSelectionPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection"));
+    public static final CustomPacketPayload.Type<UncraftingRecipeSelectionPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionPayload> STREAM_CODEC =
             StreamCodec.composite(

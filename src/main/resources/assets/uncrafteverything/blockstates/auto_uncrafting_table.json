@@ -1,0 +1,65 @@
+{
+  "variants": {
+    "facing=north,active=false,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table"
+    },
+    "facing=east,active=false,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 90
+    },
+    "facing=south,active=false,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 180
+    },
+    "facing=west,active=false,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 270
+    },
+    "facing=north,active=false,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_powered"
+    },
+    "facing=east,active=false,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_powered",
+      "y": 90
+    },
+    "facing=south,active=false,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_powered",
+      "y": 180
+    },
+    "facing=west,active=false,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_powered",
+      "y": 270
+    },
+
+    "facing=north,active=true,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_active"
+    },
+    "facing=east,active=true,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_active",
+      "y": 90
+    },
+    "facing=south,active=true,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_active",
+      "y": 180
+    },
+    "facing=west,active=true,powered=true": {
+      "model": "uncrafteverything:block/auto_uncrafting_table_active",
+      "y": 270
+    },
+    "facing=north,active=true,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table"
+    },
+    "facing=east,active=true,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 90
+    },
+    "facing=south,active=true,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 180
+    },
+    "facing=west,active=true,powered=false": {
+      "model": "uncrafteverything:block/auto_uncrafting_table",
+      "y": 270
+    }
+  }
+}

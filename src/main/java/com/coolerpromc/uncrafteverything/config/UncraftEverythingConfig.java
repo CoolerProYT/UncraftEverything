@@ -1,13 +1,14 @@
 package com.coolerpromc.uncrafteverything.config;
 
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
+import com.coolerpromc.uncrafteverything.util.Status;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -15,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,7 +54,7 @@ public class UncraftEverythingConfig {
         builder.push("Restrictions");
         restrictionType = builder.comment("The type of restriction to be used.").defineEnum("restrictionType", RestrictionType.BLACKLIST, RestrictionType.values());
         restrictions = builder.comment("A list of items that can/cannot be uncrafted depending on type of restriction.", "Invalid input will cause config reset at runtime.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name", "Press F3 + h in game and hover item to check their modid:name")
-                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
+                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && Identifier.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
         builder.pop();
 
         builder.push("AllowEnchantedItems");
@@ -120,17 +122,24 @@ public class UncraftEverythingConfig {
         return outputEnchantedBook.getAsBoolean();
     }
 
-    public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
+    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
         if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
-            if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
-                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            if (player == null){
+                if (questId != null){
+                    return Pair.of(true, Status.LOCKED_ITEM);
+                }
             }
             else{
-                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+                if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
+                    return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? Status.PROGRESSION_NOT_DEFINED : Status.LOCKED_ITEM);
+                }
+                else{
+                    return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), Status.LOCKED_ITEM);
+                }
             }
         }
-        return Pair.of(false, -1);
+        return Pair.of(false, Status.BLANK);
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
@@ -138,7 +147,7 @@ public class UncraftEverythingConfig {
             return false;
         }
 
-        ResourceLocation itemLocation = inputStackLocation(itemStack);
+        Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (restrictions.get().contains(itemLocationString)) {
@@ -170,7 +179,7 @@ public class UncraftEverythingConfig {
             return false;
         }
 
-        ResourceLocation itemLocation = inputStackLocation(itemStack);
+        Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (restrictions.get().contains(itemLocationString)) {
@@ -201,13 +210,13 @@ public class UncraftEverythingConfig {
         return restrictedModIngredients.get();
     }
 
-    public ResourceLocation inputStackLocation(ItemStack itemStack) {
+    public static Identifier inputStackLocation(ItemStack itemStack) {
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            ResourceLocation location = ResourceLocation.parse(input);
+            Identifier location = Identifier.parse(input);
             return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();
@@ -217,6 +226,8 @@ public class UncraftEverythingConfig {
     public enum ExperienceType {
         LEVEL,
         POINT;
+
+        public static final Codec<ExperienceType> CODEC = Codec.STRING.xmap(ExperienceType::valueOf, Enum::name);
 
         public static final StreamCodec<RegistryFriendlyByteBuf, ExperienceType> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ExperienceType>() {
             @Override
@@ -229,6 +240,13 @@ public class UncraftEverythingConfig {
                 buffer.writeEnum(value);
             }
         };
+
+        public ExperienceType invert(){
+            if (this == LEVEL){
+                return POINT;
+            }
+            return LEVEL;
+        }
     }
 
     public enum RestrictionType{

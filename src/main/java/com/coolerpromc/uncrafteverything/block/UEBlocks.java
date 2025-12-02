@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import net.minecraft.world.item.BlockItem;
@@ -17,6 +18,7 @@ public class UEBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(UncraftEverything.MODID);
 
     public static final DeferredBlock<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", UncraftingTableBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTING_TABLE));
+    public static final DeferredBlock<Block> AUTO_UNCRAFTING_TABLE = registerBlock("auto_uncrafting_table", AutoUncraftingTableBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTER));
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, ? extends T> func, BlockBehaviour.Properties properties){
         DeferredBlock<T> block = BLOCKS.registerBlock(name, func, properties);
