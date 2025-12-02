@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock.ACTIVE;
+
 @SuppressWarnings({"unused", "NullableProblems"})
 public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE implements MenuProvider {
     protected final ContainerData data;
@@ -316,7 +318,11 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     public void tick(Level level, BlockPos pos, BlockState state){
         if (!level.isClientSide()){
             if (isActive && hasRecipe() && hasEnoughExperience()){
+                level.setBlock(pos, state.setValue(ACTIVE, true), 3);
                 processUncraft();
+            }
+            else{
+                level.setBlock(pos, state.setValue(ACTIVE, false), 3);
             }
         }
     }
