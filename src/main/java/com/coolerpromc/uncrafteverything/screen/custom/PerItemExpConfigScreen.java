@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 public class PerItemExpConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
     private final int ENTRIES_START_Y = 30;
@@ -32,9 +31,8 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
     private final List<Button> scrollableButtons = new ArrayList<>();
 
-    public PerItemExpConfigScreen(Screen parent) {
-        super(Component.translatable("screen.uncrafteverything.per_item_xp_config"), 200);
-        this.parent = parent;
+    public PerItemExpConfigScreen(Component title) {
+        super(title, 200);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         UEExpPayload configPayload = new UEExpPayload(newConfig);
         PacketDistributor.sendToServer(configPayload);
         PacketDistributor.sendToServer(new RequestConfigPayload());
-        this.getMinecraft().setScreen(parent);
+        onClose();
     }
 
     private void saveCurrentValues() {
@@ -204,11 +202,6 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public void onClose() {
-        this.getMinecraft().setScreen(parent);
     }
 
     protected void renderSeparator(GuiGraphics guiGraphics){

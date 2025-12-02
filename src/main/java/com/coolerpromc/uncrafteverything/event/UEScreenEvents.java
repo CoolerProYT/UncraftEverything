@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything.event;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,5 +13,6 @@ public class UEScreenEvents {
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(UEMenuTypes.UNCRAFTING_TABLE_MENU.get(), UncraftingTableScreen::new);
+        event.register(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU.get(), AutoUncraftingTableScreen::new);
     }
 }

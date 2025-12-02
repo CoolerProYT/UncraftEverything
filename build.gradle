@@ -4,6 +4,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.0.173'
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -93,6 +94,8 @@ dependencies {
     implementation "curse.maven:ftb-quests-forge-289412:6874989"
     implementation "curse.maven:ftb-library-forge-404465:6874538"
     implementation "curse.maven:ftb-teams-forge-404468:6930910"
+
+    implementation "curse.maven:travelers-backpack-321117:7240666"
 }
 
 tasks.withType(ProcessResources).configureEach {
@@ -137,5 +140,25 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+publishMods {
+    file.set(jar.archiveFile)
+    type = BETA
+    modLoaders.add("neoforge")
+    changelog = file("changelog.md").text
+    displayName = mod_id + "-" + mod_version
+
+    curseforge {
+        projectId = "1244428"
+        accessToken = findProperty("CF_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
+
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraft_version)
     }
 }

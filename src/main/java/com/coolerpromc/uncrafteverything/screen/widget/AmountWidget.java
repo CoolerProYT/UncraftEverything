@@ -1,0 +1,53 @@
+package com.coolerpromc.uncrafteverything.screen.widget;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class AmountWidget extends AbstractWidget {
+    private int value;
+    private final Font font;
+
+    public AmountWidget(Font font, int x, int y, int width, int height, Component message, int value) {
+        super(x, y, width, height, message);
+        this.font = font;
+        this.value = value;
+    }
+
+    @Override
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, 0xFF8B8B8B);
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width - 1, this.getY() + this.height - 1, 0xFF373737);
+        guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width, this.getY() + this.height, 0xFFFFFFFF);
+        guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width - 1, this.getY() + this.height - 1, this.isHovered ? 0xFFA4A4A4 : 0xFF8B8B8B);
+        guiGraphics.drawCenteredString(this.font, Component.literal(String.valueOf(value)), this.getX() + this.width / 2, this.getY() + this.height / 2 - font.lineHeight / 2, 0xFFFFFFFF);
+    }
+
+    public void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
+        List<Component> tooltips = new ArrayList<>();
+        tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.amount_info").withStyle(ChatFormatting.BLUE));
+        tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.scroll_info").withStyle(ChatFormatting.GRAY));
+        guiGraphics.renderTooltip(this.font, tooltips, Optional.empty(), mouseX, mouseY);
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        createNarrationMessage();
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return false;
+    }
+}

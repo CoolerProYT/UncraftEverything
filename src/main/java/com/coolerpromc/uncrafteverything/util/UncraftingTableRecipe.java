@@ -1,12 +1,13 @@
 package com.coolerpromc.uncrafteverything.util;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -15,6 +16,10 @@ import java.util.List;
 public class UncraftingTableRecipe {
     private final ItemStack input;
     private final List<ItemStack> outputs = new ArrayList<>();
+    public static final Codec<UncraftingTableRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ItemStack.OPTIONAL_CODEC.fieldOf("input").forGetter(UncraftingTableRecipe::getInput),
+            ItemStack.OPTIONAL_CODEC.listOf().fieldOf("outputs").forGetter(UncraftingTableRecipe::getOutputs)
+    ).apply(instance, UncraftingTableRecipe::new));
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableRecipe> STREAM_CODEC = StreamCodec.composite(
             ItemStack.OPTIONAL_STREAM_CODEC,
             UncraftingTableRecipe::getInput,
@@ -32,8 +37,8 @@ public class UncraftingTableRecipe {
         this.outputs.addAll(outputs);
     }
 
-    public boolean addOutput(ItemStack output) {
-        return outputs.add(output);
+    public void addOutput(ItemStack output) {
+        outputs.add(output);
     }
 
     public void setOutput(int index, ItemStack output) {
@@ -48,31 +53,31 @@ public class UncraftingTableRecipe {
         return outputs;
     }
 
-    public CompoundTag serializeNbt(HolderLookup.Provider provider) {
-        CompoundTag tag = new CompoundTag();
-        tag.put("input", input.saveOptional(provider));
-        ListTag listTag = new ListTag();
-        for (ItemStack itemStack : outputs) {
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.saveOptional(provider));
-            listTag.add(itemTag);
-        }
-        tag.put("outputs", listTag);
-        return tag;
-    }
-
-    public static UncraftingTableRecipe deserializeNbt(CompoundTag tag, HolderLookup.Provider provider) {
-        ItemStack input = ItemStack.parseOptional(provider, tag.getCompound("input"));
-        List<ItemStack> outputs = new ArrayList<>();
-
-        if (tag.contains("outputs", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.parseOptional(provider, itemTag.getCompound("output")));
+    public boolean contains(Tuple<Item, DataComponentPatch> tuple){
+        for (ItemStack output : this.outputs){
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))){
+                return true;
             }
         }
+        return false;
+    }
 
-        return new UncraftingTableRecipe(input, outputs);
+    public int indexOf(Tuple<Item, DataComponentPatch> tuple){
+        for (int i = 0;i < this.outputs.size();i++){
+            ItemStack output = this.outputs.get(i);
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public ItemStack getStack(Tuple<Item, DataComponentPatch> tuple){
+        for (ItemStack output : this.outputs) {
+            if (ItemStack.isSameItemSameComponents(output, new ItemStack(tuple.getA().builtInRegistryHolder(), 1, tuple.getB()))) {
+                return output;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 }

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "uncrafteverything:uncrafting_table"
+    },
+    "D": {
+      "item": "minecraft:dropper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "###",
+    "#C#",
+    "RDR"
+  ],
+  "result": {
+    "count": 1,
+    "id": "uncrafteverything:auto_uncrafting_table"
+  }
+}
