@@ -16,6 +16,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 apply plugin: 'org.spongepowered.mixin'
@@ -95,11 +96,11 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-//    implementation fg.deobf("curse.maven:gamestages-268655:5790361")
-//    implementation fg.deobf("curse.maven:bookshelf-228525:5423987")
-//    implementation fg.deobf("curse.maven:crafttweaker-239197:6132440")
-//    implementation fg.deobf("curse.maven:create-328085:6323270")
-//    implementation fg.deobf("curse.maven:recipe-stages-280554:5173574")
+    compileOnly fg.deobf("curse.maven:gamestages-268655:5790361")
+    compileOnly fg.deobf("curse.maven:bookshelf-228525:5423987")
+    compileOnly fg.deobf("curse.maven:crafttweaker-239197:6132440")
+    compileOnly fg.deobf("curse.maven:create-328085:6323270")
+    compileOnly fg.deobf("curse.maven:recipe-stages-280554:5173574")
     implementation fg.deobf("curse.maven:stackable-items-1245736:6559769")
     compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
     implementation(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
@@ -118,6 +119,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:ftb-library-forge-404465:6807424")
     compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
     implementation fg.deobf("curse.maven:jade-324717:6855440")
+    implementation fg.deobf("curse.maven:travelers-backpack-321117:7236164")
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -166,4 +168,24 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+publishMods {
+    file.set(jar.archiveFile)
+    type = BETA
+    modLoaders.add("forge")
+    changelog = file("changelog.md").text
+    displayName = mod_id + "-" + mod_version
+
+    curseforge {
+        projectId = "1244428"
+        accessToken = findProperty("CF_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
+
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
 }

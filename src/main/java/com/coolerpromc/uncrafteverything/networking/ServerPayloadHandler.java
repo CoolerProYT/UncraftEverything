@@ -1,5 +1,7 @@
 package com.coolerpromc.uncrafteverything.networking;
 
+import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.blockentity.custom.AutoUncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
@@ -16,10 +18,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ServerPayloadHandler {
+    public static boolean AUTO_MOVE = false;
+
     public static void handleButtonClick(UncraftingTableCraftButtonClickPayload payload, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
-            ServerPlayer player = context.get().getSender();
-            if (player != null) {
+            if (context.get().getSender() != null) {
+                ServerPlayer player = context.get().getSender();
                 ServerLevel level = player.serverLevel();
                 BlockPos pos = payload.blockPos();
 
@@ -44,7 +48,7 @@ public class ServerPayloadHandler {
                 BlockPos pos = payload.blockPos();
 
                 BlockEntity blockEntity = level.getBlockEntity(pos);
-                if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                if (blockEntity instanceof AbstractUncraftingTableBE uncraftingTableBlockEntity) {
                     uncraftingTableBlockEntity.handleRecipeSelection(payload.recipe());
 
                     blockEntity.setChanged();
@@ -136,18 +140,134 @@ public class ServerPayloadHandler {
         });
     }
 
-    public static void handleRecipeSelectionData(UncraftingRecipeSelectionDataPayload payload, Supplier<NetworkEvent.Context> context){
+    public static void handleRecipeSelectionData(UncraftingPageChangePayload payload, Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(() -> {
-            ServerLevel level = context.get().getSender().serverLevel();
-            BlockPos pos = payload.blockPos();
+            if (context.get().getSender() != null){
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.blockPos();
 
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
-                uncraftingTableBlockEntity.updatePage(payload.page());
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AbstractUncraftingTableBE uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.updatePage(payload.page());
 
-                blockEntity.setChanged();
-                level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                    blockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
             }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleExpTransfer(ExpTransferPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            if (context.get().getSender() != null){
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.pos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    if (payload.experienceType() == UncraftEverythingConfig.ExperienceType.LEVEL){
+                        uncraftingTableBlockEntity.addExperienceLevels(payload.amount(), player);
+                    }
+                    else {
+                        uncraftingTableBlockEntity.addExperiencePoints(payload.amount(), player);
+                    }
+                }
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleIndexSync(SelectedIndexSyncPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            if (context.get().getSender() != null) {
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.blockPos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.index = payload.index();
+
+                    uncraftingTableBlockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleAmountChange(AmountToAddPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            if (context.get().getSender() != null) {
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.blockPos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.setAmountToAdd(payload.index());
+                    uncraftingTableBlockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleTypeChange(TypeChangePayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            if (context.get().getSender() != null) {
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.blockPos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.setTypeToAdd(payload.expType());
+                    uncraftingTableBlockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleCloseMenu(CloseMenuPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            if (context.get().getSender() != null) {
+                ServerPlayer player = context.get().getSender();
+                ServerLevel level = player.serverLevel();
+                BlockPos pos = payload.pos();
+
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+                    uncraftingTableBlockEntity.setPlayer(null);
+                    uncraftingTableBlockEntity.setChanged();
+                    level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+                }
+            }
+        }).exceptionally(e -> {
+            context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleClientConfigSync(ClientConfigSyncPayload payload, Supplier<NetworkEvent.Context> context){
+        context.get().enqueueWork(() -> {
+            AUTO_MOVE = payload.autoMoveToInventory();
         }).exceptionally(e -> {
             context.get().getNetworkManager().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;

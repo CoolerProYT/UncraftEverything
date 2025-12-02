@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import net.minecraft.world.item.BlockItem;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -19,6 +21,7 @@ public class UEBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, UncraftEverything.MODID);
 
     public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(BlockBehaviour.Properties.copy(Blocks.CRAFTING_TABLE)));
+    public static final RegistryObject<Block> AUTO_UNCRAFTING_TABLE = registerBlock("auto_uncrafting_table", () -> new AutoUncraftingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(1.5F, 3.5F)));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier){
         RegistryObject<T> block = BLOCKS.register(name, blockSupplier);

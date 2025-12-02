@@ -1,5 +1,7 @@
 package com.coolerpromc.uncrafteverything.util;
 
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -9,10 +11,19 @@ import java.util.List;
 public class JEIUncraftingTableRecipe {
     private final ItemStack input;
     private final List<Ingredient> outputs = new ArrayList<>();
+    private final List<ItemStack> itemStackOutputs = new ArrayList<>();
+    private final boolean isItemStackOutputs;
 
     public JEIUncraftingTableRecipe(ItemStack input, List<Ingredient> outputs) {
         this.input = input;
         this.outputs.addAll(outputs);
+        this.isItemStackOutputs = false;
+    }
+
+    public JEIUncraftingTableRecipe(ItemStack input, List<ItemStack> outputs, boolean isItemStackOutputs) {
+        this.input = input;
+        this.itemStackOutputs.addAll(outputs);
+        this.isItemStackOutputs = isItemStackOutputs;
     }
 
     public ItemStack getInput() {
@@ -23,65 +34,27 @@ public class JEIUncraftingTableRecipe {
         return outputs;
     }
 
-    /*public CompoundTag serializeNbt() {
-        CompoundTag tag = new CompoundTag();
-        tag.put("input", input.save(new CompoundTag()));
-        ListTag listTag = new ListTag();
-        for (Ingredient itemStack : outputs) {
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.save(new CompoundTag()));
-            listTag.add(itemTag);
-        }
-        tag.put("outputs", listTag);
-        return tag;
-    }
-
-    public static JEIUncraftingTableRecipe deserializeNbt(CompoundTag tag) {
-        ItemStack input = ItemStack.of(tag.getCompound("input"));
-        List<ItemStack> outputs = new ArrayList<>();
-
-        if (tag.contains("outputs", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.of(itemTag.getCompound("output")));
+    public List<EntryIngredient> getEntryIngredientOutput(){
+        List<EntryIngredient> entryIngredients = new ArrayList<>();
+        if (isItemStackOutputs){
+            for (ItemStack output : itemStackOutputs) {
+                if (output.isEmpty()) {
+                    entryIngredients.add(EntryIngredient.empty());
+                } else {
+                    entryIngredients.add(EntryIngredients.of(output));
+                }
             }
         }
-
-        return new JEIUncraftingTableRecipe(input, outputs);
-    }
-
-    public void writeToBuf(FriendlyByteBuf packetByteBuf){
-        packetByteBuf.writeBoolean(!this.getInput().isEmpty());
-        if (!this.getInput().isEmpty()) {
-            packetByteBuf.writeItem(this.getInput());
-        }
-
-        packetByteBuf.writeVarInt(this.getOutputs().size());
-        for (var output : this.getOutputs()) {
-            packetByteBuf.writeBoolean(!output.isEmpty());
-            if (!output.isEmpty()) {
-                packetByteBuf.writeItem(output);
+        else {
+            for (Ingredient output : outputs) {
+                if (output == null){
+                    entryIngredients.add(EntryIngredient.empty());
+                }
+                else{
+                    entryIngredients.add(EntryIngredients.ofIngredient(output));
+                }
             }
         }
+        return entryIngredients;
     }
-
-    public static JEIUncraftingTableRecipe readFromBuf(FriendlyByteBuf packetByteBuf){
-        ItemStack input = ItemStack.EMPTY;
-        if (packetByteBuf.readBoolean()) {
-            input = packetByteBuf.readItem();
-        }
-
-        int count = packetByteBuf.readVarInt();
-        List<ItemStack> outputs = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            ItemStack output = ItemStack.EMPTY;
-            if (packetByteBuf.readBoolean()) {
-                output = packetByteBuf.readItem();
-            }
-            outputs.add(output);
-        }
-
-        return new JEIUncraftingTableRecipe(input, outputs);
-    }*/
 }

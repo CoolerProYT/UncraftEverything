@@ -16,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) {
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
+        this(blockPos, recipes, size, true);
+    }
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_table_data");
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -28,7 +31,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
     public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableDataPayload::blockPos),
             UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
-            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
+            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size),
+            Codec.BOOL.fieldOf("shouldSendPacket").forGetter(UncraftingTableDataPayload::shouldSendPacket)
     ).apply(instance, UncraftingTableDataPayload::new));
 
     private static int packetId = 0;
@@ -45,6 +49,7 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         }
 
         byteBuf.writeVarInt(payload.size());
+        byteBuf.writeBoolean(payload.shouldSendPacket());
     }
 
     public static UncraftingTableDataPayload decode(FriendlyByteBuf byteBuf){
@@ -57,8 +62,9 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         }
 
         int size = byteBuf.readVarInt();
+        boolean shouldSendPacket = byteBuf.readBoolean();
 
-        return new UncraftingTableDataPayload(blockPos, recipes, size);
+        return new UncraftingTableDataPayload(blockPos, recipes, size, shouldSendPacket);
     }
 
     private static java.util.function.BiConsumer<UncraftingTableDataPayload, Supplier<NetworkEvent.Context>> getHandler() {

@@ -1,8 +1,9 @@
 
 package com.coolerpromc.uncrafteverything.config;
 
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
+import com.coolerpromc.uncrafteverything.util.Status;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -116,17 +118,24 @@ public class UncraftEverythingConfig {
         return outputEnchantedBook.get();
     }
 
-    public static Pair<Boolean, Integer> isItemLocked(ServerPlayer player, ItemStack itemStack){
+    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
         if (UncraftEverythingConfig.CONFIG.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
-            if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
-                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            if (player == null){
+                if (questId != null){
+                    return Pair.of(true, Status.LOCKED_ITEM);
+                }
             }
             else{
-                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+                if (UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression()){
+                    return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? Status.PROGRESSION_NOT_DEFINED : Status.LOCKED_ITEM);
+                }
+                else{
+                    return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), Status.LOCKED_ITEM);
+                }
             }
         }
-        return Pair.of(false, -1);
+        return Pair.of(false, Status.BLANK);
     }
 
     public boolean isItemBlacklisted(ItemStack itemStack) {
@@ -197,7 +206,7 @@ public class UncraftEverythingConfig {
         return restrictedModIngredients.get();
     }
 
-    public ResourceLocation inputStackLocation(ItemStack itemStack) {
+    public static ResourceLocation inputStackLocation(ItemStack itemStack) {
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
@@ -212,7 +221,14 @@ public class UncraftEverythingConfig {
 
     public enum ExperienceType {
         LEVEL,
-        POINT
+        POINT;
+
+        public ExperienceType invert(){
+            if (this == LEVEL){
+                return POINT;
+            }
+            return LEVEL;
+        }
     }
 
     public enum RestrictionType {

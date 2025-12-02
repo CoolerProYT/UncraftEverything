@@ -6,6 +6,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -28,8 +30,8 @@ public class UncraftingTableRecipe {
         this.outputs.addAll(outputs);
     }
 
-    public boolean addOutput(ItemStack output) {
-        return outputs.add(output);
+    public void addOutput(ItemStack output) {
+        outputs.add(output);
     }
 
     public void setOutput(int index, ItemStack output) {
@@ -44,32 +46,32 @@ public class UncraftingTableRecipe {
         return outputs;
     }
 
-    public CompoundTag serializeNbt() {
-        CompoundTag tag = new CompoundTag();
-        tag.put("input", input.save(new CompoundTag()));
-        ListTag listTag = new ListTag();
-        for (ItemStack itemStack : outputs) {
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.put("output", itemStack.save(new CompoundTag()));
-            listTag.add(itemTag);
-        }
-        tag.put("outputs", listTag);
-        return tag;
-    }
-
-    public static UncraftingTableRecipe deserializeNbt(CompoundTag tag) {
-        ItemStack input = ItemStack.of(tag.getCompound("input"));
-        List<ItemStack> outputs = new ArrayList<>();
-
-        if (tag.contains("outputs", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("outputs", Tag.TAG_COMPOUND);
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag itemTag = listTag.getCompound(i);
-                outputs.add(ItemStack.of(itemTag.getCompound("output")));
+    public boolean contains(Tuple<Item, CompoundTag> tuple){
+        for (ItemStack output : this.outputs){
+            if (ItemStack.isSameItemSameTags(output, new ItemStack(tuple.getA(), 1, tuple.getB()))){
+                return true;
             }
         }
+        return false;
+    }
 
-        return new UncraftingTableRecipe(input, outputs);
+    public int indexOf(Tuple<Item, CompoundTag> tuple){
+        for (int i = 0;i < this.outputs.size();i++){
+            ItemStack output = this.outputs.get(i);
+            if (ItemStack.isSameItemSameTags(output, new ItemStack(tuple.getA(), 1, tuple.getB()))){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public ItemStack getStack(Tuple<Item, CompoundTag> tuple){
+        for (ItemStack output : this.outputs) {
+            if (ItemStack.isSameItemSameTags(output, new ItemStack(tuple.getA(), 1, tuple.getB()))) {
+                return output;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     public void writeToBuf(FriendlyByteBuf packetByteBuf){

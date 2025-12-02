@@ -6,7 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 
-public record UncraftingRecipeSelectionDataPayload(int page, BlockPos blockPos){
+public record UncraftingPageChangePayload(int page, BlockPos blockPos){
     private static final String PROTOCOL_VERSION = "1";
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "uncrafting_recipe_selection_data_payload");
     public static final net.minecraftforge.network.simple.SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(TYPE,
@@ -20,23 +20,23 @@ public record UncraftingRecipeSelectionDataPayload(int page, BlockPos blockPos){
         return packetId++;
     }
 
-    public static void encode(UncraftingRecipeSelectionDataPayload payload, FriendlyByteBuf byteBuf){
+    public static void encode(UncraftingPageChangePayload payload, FriendlyByteBuf byteBuf){
         byteBuf.writeVarInt(payload.page);
         byteBuf.writeBlockPos(payload.blockPos);
     }
 
-    public static UncraftingRecipeSelectionDataPayload decode(FriendlyByteBuf byteBuf){
+    public static UncraftingPageChangePayload decode(FriendlyByteBuf byteBuf){
         int page = byteBuf.readVarInt();
         BlockPos blockPos = byteBuf.readBlockPos();
-        return new UncraftingRecipeSelectionDataPayload(page, blockPos);
+        return new UncraftingPageChangePayload(page, blockPos);
     }
 
     public static void register() {
         INSTANCE.registerMessage(
                 nextId(),
-                UncraftingRecipeSelectionDataPayload.class,
-                UncraftingRecipeSelectionDataPayload::encode,
-                UncraftingRecipeSelectionDataPayload::decode,
+                UncraftingPageChangePayload.class,
+                UncraftingPageChangePayload::encode,
+                UncraftingPageChangePayload::decode,
                 ServerPayloadHandler::handleRecipeSelectionData
         );
     }

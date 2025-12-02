@@ -20,6 +20,7 @@ public class UEBlockTagGenerator extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         this.tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(UEBlocks.UNCRAFTING_TABLE.get());
+                .add(UEBlocks.UNCRAFTING_TABLE.get())
+                .add(UEBlocks.AUTO_UNCRAFTING_TABLE.get());
     }
 }
