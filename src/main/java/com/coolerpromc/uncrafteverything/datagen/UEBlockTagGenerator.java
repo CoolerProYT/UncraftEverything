@@ -16,6 +16,7 @@ public class UEBlockTagGenerator extends net.neoforged.neoforge.common.data.Bloc
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         this.tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(UEBlocks.UNCRAFTING_TABLE.get());
+                .add(UEBlocks.UNCRAFTING_TABLE.get())
+                .add(UEBlocks.AUTO_UNCRAFTING_TABLE.get());
     }
 }

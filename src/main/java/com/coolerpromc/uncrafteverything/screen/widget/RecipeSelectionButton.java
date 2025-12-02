@@ -1,8 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.widget;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.WidgetSprites;
@@ -25,7 +23,6 @@ public class RecipeSelectionButton extends AbstractButton {
 
     @Override
     protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        Minecraft minecraft = Minecraft.getInstance();
         context.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SPRITES.get(this.active, this.isHoveredOrFocused()),
@@ -35,11 +32,6 @@ public class RecipeSelectionButton extends AbstractButton {
                 this.getHeight(),
                 ARGB.white(this.alpha)
         );
-        int i = ARGB.color(this.alpha, getFGColor());
-        this.renderString(context, minecraft.font, i);
-        if (this.isHovered()) {
-            context.requestCursor(this.isActive() ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
-        }
     }
 
     @Override
