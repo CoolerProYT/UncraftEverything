@@ -58,9 +58,17 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
             byPass = false;
             if (level != null && !level.isClientSide() && player != null) {
                 currentStack = getResource(0).toStack(getAmountAsInt(0));
+                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
                 if (!currentStack.is(previousContents.getItem())){
-                    page = 0;
-                    index = 0;
+                    if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
+                        page = 0;
+                        index = 0;
+                    }
+                    else if (history.patch().equals(currentStack.getComponentsPatch())){
+                        page = history.page();
+                        index = history.index();
+                        data.set(9, index);
+                    }
                 }
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
                 int fromIndex = page * 7;

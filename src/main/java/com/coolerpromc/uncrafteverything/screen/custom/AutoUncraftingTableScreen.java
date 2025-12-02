@@ -9,6 +9,7 @@ import com.coolerpromc.uncrafteverything.networking.TypeChangePayload;
 import com.coolerpromc.uncrafteverything.screen.widget.AmountWidget;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.screen.widget.TypeWidget;
+import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -37,6 +38,11 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
         super(menu, playerInventory, title);
         this.page = this.getMenu().getPage();
         this.selectedRecipe = this.getMenu().getIndex();
+    }
+
+    @Override
+    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
+        super.updateFromBlockEntity(recipes, size);
     }
 
     @Override
@@ -112,7 +118,8 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         this.clearWidgets();
         this.init();
-
+        this.page = this.getMenu().getPage();
+        this.selectedRecipe = this.getMenu().getIndex();
         this.renderRecipeSelection(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         super.renderContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.renderInputSlotOverlay(pGuiGraphics);
