@@ -17,6 +17,7 @@ public class UECreativeTab {
                     .displayName(Text.translatable("creativetab.uncrafteverything"))
                     .entries((displayContext, entries) -> {
                         entries.add(UEBlocks.UNCRAFTING_TABLE);
+                        entries.add(UEBlocks.AUTO_UNCRAFTING_TABLE);
                     }).build());
 
     public static void register() {

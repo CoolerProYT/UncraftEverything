@@ -1,11 +1,12 @@
 package com.coolerpromc.uncrafteverything.config;
 
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
+import com.coolerpromc.uncrafteverything.util.Status;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileWatcher;
 import com.electronwill.nightconfig.toml.TomlFormat;
+import com.mojang.serialization.Codec;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ItemEnchantmentsComponent;
@@ -19,6 +20,7 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -188,17 +190,24 @@ public class UncraftEverythingConfig {
         return outputEnchantedBook;
     }
 
-    public static Pair<Boolean, Integer> isItemLocked(ServerPlayerEntity player, ItemStack itemStack){
+    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayerEntity player, ItemStack itemStack){
         if (UncraftEverythingConfig.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
-            if (UncraftEverythingConfig.onlyAllowDefinedProgression()){
-                return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? UncraftingTableBlockEntity.PROGRESSION_NOT_DEFINED : UncraftingTableBlockEntity.LOCKED_ITEM);
+            if (player == null){
+                if (questId != null){
+                    return Pair.of(true, Status.LOCKED_ITEM);
+                }
             }
             else{
-                return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), UncraftingTableBlockEntity.LOCKED_ITEM);
+                if (UncraftEverythingConfig.onlyAllowDefinedProgression()){
+                    return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? Status.PROGRESSION_NOT_DEFINED : Status.LOCKED_ITEM);
+                }
+                else{
+                    return Pair.of(questId != null && !QuestHelper.hasCompletedQuestOrChapter(player, questId), Status.LOCKED_ITEM);
+                }
             }
         }
-        return Pair.of(false, -1);
+        return Pair.of(false, Status.BLANK);
     }
 
     public static boolean isItemBlacklisted(ItemStack itemStack) {
@@ -286,6 +295,8 @@ public class UncraftEverythingConfig {
         LEVEL,
         POINT;
 
+        public static final Codec<ExperienceType> CODEC = Codec.STRING.xmap(ExperienceType::valueOf, Enum::name);
+
         public static final PacketCodec<RegistryByteBuf, ExperienceType> STREAM_CODEC = new PacketCodec<>() {
             @Override
             public ExperienceType decode(RegistryByteBuf buffer) {
@@ -297,6 +308,13 @@ public class UncraftEverythingConfig {
                 buffer.writeEnumConstant(value);
             }
         };
+
+        public ExperienceType invert(){
+            if (this == LEVEL){
+                return POINT;
+            }
+            return LEVEL;
+        }
     }
 
     public enum RestrictionType {

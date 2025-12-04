@@ -2,7 +2,10 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
+import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.blockentity.custom.AutoUncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.command.ModServerCommands;
 import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
@@ -11,6 +14,7 @@ import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import com.google.common.collect.Lists;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -28,6 +32,7 @@ import java.util.List;
 
 public class UncraftEverything implements ModInitializer {
 	public static final String MODID = "uncrafteverything";
+	public static boolean AUTO_MOVE = false;
 
 	@Override
 	public void onInitialize() {
@@ -54,8 +59,14 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
-		PayloadTypeRegistry.playC2S().register(UncraftingRecipeSelectionDataPayload.TYPE, UncraftingRecipeSelectionDataPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(UncraftingPageChangePayload.TYPE, UncraftingPageChangePayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEProgressionPayload.TYPE, UEProgressionPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(ExpTransferPayload.TYPE, ExpTransferPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(SelectedIndexSyncPayload.TYPE, SelectedIndexSyncPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(AmountToAddPayload.TYPE, AmountToAddPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(TypeChangePayload.TYPE, TypeChangePayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(CloseMenuPayload.TYPE, CloseMenuPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(ClientConfigSyncPayload.TYPE, ClientConfigSyncPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -77,7 +88,7 @@ public class UncraftEverything implements ModInitializer {
 				BlockPos pos = uncraftingRecipeSelectionPayload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
-				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity){
+				if (blockEntity instanceof AbstractUncraftingTableBE uncraftingTableBlockEntity){
 					uncraftingTableBlockEntity.handleRecipeSelection(uncraftingRecipeSelectionPayload.recipe());
 					blockEntity.markDirty();
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
@@ -132,13 +143,13 @@ public class UncraftEverything implements ModInitializer {
 			}
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionDataPayload.TYPE, (payload, context) -> {
+		ServerPlayNetworking.registerGlobalReceiver(UncraftingPageChangePayload.TYPE, (payload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
 				ServerWorld level = player.getEntityWorld();
 				BlockPos pos = payload.blockPos();
 
 				BlockEntity blockEntity = level.getBlockEntity(pos);
-				if (blockEntity instanceof UncraftingTableBlockEntity uncraftingTableBlockEntity) {
+				if (blockEntity instanceof AbstractUncraftingTableBE uncraftingTableBlockEntity) {
 					uncraftingTableBlockEntity.updatePage(payload.page());
 
 					blockEntity.markDirty();
@@ -155,6 +166,85 @@ public class UncraftEverything implements ModInitializer {
 			}
 		});
 
+
+		ServerPlayNetworking.registerGlobalReceiver(ExpTransferPayload.TYPE, (payload, context) ->{
+			if (context.player() instanceof ServerPlayerEntity player){
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.pos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					if (payload.experienceType() == UncraftEverythingConfig.ExperienceType.LEVEL){
+						uncraftingTableBlockEntity.addExperienceLevels(payload.amount(), player);
+					}
+					else {
+						uncraftingTableBlockEntity.addExperiencePoints(payload.amount(), player);
+					}
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(SelectedIndexSyncPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player) {
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.index = payload.index();
+
+					uncraftingTableBlockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(AmountToAddPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player) {
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.setAmountToAdd(payload.index());
+					uncraftingTableBlockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(TypeChangePayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player) {
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.blockPos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.setTypeToAdd(payload.expType());
+					uncraftingTableBlockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(CloseMenuPayload.TYPE, (payload, context) -> {
+			if (context.player() instanceof ServerPlayerEntity player) {
+				ServerWorld level = player.getEntityWorld();
+				BlockPos pos = payload.pos();
+
+				BlockEntity blockEntity = level.getBlockEntity(pos);
+				if (blockEntity instanceof AutoUncraftingTableBlockEntity uncraftingTableBlockEntity) {
+					uncraftingTableBlockEntity.setPlayer(null);
+					uncraftingTableBlockEntity.markDirty();
+					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
+				}
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(ClientConfigSyncPayload.TYPE, (payload,context) -> {
+			AUTO_MOVE = payload.autoMoveToInventory();
+		});
+
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
             ServerRecipeManager recipeManager = serverPlayerEntity.getEntityWorld().getRecipeManager();
             List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
@@ -165,12 +255,34 @@ public class UncraftEverything implements ModInitializer {
             recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));
             List<List<RecipeEntry<?>>> recipes = Lists.partition(recipeEntries, 100);
             recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
+
+			ResponseConfigPayload configPayload = new ResponseConfigPayload(
+					UncraftEverythingConfig.restrictionType,
+					UncraftEverythingConfig.restrictions,
+					UncraftEverythingConfig.allowEnchantedItems,
+					UncraftEverythingConfig.experienceType,
+					UncraftEverythingConfig.experience,
+					UncraftEverythingConfig.allowUnSmithing,
+					UncraftEverythingConfig.allowDamaged,
+					UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
+					PerItemExpCostConfig.getPerItemExp(),
+					UncraftEverythingConfig.restrictedModIngredients,
+					FTBQuestProgressionConfig.getProgressionMap(),
+					UncraftEverythingConfig.enableProgression,
+					UncraftEverythingConfig.onlyAllowDefinedProgression,
+					UncraftEverythingConfig.outputEnchantedBook
+			);
+			ServerPlayNetworking.send(serverPlayerEntity, configPayload);
         });
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> {
 			UncraftEverythingConfig.shutdown();
 			PerItemExpCostConfig.stopWatcher();
 			FTBQuestProgressionConfig.stopWatcher();
+		});
+
+		CommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess, registrationEnvironment) -> {
+			ModServerCommands.registerServer(commandDispatcher);
 		});
 	}
 }

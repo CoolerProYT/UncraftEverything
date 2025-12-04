@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final ResponseConfigPayload config = UncraftEverythingClient.payloadFromServer;
 
     private UncraftEverythingConfig.ExperienceType experienceType = config.experienceType();
@@ -55,9 +54,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private EditBoxWidget restrictedModInput;
     private ButtonWidget saveButton;
 
-    protected UEConfigScreen(Text title, Screen parent) {
+    public UEConfigScreen(Text title) {
         super(title, 413);
-        this.parent = parent;
     }
 
     @Override
@@ -255,7 +253,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     @Override
     public void close() {
         ClientPlayNetworking.send(new RequestConfigPayload());
-        this.client.setScreen(parent);
+        super.close();
     }
 
     @Override
@@ -303,7 +301,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
-        this.client.setScreen(parent);
+        close();
     }
     
     private void renderWrappedTooltip(DrawContext guiGraphics, List<Text> tooltip, int mouseX, int mouseY) {

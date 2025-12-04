@@ -1,6 +1,8 @@
 plugins {
-	id 'fabric-loom' version '1.11-SNAPSHOT'
+	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id 'maven-publish'
+    id "com.modrinth.minotaur" version "2.+"
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 version = project.mod_version
@@ -96,4 +98,24 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+publishMods {
+    file.set(remapJar.archiveFile)
+    type = STABLE
+    modLoaders.add("fabric")
+    changelog = file("changelog.md").text
+    displayName = "uncrafteverything-" + mod_version
+
+    curseforge {
+        projectId = "1244428"
+        accessToken = findProperty("CF_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
+
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
 }

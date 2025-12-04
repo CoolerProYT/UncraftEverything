@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.screen;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
@@ -11,8 +12,9 @@ import net.minecraft.util.math.BlockPos;
 
 public class UEMenuTypes {
     public static final ScreenHandlerType<UncraftingTableMenu> UNCRAFTING_TABLE_MENU =
-            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "uncrafting_table_menu"),
-                    new ExtendedScreenHandlerType<>(UncraftingTableMenu::new, BlockPos.PACKET_CODEC));
+            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "uncrafting_table_menu"), new ExtendedScreenHandlerType<>(UncraftingTableMenu::new, BlockPos.PACKET_CODEC));
+    public static final ScreenHandlerType<AutoUncraftingTableMenu> AUTO_UNCRAFTING_TABLE_MENU =
+            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "auto_uncrafting_table_menu"), new ExtendedScreenHandlerType<>(AutoUncraftingTableMenu::new, BlockPos.PACKET_CODEC));
 
     public static void register() {
 

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class PerItemExpConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
     private final int ENTRIES_START_Y = 30;
@@ -34,9 +33,8 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final List<TextFieldWidget> scrollableEditBoxes = new ArrayList<>();
     private final List<ButtonWidget> scrollableButtons = new ArrayList<>();
 
-    public PerItemExpConfigScreen(Screen parent) {
-        super(Text.translatable("screen.uncrafteverything.per_item_xp_config"), 200);
-        this.parent = parent;
+    public PerItemExpConfigScreen(Text text) {
+        super(text, 200);
     }
 
     @Override
@@ -96,7 +94,7 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         UEExpPayload configPayload = new UEExpPayload(newConfig);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
-        this.client.setScreen(parent);
+        close();
     }
 
     private void saveCurrentValues() {
@@ -204,11 +202,6 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         }
 
         return super.mouseClicked(click, doubled);
-    }
-
-    @Override
-    public void close() {
-        this.client.setScreen(parent);
     }
 
     protected void renderSeparator(DrawContext guiGraphics){

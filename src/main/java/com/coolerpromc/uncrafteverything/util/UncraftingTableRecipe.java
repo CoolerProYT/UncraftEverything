@@ -2,10 +2,13 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +37,8 @@ public class UncraftingTableRecipe {
         this.outputs.addAll(outputs);
     }
 
-    public boolean addOutput(ItemStack output) {
-        return outputs.add(output);
+    public void addOutput(ItemStack output) {
+        outputs.add(output);
     }
 
     public void setOutput(int index, ItemStack output) {
@@ -48,5 +51,33 @@ public class UncraftingTableRecipe {
 
     public List<ItemStack> getOutputs() {
         return outputs;
+    }
+
+    public boolean contains(Pair<Item, ComponentChanges> tuple){
+        for (ItemStack output : this.outputs){
+            if (ItemStack.areItemsAndComponentsEqual(output, new ItemStack(tuple.getLeft().getRegistryEntry(), 1, tuple.getRight()))){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int indexOf(Pair<Item, ComponentChanges> tuple){
+        for (int i = 0;i < this.outputs.size();i++){
+            ItemStack output = this.outputs.get(i);
+            if (ItemStack.areItemsAndComponentsEqual(output, new ItemStack(tuple.getLeft().getRegistryEntry(), 1, tuple.getRight()))){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public ItemStack getStack(Pair<Item, ComponentChanges> tuple){
+        for (ItemStack output : this.outputs) {
+            if (ItemStack.areItemsAndComponentsEqual(output, new ItemStack(tuple.getLeft().getRegistryEntry(), 1, tuple.getRight()))) {
+                return output;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 }
