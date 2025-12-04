@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -16,6 +17,9 @@ import net.minecraft.util.Identifier;
 public class UEBlocks {
     public static final Block UNCRAFTING_TABLE = registerBlock("uncrafting_table", new UncraftingTableBlock(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).registryKey(
             RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(UncraftEverything.MODID, "uncrafting_table"))
+    )));
+    public static final Block AUTO_UNCRAFTING_TABLE = registerBlock("auto_uncrafting_table", new AutoUncraftingTableBlock(AbstractBlock.Settings.copy(Blocks.CRAFTER).registryKey(
+            RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(UncraftEverything.MODID, "auto_uncrafting_table"))
     )));
 
     public static <T extends Block> T registerBlock(String name, T block){

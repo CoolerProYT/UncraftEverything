@@ -1,6 +1,5 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
-import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.minecraft.block.entity.BlockEntity;
@@ -10,28 +9,16 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
-public class UncraftingTableMenu extends ScreenHandler {
-    public final UncraftingTableBlockEntity blockEntity;
-    private final World world;
-    private final PropertyDelegate data;
-    public final PlayerEntity player;
-
+public class UncraftingTableMenu extends AbstractUncraftingMenu<UncraftingTableBlockEntity> {
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockPos blockPos) {
         this(syncId, playerInventory, playerInventory.player.getEntityWorld().getBlockEntity(blockPos), new ArrayPropertyDelegate(3));
     }
 
     public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, PropertyDelegate data) {
-        super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId);
-        this.blockEntity = (UncraftingTableBlockEntity) blockEntity;
-        this.world = playerInventory.player.getEntityWorld();
-        this.data = data;
-        this.player = playerInventory.player;
+        super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId, (UncraftingTableBlockEntity) blockEntity, playerInventory.player.getEntityWorld(), playerInventory.player, data);
 
         this.addSlot(new Slot(this.blockEntity.getSlots(), this.blockEntity.getInputSlots()[0], 26, 35));
 
@@ -46,56 +33,12 @@ public class UncraftingTableMenu extends ScreenHandler {
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-        addProperties(data);
     }
 
     @Override
     public void onContentChanged(Inventory inventory) {
         super.onContentChanged(inventory);
         this.sendContentUpdates();
-    }
-
-    @Override
-    public ItemStack quickMove(PlayerEntity player, int invSlot) {
-        ItemStack newStack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(invSlot);
-        if (slot != null && slot.hasStack()) {
-            ItemStack originalStack = slot.getStack();
-            newStack = originalStack.copy();
-            if (invSlot < this.blockEntity.getSlots().size()) {
-                if (!this.insertItem(originalStack, this.blockEntity.getSlots().size(), this.slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!this.insertItem(originalStack, 0, this.blockEntity.getSlots().size(), false)) {
-                return ItemStack.EMPTY;
-            }
-
-            if (originalStack.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
-            } else {
-                slot.markDirty();
-            }
-        }
-        return newStack;
-    }
-
-    @Override
-    public boolean canUse(PlayerEntity player) {
-        return canUse(ScreenHandlerContext.create(world, blockEntity.getPos()), player, UEBlocks.UNCRAFTING_TABLE);
-    }
-
-    private void addPlayerInventory(Inventory playerInventory) {
-        for (int i = 0; i < 3; ++i) {
-            for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 8 + l * 18, 102 + i * 18));
-            }
-        }
-    }
-
-    private void addPlayerHotbar(Inventory playerInventory) {
-        for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 160));
-        }
     }
 
     @Override
