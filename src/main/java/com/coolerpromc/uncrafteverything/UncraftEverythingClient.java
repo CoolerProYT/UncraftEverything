@@ -1,13 +1,20 @@
 package com.coolerpromc.uncrafteverything;
 
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.command.ModCommands;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.networking.RecipeSyncPayload;
 import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingMenu;
+import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingScreen;
+import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
@@ -25,14 +32,18 @@ public class UncraftEverythingClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HandledScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
+        HandledScreens.register(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU, AutoUncraftingTableScreen::new);
+
+        UncraftEverythingClientConfig.load();
+        UncraftEverythingClientConfig.save();
 
         ClientPlayNetworking.registerGlobalReceiver(UncraftingTableDataPayload.TYPE, (uncraftingTableDataPayload, context) -> {
             MinecraftClient minecraft = MinecraftClient.getInstance();
             World world = minecraft.world;
             Screen screen = minecraft.currentScreen;
 
-            if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen){
-                if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof UncraftingTableBlockEntity){
+            if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen){
+                if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof AbstractUncraftingTableBE){
                     uncraftingTableScreen.updateFromBlockEntity(uncraftingTableDataPayload.recipes(), uncraftingTableDataPayload.size());
                 }
             }
@@ -47,7 +58,7 @@ public class UncraftEverythingClient implements ClientModInitializer {
             World world = minecraft.world;
             Screen screen = minecraft.currentScreen;
 
-            if (world != null && screen instanceof UncraftingTableScreen uncraftingTableScreen) {
+            if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen) {
                 uncraftingTableScreen.getRecipeSelection();
             }
         });
@@ -59,6 +70,14 @@ public class UncraftEverythingClient implements ClientModInitializer {
                 }
                 recipesFromServer.addAll(recipeSyncPayload.recipes());
             });
+        });
+
+        ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftServer -> {
+            UncraftEverythingClientConfig.shutdown();
+        });
+
+        ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess) -> {
+            ModCommands.register(commandDispatcher);
         });
     }
 }

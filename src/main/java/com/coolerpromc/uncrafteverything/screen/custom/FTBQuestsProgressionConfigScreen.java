@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private final int ENTRY_HEIGHT = 24;
     private final int ENTRIES_START_Y = 30;
@@ -34,9 +33,8 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
     private final List<TextFieldWidget> scrollableEditBoxes = new ArrayList<>();
     private final List<ButtonWidget> scrollableButtons = new ArrayList<>();
 
-    public FTBQuestsProgressionConfigScreen(Screen parent) {
-        super(Text.translatable("screen.uncrafteverything.ftb_quest_progression_config"), 200);
-        this.parent = parent;
+    public FTBQuestsProgressionConfigScreen(Text text) {
+        super(text, 200);
     }
 
     @Override
@@ -96,7 +94,7 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         UEProgressionPayload configPayload = new UEProgressionPayload(newConfig);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
-        this.client.setScreen(parent);
+        close();
     }
 
     private void saveCurrentValues() {
@@ -148,8 +146,6 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void render(@NotNull DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
-
         guiGraphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, (23 - this.textRenderer.fontHeight) / 2, 0xFFFFFFFF);
 
         guiGraphics.enableScissor(0, ENTRIES_START_Y - 5, width, this.height - 65);
@@ -206,11 +202,6 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         }
 
         return super.mouseClicked(click, doubled);
-    }
-
-    @Override
-    public void close() {
-        this.client.setScreen(parent);
     }
 
     protected void renderSeparator(DrawContext guiGraphics){
