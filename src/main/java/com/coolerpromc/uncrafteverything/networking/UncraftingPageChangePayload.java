@@ -13,7 +13,7 @@ import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.SimpleChannel;
 
-public record UncraftingRecipeSelectionDataPayload(int page, BlockPos blockPos){
+public record UncraftingPageChangePayload(int page, BlockPos blockPos){
     private static final int PROTOCOL_VERSION = 0;
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_recipe_selection_data_payload");
     public static final SimpleChannel INSTANCE = ChannelBuilder
@@ -22,9 +22,9 @@ public record UncraftingRecipeSelectionDataPayload(int page, BlockPos blockPos){
             .clientAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
             .serverAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
             .simpleChannel()
-            .messageBuilder(UncraftingRecipeSelectionDataPayload.class, nextId(), NetworkDirection.PLAY_TO_SERVER)
-            .encoder(UncraftingRecipeSelectionDataPayload::encode)
-            .decoder(UncraftingRecipeSelectionDataPayload::decode)
+            .messageBuilder(UncraftingPageChangePayload.class, nextId(), NetworkDirection.PLAY_TO_SERVER)
+            .encoder(UncraftingPageChangePayload::encode)
+            .decoder(UncraftingPageChangePayload::decode)
             .consumer(ServerPayloadHandler::handleRecipeSelectionData)
             .add();
 
@@ -33,23 +33,23 @@ public record UncraftingRecipeSelectionDataPayload(int page, BlockPos blockPos){
         return packetId++;
     }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionDataPayload> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingPageChangePayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.INT,
-            UncraftingRecipeSelectionDataPayload::page,
+            UncraftingPageChangePayload::page,
             BlockPos.STREAM_CODEC,
-            UncraftingRecipeSelectionDataPayload::blockPos,
-            UncraftingRecipeSelectionDataPayload::new
+            UncraftingPageChangePayload::blockPos,
+            UncraftingPageChangePayload::new
     );
 
-    public static void encode(UncraftingRecipeSelectionDataPayload payload, FriendlyByteBuf byteBuf){
+    public static void encode(UncraftingPageChangePayload payload, FriendlyByteBuf byteBuf){
         byteBuf.writeVarInt(payload.page);
         byteBuf.writeBlockPos(payload.blockPos);
     }
 
-    public static UncraftingRecipeSelectionDataPayload decode(FriendlyByteBuf byteBuf){
+    public static UncraftingPageChangePayload decode(FriendlyByteBuf byteBuf){
         int page = byteBuf.readVarInt();
         BlockPos blockPos = byteBuf.readBlockPos();
-        return new UncraftingRecipeSelectionDataPayload(page, blockPos);
+        return new UncraftingPageChangePayload(page, blockPos);
     }
 
     public static void register(BusGroup bus) {

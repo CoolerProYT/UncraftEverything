@@ -2,8 +2,6 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +15,10 @@ import net.minecraftforge.network.SimpleChannel;
 
 import java.util.List;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) {
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
+        this(blockPos, recipes, size, true);
+    }
     private static final int PROTOCOL_VERSION = 0;
     public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data");
     public static final SimpleChannel INSTANCE = ChannelBuilder
@@ -32,12 +33,6 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
             .consumer(FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {})
             .add();
 
-    public static final Codec<UncraftingTableDataPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("blockPos").forGetter(UncraftingTableDataPayload::blockPos),
-            UncraftingTableRecipe.CODEC.listOf().fieldOf("recipes").forGetter(UncraftingTableDataPayload::recipes),
-            Codec.INT.fieldOf("size").forGetter(UncraftingTableDataPayload::size)
-    ).apply(instance, UncraftingTableDataPayload::new));
-
     private static int packetId = 0;
     private static int nextId() {
         return packetId++;
@@ -45,7 +40,6 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
 
     public static void encode(UncraftingTableDataPayload payload, RegistryFriendlyByteBuf byteBuf){
         byteBuf.writeBlockPos(payload.blockPos());
-
         byteBuf.writeVarInt(payload.recipes().size());
 
         for (UncraftingTableRecipe recipe : payload.recipes()) {
@@ -68,6 +62,7 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         }
 
         byteBuf.writeVarInt(payload.size());
+        byteBuf.writeBoolean(payload.shouldSendPacket());
     }
 
     public static UncraftingTableDataPayload decode(RegistryFriendlyByteBuf byteBuf){
@@ -94,8 +89,9 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
         }
 
         int size = byteBuf.readVarInt();
+        boolean shouldSendPacket = byteBuf.readBoolean();
 
-        return new UncraftingTableDataPayload(pos, recipes, size);
+        return new UncraftingTableDataPayload(pos, recipes, size, shouldSendPacket);
     }
 
     public static void register(BusGroup bus) {

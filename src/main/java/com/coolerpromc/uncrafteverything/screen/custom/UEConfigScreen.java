@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final ResponseConfigPayload config = ClientPayloadHandler.payloadFromServer;
 
     private UncraftEverythingConfig.ExperienceType experienceType = config.experienceType();
@@ -53,9 +52,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private MultiLineEditBox restrictedModInput;
     private Button saveButton;
 
-    protected UEConfigScreen(Component title, Screen parent) {
+    public UEConfigScreen(Component title) {
         super(title, 413);
-        this.parent = parent;
     }
 
     @Override
@@ -251,7 +249,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     @Override
     public void onClose() {
         RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
-        this.getMinecraft().setScreen(parent);
+        super.onClose();
     }
 
     @Override
@@ -299,7 +297,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
         UEConfigPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
         RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
-        this.getMinecraft().setScreen(parent);
+        onClose();
     }
 
     private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
