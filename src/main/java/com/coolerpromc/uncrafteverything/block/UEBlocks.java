@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.block;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import net.minecraft.core.registries.Registries;
@@ -23,6 +24,9 @@ public class UEBlocks {
 
     public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTING_TABLE).setId(
             ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table"))
+    )));
+    public static final RegistryObject<Block> AUTO_UNCRAFTING_TABLE = registerBlock("auto_uncrafting_table", () -> new AutoUncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTER).setId(
+            ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "auto_uncrafting_table"))
     )));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier){

@@ -1,7 +1,9 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
-import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
+import com.coolerpromc.uncrafteverything.networking.ClientConfigSyncPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,9 +47,10 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             BlockEntity entity = level.getBlockEntity(pos);
             if (entity instanceof UncraftingTableBlockEntity blockEntity){
                 ((ServerPlayer) player).openMenu(blockEntity, pos);
-                blockEntity.getOutputStacks();
+                blockEntity.getOutputStacks(blockEntity.getInputHandler(), false);
                 if (!level.isClientSide()) {
                     level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
+                    blockEntity.updatePage(0);
                 }
             }
             else {
@@ -55,7 +58,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             }
         }
         else{
-            RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new ClientConfigSyncPayload(UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.get()), PacketDistributor.SERVER.noArg());
         }
 
         return InteractionResult.SUCCESS;

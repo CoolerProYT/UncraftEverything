@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
-    private final Screen parent;
     private final ResponseConfigPayload config = ClientPayloadHandler.payloadFromServer;
 
     private UncraftEverythingConfig.ExperienceType experienceType = config.experienceType();
@@ -53,9 +53,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private MultiLineEditBox restrictedModInput;
     private Button saveButton;
 
-    protected UEConfigScreen(Component title, Screen parent) {
+    public UEConfigScreen(Component title) {
         super(title, 413);
-        this.parent = parent;
     }
 
     @Override
@@ -250,8 +249,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void onClose() {
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
-        this.getMinecraft().setScreen(parent);
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        super.onClose();
     }
 
     @Override
@@ -297,9 +296,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
         UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
-        UEConfigPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
-        this.getMinecraft().setScreen(parent);
+        UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        onClose();
     }
 
     private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){

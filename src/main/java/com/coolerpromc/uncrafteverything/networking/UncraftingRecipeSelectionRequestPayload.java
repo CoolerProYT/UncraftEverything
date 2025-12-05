@@ -2,45 +2,17 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.bus.BusGroup;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.SimpleChannel;
 
-public record UncraftingRecipeSelectionRequestPayload() {
-    private static final int PROTOCOL_VERSION = 0;
-    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request");
-    public static final SimpleChannel INSTANCE = ChannelBuilder
-            .named(TYPE)
-            .networkProtocolVersion(PROTOCOL_VERSION)
-            .clientAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .serverAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .simpleChannel()
-            .messageBuilder(UncraftingRecipeSelectionRequestPayload.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
-            .encoder(UncraftingRecipeSelectionRequestPayload::encode)
-            .decoder(UncraftingRecipeSelectionRequestPayload::decode)
-            .consumer(FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {})
-            .add();
+public record UncraftingRecipeSelectionRequestPayload() implements CustomPacketPayload {
+    public static final Type<UncraftingRecipeSelectionRequestPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request"));
 
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionRequestPayload> STREAM_CODEC = StreamCodec.of((b, p) -> {}, (b) -> new UncraftingRecipeSelectionRequestPayload());
 
-    private static int packetId = 0;
-    private static int nextId() {
-        return packetId++;
-    }
-
-    public static void encode(UncraftingRecipeSelectionRequestPayload payload, RegistryFriendlyByteBuf byteBuf){
-
-    }
-
-    public static UncraftingRecipeSelectionRequestPayload decode(RegistryFriendlyByteBuf byteBuf){
-        return new UncraftingRecipeSelectionRequestPayload();
-    }
-
-    public static void register(BusGroup bus) {
-        // nothing special on setup, channel is built statically
-        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }
