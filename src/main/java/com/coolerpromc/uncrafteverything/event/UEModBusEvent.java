@@ -143,5 +143,11 @@ public class UEModBusEvent {
                 CloseMenuPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleCloseMenu
         );
+
+        registrar.playToServer(
+                ClientConfigSyncPayload.TYPE,
+                ClientConfigSyncPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleClientConfigSync
+        );
     }
 }

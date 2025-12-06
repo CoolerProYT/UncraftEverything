@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import com.coolerpromc.uncrafteverything.networking.ServerPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ModCompatibilities;
@@ -247,7 +248,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                     outputHandler.set(slot, ItemResource.of(slotStack), slotStack.getCount());
                 }
 
-                if (UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.getAsBoolean()){
+                if (ServerPayloadHandler.AUTO_MOVE){
                     player.getInventory().placeItemBackInInventory(outputHandler.copyToList().get(slot));
                     outputHandler.set(slot, ItemResource.EMPTY, 0);
                 }

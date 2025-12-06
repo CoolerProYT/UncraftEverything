@@ -17,6 +17,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.List;
 
 public class ServerPayloadHandler {
+    public static boolean AUTO_MOVE = false;
+
     public static void handleButtonClick(UncraftingTableCraftButtonClickPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
@@ -247,6 +249,15 @@ public class ServerPayloadHandler {
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
+        }).exceptionally(e -> {
+            context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleClientConfigSync(ClientConfigSyncPayload payload, IPayloadContext context){
+        context.enqueueWork(() -> {
+            AUTO_MOVE = payload.autoMoveToInventory();
         }).exceptionally(e -> {
             context.disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;
