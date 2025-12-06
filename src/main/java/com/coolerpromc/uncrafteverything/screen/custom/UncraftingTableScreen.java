@@ -37,7 +37,7 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
 
     private void onPressed(Button button) {
         UncraftingTableCraftButtonClickPayload payload = new UncraftingTableCraftButtonClickPayload(this.menu.blockEntity.getBlockPos(), hasShift());
-        UncraftingTableCraftButtonClickPayload.INSTANCE.send(payload, PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(payload, PacketDistributor.SERVER.noArg());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.networking;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AutoUncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
@@ -100,7 +101,7 @@ public class ServerPayloadHandler {
                         config.onlyAllowDefinedProgression.get(),
                         config.outputEnchantedBook.get()
                 );
-                ResponseConfigPayload.INSTANCE.send(configPayload, PacketDistributor.PLAYER.with(player));
+                UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.PLAYER.with(player));
             }
         }).exceptionally(e -> {
             context.getConnection().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));

@@ -55,7 +55,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
 
         if (size < 7 && this.page != 0){
             this.page = 0;
-            UncraftingPageChangePayload.INSTANCE.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
         }
 
         if (!recipes.isEmpty()){
@@ -63,7 +63,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
                 selectedRecipe = 0;
             }
             if (shouldSendPacket){
-                UncraftingRecipeSelectionPayload.INSTANCE.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)), PacketDistributor.SERVER.noArg());
+                UncraftEverything.CHANNEL.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)), PacketDistributor.SERVER.noArg());
             }
         }
     }
@@ -154,7 +154,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             else{
                 this.page = Math.max(maxPageCount - 1, 0);
             }
-            UncraftingPageChangePayload.INSTANCE.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
         }).pos(this.leftPos - 152 + 5, this.topPos + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
@@ -165,14 +165,14 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             else{
                 this.page = 0;
             }
-            UncraftingPageChangePayload.INSTANCE.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
         }).pos(this.leftPos - 21, this.topPos + imageHeight - 23).size(16, 16).build();
         this.addRenderableWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
     protected void chooseRecipe(RecipeSelectionButton button, int index){
         selectedRecipe = index;
-        UncraftingRecipeSelectionPayload.INSTANCE.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)), PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)), PacketDistributor.SERVER.noArg());
     }
 
     protected void renderRecipeButton(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
@@ -236,7 +236,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         }
         finally {
             if (recipe != null){
-                UncraftingRecipeSelectionPayload.INSTANCE.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe), PacketDistributor.SERVER.noArg());
+                UncraftEverything.CHANNEL.send(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), recipe), PacketDistributor.SERVER.noArg());
             }
         }
     }
@@ -254,7 +254,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             } else if (scrollDelta == -1.0d && (this.page + 1) * MAX_PAGE_SIZE >= recipeSize) {
                 this.page = 0;
             }
-            UncraftingPageChangePayload.INSTANCE.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()), PacketDistributor.SERVER.noArg());
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
     }

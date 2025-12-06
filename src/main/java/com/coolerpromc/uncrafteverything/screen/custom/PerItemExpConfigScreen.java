@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
@@ -92,8 +93,8 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         }
 
         UEExpPayload configPayload = new UEExpPayload(newConfig);
-        UEExpPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         onClose();
     }
 

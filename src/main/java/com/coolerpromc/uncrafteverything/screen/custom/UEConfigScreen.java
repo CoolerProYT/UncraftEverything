@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
@@ -248,7 +249,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
     @Override
     public void onClose() {
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         super.onClose();
     }
 
@@ -295,8 +296,8 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
         UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
-        UEConfigPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         onClose();
     }
 

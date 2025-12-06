@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.command;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.FTBQuestsProgressionConfigScreen;
@@ -37,7 +38,7 @@ public class ModCommands {
 
     private static int common(CommandContext<CommandSourceStack> context){
         Minecraft.getInstance().schedule(() -> {
-            RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
             Minecraft.getInstance().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config")));
         });
         return 1;
@@ -45,7 +46,7 @@ public class ModCommands {
 
     private static int exp(CommandContext<CommandSourceStack> context){
         Minecraft.getInstance().schedule(() -> {
-            RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
             Minecraft.getInstance().setScreen(new PerItemExpConfigScreen(Component.translatable("screen.uncrafteverything.per_item_xp_config")));
         });
         return 1;
@@ -60,7 +61,7 @@ public class ModCommands {
 
     private static int progression(CommandContext<CommandSourceStack> context){
         Minecraft.getInstance().schedule(() -> {
-            RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+            UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
             Minecraft.getInstance().setScreen(new FTBQuestsProgressionConfigScreen(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config")));
         });
         return 1;

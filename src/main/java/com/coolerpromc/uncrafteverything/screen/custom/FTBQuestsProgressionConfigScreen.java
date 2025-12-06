@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEProgressionPayload;
@@ -92,8 +93,8 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         }
 
         UEProgressionPayload configPayload = new UEProgressionPayload(newConfig);
-        UEProgressionPayload.INSTANCE.send(configPayload, PacketDistributor.SERVER.noArg());
-        RequestConfigPayload.INSTANCE.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.SERVER.noArg());
+        UncraftEverything.CHANNEL.send(new RequestConfigPayload(), PacketDistributor.SERVER.noArg());
         onClose();
     }
 

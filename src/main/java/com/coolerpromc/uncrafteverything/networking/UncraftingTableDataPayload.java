@@ -4,98 +4,33 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.bus.BusGroup;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.SimpleChannel;
 
 import java.util.List;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) {
-    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) implements CustomPacketPayload {
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) {
         this(blockPos, recipes, size, true);
     }
-    private static final int PROTOCOL_VERSION = 0;
-    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data");
-    public static final SimpleChannel INSTANCE = ChannelBuilder
-            .named(TYPE)
-            .networkProtocolVersion(PROTOCOL_VERSION)
-            .clientAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .serverAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .simpleChannel()
-            .messageBuilder(UncraftingTableDataPayload.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
-            .encoder(UncraftingTableDataPayload::encode)
-            .decoder(UncraftingTableDataPayload::decode)
-            .consumer(FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {})
-            .add();
 
-    private static int packetId = 0;
-    private static int nextId() {
-        return packetId++;
-    }
+    public static final Type<UncraftingTableDataPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableDataPayload> STREAM_CODEC = StreamCodec.composite(
+            BlockPos.STREAM_CODEC,
+            UncraftingTableDataPayload::blockPos,
+            UncraftingTableRecipe.STREAM_CODEC.apply(ByteBufCodecs.list()),
+            UncraftingTableDataPayload::recipes,
+            ByteBufCodecs.INT,
+            UncraftingTableDataPayload::size,
+            ByteBufCodecs.BOOL,
+            UncraftingTableDataPayload::shouldSendPacket,
+            UncraftingTableDataPayload::new
+    );
 
-    public static void encode(UncraftingTableDataPayload payload, RegistryFriendlyByteBuf byteBuf){
-        byteBuf.writeBlockPos(payload.blockPos());
-        byteBuf.writeVarInt(payload.recipes().size());
-
-        for (UncraftingTableRecipe recipe : payload.recipes()) {
-            if (byteBuf instanceof RegistryFriendlyByteBuf registryBuf) {
-                UncraftingTableRecipe.STREAM_CODEC.encode(registryBuf, recipe);
-            } else {
-                byteBuf.writeBoolean(!recipe.getInput().isEmpty());
-                if (!recipe.getInput().isEmpty()) {
-                    ItemStack.STREAM_CODEC.encode(byteBuf, recipe.getInput());
-                }
-
-                byteBuf.writeVarInt(recipe.getOutputs().size());
-                for (var output : recipe.getOutputs()) {
-                    byteBuf.writeBoolean(!output.isEmpty());
-                    if (!output.isEmpty()) {
-                        ItemStack.STREAM_CODEC.encode(byteBuf, output);
-                    }
-                }
-            }
-        }
-
-        byteBuf.writeVarInt(payload.size());
-        byteBuf.writeBoolean(payload.shouldSendPacket());
-    }
-
-    public static UncraftingTableDataPayload decode(RegistryFriendlyByteBuf byteBuf){
-        BlockPos pos = byteBuf.readBlockPos();
-
-        int recipeCount = byteBuf.readVarInt();
-        List<UncraftingTableRecipe> recipes = new java.util.ArrayList<>(recipeCount);
-
-        for (int i = 0; i < recipeCount; i++) {
-            if (byteBuf instanceof RegistryFriendlyByteBuf registryBuf) {
-                recipes.add(UncraftingTableRecipe.STREAM_CODEC.decode(registryBuf));
-            } else {
-                var input = byteBuf.readBoolean() ? ItemStack.STREAM_CODEC.decode(byteBuf) : net.minecraft.world.item.ItemStack.EMPTY;
-
-                int outputCount = byteBuf.readVarInt();
-                List<net.minecraft.world.item.ItemStack> outputs = new java.util.ArrayList<>(outputCount);
-
-                for (int j = 0; j < outputCount; j++) {
-                    outputs.add(byteBuf.readBoolean() ? ItemStack.STREAM_CODEC.decode(byteBuf) : net.minecraft.world.item.ItemStack.EMPTY);
-                }
-
-                recipes.add(new UncraftingTableRecipe(input, outputs));
-            }
-        }
-
-        int size = byteBuf.readVarInt();
-        boolean shouldSendPacket = byteBuf.readBoolean();
-
-        return new UncraftingTableDataPayload(pos, recipes, size, shouldSendPacket);
-    }
-
-    public static void register(BusGroup bus) {
-        // nothing special on setup, channel is built statically
-        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

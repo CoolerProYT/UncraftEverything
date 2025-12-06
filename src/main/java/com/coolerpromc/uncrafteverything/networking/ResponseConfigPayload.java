@@ -6,6 +6,7 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -33,11 +34,8 @@ public record ResponseConfigPayload(
         boolean enableProgression,
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook
-){
-
-    public static final ResourceLocation TYPE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config");
-    private static final int PROTOCOL_VERSION = 0;
-
+) implements CustomPacketPayload {
+    public static final Type<ResponseConfigPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ResponseConfigPayload> STREAM_CODEC = StreamCodec.of(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
 
     private static void encode(RegistryFriendlyByteBuf buf, ResponseConfigPayload payload) {
@@ -76,24 +74,8 @@ public record ResponseConfigPayload(
         return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
     }
 
-    public static final SimpleChannel INSTANCE = ChannelBuilder
-            .named(TYPE)
-            .networkProtocolVersion(PROTOCOL_VERSION)
-            .clientAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .serverAcceptedVersions((status, i) -> i == PROTOCOL_VERSION)
-            .simpleChannel()
-            .messageBuilder(ResponseConfigPayload.class, nextId(), NetworkDirection.PLAY_TO_CLIENT)
-            .codec(STREAM_CODEC)
-            .consumer(FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {})
-            .add();
-
-    private static int packetId = 0;
-    private static int nextId() {
-        return packetId++;
-    }
-
-    public static void register(BusGroup bus) {
-        // nothing special on setup, channel is built statically
-        FMLCommonSetupEvent.getBus(bus).addListener(fmlCommonSetupEvent -> {});
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

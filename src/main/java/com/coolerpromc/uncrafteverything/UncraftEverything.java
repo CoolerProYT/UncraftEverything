@@ -27,6 +27,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
@@ -47,10 +48,19 @@ public class UncraftEverything
             .add(AmountToAddPayload.TYPE, AmountToAddPayload.STREAM_CODEC, ServerPayloadHandler::handleAmountChange)
             .add(TypeChangePayload.TYPE, TypeChangePayload.STREAM_CODEC, ServerPayloadHandler::handleTypeChange)
             .add(CloseMenuPayload.TYPE, CloseMenuPayload.STREAM_CODEC, ServerPayloadHandler::handleCloseMenu)
+            .add(RequestConfigPayload.TYPE, RequestConfigPayload.STREAM_CODEC, ServerPayloadHandler::handleRequestConfig)
+            .add(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC, FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleConfigSync : (payload, context) -> {})
+            .add(UEConfigPayload.TYPE, UEConfigPayload.STREAM_CODEC, ServerPayloadHandler::handleConfig)
+            .add(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC, ServerPayloadHandler::handleExpCost)
+            .add(UEProgressionPayload.TYPE, UEProgressionPayload.STREAM_CODEC, ServerPayloadHandler::handleProgression)
+            .add(UncraftingPageChangePayload.TYPE, UncraftingPageChangePayload.STREAM_CODEC, ServerPayloadHandler::handleRecipeSelectionData)
+            .add(UncraftingRecipeSelectionPayload.TYPE, UncraftingRecipeSelectionPayload.STREAM_CODEC, ServerPayloadHandler::handleRecipeSelection)
+            .add(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC, FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {})
+            .add(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC, ServerPayloadHandler::handleButtonClick)
+            .add(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC, FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {})
             .build();
 
-    public UncraftEverything(FMLJavaModLoadingContext context)
-    {
+    public UncraftEverything(FMLJavaModLoadingContext context) {
         BusGroup modEventBus = context.getModBusGroup();
         RegisterClientCommandsEvent.BUS.addListener(UncraftEverything::onRegisterClientCommands);
         ServerStoppingEvent.BUS.addListener(UncraftEverything::onServerStopping);
@@ -61,17 +71,6 @@ public class UncraftEverything
         UECreativeTab.register(modEventBus);
         UEBlockEntities.register(modEventBus);
         UEMenuTypes.register(modEventBus);
-
-        UncraftingTableDataPayload.register(modEventBus);
-        UncraftingTableCraftButtonClickPayload.register(modEventBus);
-        UncraftingRecipeSelectionPayload.register(modEventBus);
-        RequestConfigPayload.register(modEventBus);
-        ResponseConfigPayload.register(modEventBus);
-        UEConfigPayload.register(modEventBus);
-        UEExpPayload.register(modEventBus);
-        UncraftingRecipeSelectionRequestPayload.register(modEventBus);
-        UncraftingPageChangePayload.register(modEventBus);
-        UEProgressionPayload.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.COMMON, UncraftEverythingConfig.CONFIG_SPEC);
         context.registerConfig(ModConfig.Type.CLIENT, UncraftEverythingClientConfig.CONFIG_SPEC);
@@ -112,7 +111,7 @@ public class UncraftEverything
                     config.onlyAllowDefinedProgression.get(),
                     config.outputEnchantedBook.get()
             );
-            ResponseConfigPayload.INSTANCE.send(configPayload, PacketDistributor.PLAYER.with(player));
+            CHANNEL.send(configPayload, PacketDistributor.PLAYER.with(player));
         }
     }
 

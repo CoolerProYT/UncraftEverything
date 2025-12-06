@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
@@ -94,7 +95,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                     fromIndex = currentRecipes.size();
                 }
                 int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false), PacketDistributor.PLAYER.with(player));
+                UncraftEverything.CHANNEL.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false), PacketDistributor.PLAYER.with(player));
             }
             else if (level != null && !level.isClientSide()){
                 currentStack = getStackInSlot(0);

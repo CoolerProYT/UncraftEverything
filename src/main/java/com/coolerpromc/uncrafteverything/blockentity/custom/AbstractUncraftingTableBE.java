@@ -1,5 +1,6 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
@@ -71,7 +72,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
 
     public void updatePage(int page) {
         this.page = page;
-        UncraftingTableDataPayload.INSTANCE.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()), PacketDistributor.PLAYER.with(player));
+        UncraftEverything.CHANNEL.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()), PacketDistributor.PLAYER.with(player));
     }
 
     public void getOutputStacks(ItemStackHandler inputHandler, boolean isAuto) {
@@ -103,7 +104,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
 
         if (!currentRecipes.isEmpty()) {
             if (!isAuto) {
-                UncraftingRecipeSelectionRequestPayload.INSTANCE.send(new UncraftingRecipeSelectionRequestPayload(), PacketDistributor.PLAYER.with(player));
+                UncraftEverything.CHANNEL.send(new UncraftingRecipeSelectionRequestPayload(), PacketDistributor.PLAYER.with(player));
             } else {
                 currentRecipe = currentRecipes.getFirst();
             }
