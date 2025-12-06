@@ -18,6 +18,8 @@ import net.minecraftforge.network.PacketDistributor;
 import java.util.List;
 
 public class ServerPayloadHandler {
+    public static boolean AUTO_MOVE = false;
+
     public static void handleButtonClick(UncraftingTableCraftButtonClickPayload payload, CustomPayloadEvent.Context context) {
         context.enqueueWork(() -> {
             if (context.getSender() instanceof ServerPlayer player) {
@@ -248,6 +250,15 @@ public class ServerPayloadHandler {
                     level.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
                 }
             }
+        }).exceptionally(e -> {
+            context.getConnection().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
+            return null;
+        });
+    }
+
+    public static void handleClientConfigSync(ClientConfigSyncPayload payload, CustomPayloadEvent.Context context){
+        context.enqueueWork(() -> {
+            AUTO_MOVE = payload.autoMoveToInventory();
         }).exceptionally(e -> {
             context.getConnection().disconnect(Component.translatable("screen.uncrafteverything.disconnected", e.getMessage()));
             return null;

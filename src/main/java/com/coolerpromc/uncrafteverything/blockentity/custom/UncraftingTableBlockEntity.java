@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import com.coolerpromc.uncrafteverything.networking.ServerPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.util.ModCompatibilities;
@@ -283,7 +284,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                     outputHandler.setStackInSlot(slot, slotStack);
                 }
 
-                if (UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.get()){
+                if (ServerPayloadHandler.AUTO_MOVE){
                     player.getInventory().placeItemBackInInventory(outputHandler.getStackInSlot(slot).copy());
                     outputHandler.setStackInSlot(slot, ItemStack.EMPTY);
                 }

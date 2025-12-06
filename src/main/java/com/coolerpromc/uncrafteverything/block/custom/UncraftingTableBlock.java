@@ -1,6 +1,9 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
+import com.coolerpromc.uncrafteverything.networking.ClientConfigSyncPayload;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,6 +17,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class UncraftingTableBlock extends BaseEntityBlock {
@@ -52,6 +56,9 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             else {
                 throw new IllegalStateException("Container provider is missing");
             }
+        }
+        else{
+            UncraftEverything.CHANNEL.send(new ClientConfigSyncPayload(UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.get()), PacketDistributor.SERVER.noArg());
         }
 
         return InteractionResult.SUCCESS;

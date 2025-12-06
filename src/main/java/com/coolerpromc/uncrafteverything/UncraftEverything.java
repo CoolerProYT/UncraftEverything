@@ -58,6 +58,7 @@ public class UncraftEverything
             .add(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC, FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleRecipeSelectionRequest : (payload, context) -> {})
             .add(UncraftingTableCraftButtonClickPayload.TYPE, UncraftingTableCraftButtonClickPayload.STREAM_CODEC, ServerPayloadHandler::handleButtonClick)
             .add(UncraftingTableDataPayload.TYPE, UncraftingTableDataPayload.STREAM_CODEC, FMLEnvironment.dist.isClient() ? ClientPayloadHandler::handleBlockEntityData : (payload, context) -> {})
+            .add(ClientConfigSyncPayload.TYPE, ClientConfigSyncPayload.STREAM_CODEC, ServerPayloadHandler::handleClientConfigSync)
             .build();
 
     public UncraftEverything(FMLJavaModLoadingContext context) {
