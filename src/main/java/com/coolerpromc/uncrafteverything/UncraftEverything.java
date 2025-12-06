@@ -32,6 +32,7 @@ import java.util.List;
 
 public class UncraftEverything implements ModInitializer {
 	public static final String MODID = "uncrafteverything";
+	public static boolean AUTO_MOVE = false;
 
 	@Override
 	public void onInitialize() {
@@ -65,6 +66,7 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(AmountToAddPayload.TYPE, AmountToAddPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(TypeChangePayload.TYPE, TypeChangePayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(CloseMenuPayload.TYPE, CloseMenuPayload.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(ClientConfigSyncPayload.TYPE, ClientConfigSyncPayload.STREAM_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UncraftingTableCraftButtonClickPayload.TYPE, (uncraftingTableCraftButtonClickPayload, context) -> {
 			if (context.player() instanceof ServerPlayerEntity player){
@@ -237,6 +239,10 @@ public class UncraftEverything implements ModInitializer {
 					level.updateListeners(pos, level.getBlockState(pos), level.getBlockState(pos), 3);
 				}
 			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(ClientConfigSyncPayload.TYPE, (payload,context) -> {
+			AUTO_MOVE = payload.autoMoveToInventory();
 		});
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {

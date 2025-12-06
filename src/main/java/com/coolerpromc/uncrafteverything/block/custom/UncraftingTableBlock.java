@@ -1,6 +1,8 @@
 package com.coolerpromc.uncrafteverything.block.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
+import com.coolerpromc.uncrafteverything.networking.ClientConfigSyncPayload;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -55,7 +57,7 @@ public class UncraftingTableBlock extends BlockWithEntity {
             }
         }
         else{
-            ClientPlayNetworking.send(new RequestConfigPayload());
+            ClientPlayNetworking.send(new ClientConfigSyncPayload(UncraftEverythingClientConfig.autoMoveToInventory));
         }
 
         return ActionResult.SUCCESS;
