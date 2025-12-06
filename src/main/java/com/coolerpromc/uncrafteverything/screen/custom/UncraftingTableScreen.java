@@ -17,6 +17,7 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
 
     public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+        this.menu.data.set(2, -1);
     }
 
     @Override
