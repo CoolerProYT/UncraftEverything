@@ -1,6 +1,10 @@
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
 plugins {
 	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id 'maven-publish'
+    id "com.modrinth.minotaur" version "2.+"
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = project.mod_version
@@ -96,4 +100,22 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+modrinth {
+    token = findProperty("MODRINTH_TOKEN")
+    projectId = "9cz66Qto"
+    versionNumber = mod_version
+    versionName = "Uncraft Everything " + mod_version
+    versionType = "beta"
+    uploadFile = jar
+    changelog = file("changelog.md").text
+}
+
+tasks.register('publishCurseForge', TaskPublishCurseForge) {
+    apiToken = findProperty("CF_TOKEN")
+    def projectId = "1244428"
+    def mainFile = upload(projectId, jar)
+    mainFile.releaseType = 'beta'
+    mainFile.changelog = file("changelog.md")
 }
