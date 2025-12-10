@@ -5,10 +5,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record ClientConfigSyncPayload(boolean autoMoveToInventory) implements CustomPacketPayload {
-    public static final Type<ClientConfigSyncPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "client_config_sync"));
+    public static final Type<ClientConfigSyncPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "client_config_sync"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientConfigSyncPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL,

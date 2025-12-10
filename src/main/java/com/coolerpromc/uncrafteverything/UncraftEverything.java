@@ -15,7 +15,7 @@ import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableScreen
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
@@ -39,7 +39,7 @@ public class UncraftEverything
 {
     public static final String MODID = "uncrafteverything";
     public static final Channel<CustomPacketPayload> CHANNEL = ChannelBuilder
-            .named(ResourceLocation.fromNamespaceAndPath(MODID, "channel_registration"))
+            .named(Identifier.fromNamespaceAndPath(MODID, "channel_registration"))
             .payloadChannel()
             .play()
             .bidirectional()

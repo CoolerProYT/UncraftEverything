@@ -4,10 +4,10 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record UncraftingRecipeSelectionRequestPayload() implements CustomPacketPayload {
-    public static final Type<UncraftingRecipeSelectionRequestPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request"));
+    public static final Type<UncraftingRecipeSelectionRequestPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionRequestPayload> STREAM_CODEC = StreamCodec.of((b, p) -> {}, (b) -> new UncraftingRecipeSelectionRequestPayload());
 

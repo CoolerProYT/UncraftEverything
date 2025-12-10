@@ -1,8 +1,12 @@
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
 plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+    id "com.modrinth.minotaur" version "2.+"
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = mod_version
@@ -129,4 +133,22 @@ sourceSets.each {
     def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
     it.output.resourcesDir = dir
     it.java.destinationDirectory = dir
+}
+
+modrinth {
+    token = findProperty("MODRINTH_TOKEN")
+    projectId = "9cz66Qto"
+    versionNumber = mod_version
+    versionName = mod_name + " " + mod_version
+    versionType = "beta"
+    uploadFile = jar
+    changelog = file("changelog.md").text
+}
+
+tasks.register('publishCurseForge', TaskPublishCurseForge) {
+    apiToken = findProperty("CF_TOKEN")
+    def projectId = "1244428"
+    def mainFile = upload(projectId, jar)
+    mainFile.releaseType = 'beta'
+    mainFile.changelog = file("changelog.md")
 }

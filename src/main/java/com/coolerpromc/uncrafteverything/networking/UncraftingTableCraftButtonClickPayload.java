@@ -6,10 +6,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) implements CustomPacketPayload {
-    public static final Type<UncraftingTableCraftButtonClickPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
+    public static final Type<UncraftingTableCraftButtonClickPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableCraftButtonClickPayload> STREAM_CODEC = StreamCodec.composite(
             BlockPos.STREAM_CODEC,

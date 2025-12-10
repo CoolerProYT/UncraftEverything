@@ -9,7 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -55,7 +55,7 @@ public class UncraftEverythingConfig {
         builder.push("Restrictions");
         restrictionType = builder.comment("The type of restriction to be used.").defineEnum("restrictionType", RestrictionType.BLACKLIST, RestrictionType.values());
         restrictions = builder.comment("A list of items that can/cannot be uncrafted depending on type of restriction.", "Invalid input will cause config reset at runtime.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name", "Press F3 + h in game and hover item to check their modid:name")
-                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), o -> o instanceof String && ResourceLocation.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
+                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), o -> o instanceof String && Identifier.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
         builder.pop();
 
         builder.push("AllowEnchantedItems");
@@ -144,7 +144,7 @@ public class UncraftEverythingConfig {
             return false;
         }
 
-        ResourceLocation itemLocation = inputStackLocation(itemStack);
+        Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (restrictions.get().contains(itemLocationString)) {
@@ -176,7 +176,7 @@ public class UncraftEverythingConfig {
             return false;
         }
 
-        ResourceLocation itemLocation = inputStackLocation(itemStack);
+        Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (restrictions.get().contains(itemLocationString)) {
@@ -207,13 +207,13 @@ public class UncraftEverythingConfig {
         return restrictedModIngredients.get();
     }
 
-    public ResourceLocation inputStackLocation(ItemStack itemStack) {
+    public Identifier inputStackLocation(ItemStack itemStack) {
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            ResourceLocation location = ResourceLocation.parse(input);
+            Identifier location = Identifier.parse(input);
             return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();

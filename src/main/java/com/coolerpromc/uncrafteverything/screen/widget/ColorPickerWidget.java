@@ -12,7 +12,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
 import java.util.function.BiConsumer;
@@ -24,14 +24,14 @@ public class ColorPickerWidget extends AbstractWidget {
     private static final int PREVIEW_HEIGHT = 15;
     private static final int BUTTON_HEIGHT = 20;
     protected static final WidgetSprites SPRITES = new WidgetSprites(
-            ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button"),
-            ResourceLocation.withDefaultNamespace("widget/button_disabled"),
-            ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button_highlighted")
+            Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button"),
+            Identifier.withDefaultNamespace("widget/button_disabled"),
+            Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button_highlighted")
     );
     protected static final WidgetSprites VANILLA_SPRITES = new WidgetSprites(
-            ResourceLocation.withDefaultNamespace("widget/button"),
-            ResourceLocation.withDefaultNamespace("widget/button_disabled"),
-            ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+            Identifier.withDefaultNamespace("widget/button"),
+            Identifier.withDefaultNamespace("widget/button_disabled"),
+            Identifier.withDefaultNamespace("widget/button_highlighted")
     );
 
     private float hue = 0f;
@@ -94,7 +94,7 @@ public class ColorPickerWidget extends AbstractWidget {
 
         graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
-                ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "color_picker_background"),
+                Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "color_picker_background"),
                 screenWidth / 2 - 130,
                 screenHeight / 2 - 100,
                 260,

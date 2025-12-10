@@ -6,7 +6,7 @@ import com.coolerpromc.uncrafteverything.block.custom.UncraftingTableBlock;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -23,10 +23,10 @@ public class UEBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, UncraftEverything.MODID);
 
     public static final RegistryObject<Block> UNCRAFTING_TABLE = registerBlock("uncrafting_table", () -> new UncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTING_TABLE).setId(
-            ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table"))
+            ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table"))
     )));
     public static final RegistryObject<Block> AUTO_UNCRAFTING_TABLE = registerBlock("auto_uncrafting_table", () -> new AutoUncraftingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CRAFTER).setId(
-            ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "auto_uncrafting_table"))
+            ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "auto_uncrafting_table"))
     )));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> blockSupplier){
@@ -36,7 +36,7 @@ public class UEBlocks {
     }
 
     private static <T extends Block> void registerBlockItem(String name, RegistryObject<T> block){
-        UEItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().useBlockDescriptionPrefix().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, name)))));
+        UEItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().useBlockDescriptionPrefix().setId(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, name)))));
     }
 
     public static void register(BusGroup eventBus){

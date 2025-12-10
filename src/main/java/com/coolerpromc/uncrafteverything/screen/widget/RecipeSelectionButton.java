@@ -1,8 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.widget;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.WidgetSprites;
@@ -10,12 +8,12 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.NotNull;
 
 public class RecipeSelectionButton extends AbstractButton {
-    private static final WidgetSprites SPRITES = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "widget/button_disabled"), ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button_highlighted"));
+    private static final WidgetSprites SPRITES = new WidgetSprites(Identifier.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button"), Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "widget/button_disabled"), Identifier.fromNamespaceAndPath(UncraftEverything.MODID,"widget/button_highlighted"));
     protected final PressAction onPress;
 
     public RecipeSelectionButton(int x, int y, int width, int height, Component message, PressAction onPress) {
@@ -24,8 +22,7 @@ public class RecipeSelectionButton extends AbstractButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        Minecraft minecraft = Minecraft.getInstance();
+    protected void renderContents(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         context.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SPRITES.get(this.active, this.isHoveredOrFocused()),
@@ -35,11 +32,6 @@ public class RecipeSelectionButton extends AbstractButton {
                 this.getHeight(),
                 ARGB.white(this.alpha)
         );
-        int i = ARGB.color(this.alpha, getFGColor());
-        this.renderString(context, minecraft.font, i);
-        if (this.isHovered()) {
-            context.requestCursor(this.isActive() ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
-        }
     }
 
     @Override

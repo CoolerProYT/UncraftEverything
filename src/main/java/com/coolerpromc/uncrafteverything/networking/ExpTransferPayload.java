@@ -9,10 +9,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record ExpTransferPayload(BlockPos pos, int amount, UncraftEverythingConfig.ExperienceType experienceType) implements CustomPacketPayload {
-    public static Type<ExpTransferPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "exp_transfer_payload"));
+    public static Type<ExpTransferPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "exp_transfer_payload"));
 
     public static Codec<ExpTransferPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("pos").forGetter(ExpTransferPayload::pos),

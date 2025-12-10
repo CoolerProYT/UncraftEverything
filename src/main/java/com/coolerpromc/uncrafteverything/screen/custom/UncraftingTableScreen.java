@@ -7,13 +7,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTableBlockEntity, UncraftingTableMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
 
     public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -62,7 +62,7 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
 
     @Override
     protected void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        ResourceLocation icon = ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/sprites/exp.png");
+        Identifier icon = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/sprites/exp.png");
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(0.5f, 0.5f);
         guiGraphics.pose().translate((this.leftPos + imageWidth - 17) * 2, (this.topPos + 72) * 2);

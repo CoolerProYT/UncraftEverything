@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.PacketDistributor;
 
@@ -29,7 +30,7 @@ public class ModCommands {
         Player player = Minecraft.getInstance().player;
         if (player == null) return false;
 
-        return player.isCreative() || player.hasPermissions(4);
+        return player.isCreative() || commandSourceStack.permissions().hasPermission(Permissions.COMMANDS_OWNER);
     }
 
     private static boolean hasFTBQuest(CommandSourceStack commandSourceStack){

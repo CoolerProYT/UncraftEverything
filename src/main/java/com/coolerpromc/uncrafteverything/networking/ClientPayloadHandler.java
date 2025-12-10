@@ -1,10 +1,8 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingMenu;
 import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingScreen;
-import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.level.Level;
