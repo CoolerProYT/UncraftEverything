@@ -50,7 +50,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         super(menu, playerInventory, title);
     }
 
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
+    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) {
         this.recipes = recipes;
         this.recipeSize = size;
 
@@ -63,7 +63,9 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             if (selectedRecipe >= this.recipes.size()){
                 selectedRecipe = 0;
             }
-            ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
+            if(shouldSendPacket){
+                ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
+            }
         }
     }
 

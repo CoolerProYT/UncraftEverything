@@ -76,7 +76,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                     fromIndex = currentRecipes.size();
                 }
                 int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size()));
+                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
             }
             else if (level != null && !level.isClientSide()){
                 currentStack = getResource(0).toStack(getAmountAsInt(0));

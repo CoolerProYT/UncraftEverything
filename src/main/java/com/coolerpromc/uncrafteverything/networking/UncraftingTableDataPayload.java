@@ -11,7 +11,10 @@ import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size) implements CustomPacketPayload {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) implements CustomPacketPayload {
+    public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
+        this(blockPos, recipes, size, true);
+    }
     public static final CustomPacketPayload.Type<UncraftingTableDataPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableDataPayload> STREAM_CODEC =
@@ -22,6 +25,8 @@ public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTable
                     UncraftingTableDataPayload::recipes,
                     ByteBufCodecs.INT,
                     UncraftingTableDataPayload::size,
+                    ByteBufCodecs.BOOL,
+                    UncraftingTableDataPayload::shouldSendPacket,
                     UncraftingTableDataPayload::new
             );
 

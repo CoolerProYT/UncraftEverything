@@ -41,11 +41,6 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     }
 
     @Override
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
-        super.updateFromBlockEntity(recipes, size);
-    }
-
-    @Override
     protected void init() {
         this.imageHeight = 184;
         this.inventoryLabelY = 10000;
