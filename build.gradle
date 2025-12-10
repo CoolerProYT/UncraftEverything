@@ -108,14 +108,16 @@ modrinth {
     versionNumber = mod_version
     versionName = "Uncraft Everything " + mod_version
     versionType = "beta"
-    uploadFile = jar
+    uploadFile = tasks.remapJar.archiveFile.get().asFile
     changelog = file("changelog.md").text
 }
 
 tasks.register('publishCurseForge', TaskPublishCurseForge) {
     apiToken = findProperty("CF_TOKEN")
     def projectId = "1244428"
-    def mainFile = upload(projectId, jar)
+    dependsOn(tasks.remapJar)
+    def fileToUpload = tasks.remapJar.archiveFile.get().asFile
+    def mainFile = upload(projectId, fileToUpload)
     mainFile.releaseType = 'beta'
     mainFile.changelog = file("changelog.md")
 }
