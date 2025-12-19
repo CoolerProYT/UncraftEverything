@@ -57,52 +57,51 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
 
     private final ModItemStackHandler inputHandler = new ModItemStackHandler(1){
         ItemStack previousContents = ItemStack.EMPTY;
-        boolean isProcessingChange = false;
 
         @Override
         public void setStackInSlot(int slot, @NotNull ItemStack stack) {
             super.setStackInSlot(slot, stack);
-            if (isProcessingChange) return;
             if (level != null && level.isClientSide()) return;
             ItemStack newStack = getStackInSlot(0);
-            if (!ItemStack.isSameItem(previousContents, newStack)) {
-                isProcessingChange = true;
-                previousContents = newStack.copy();
-                isProcessingChange = false;
-            }
+            previousContents = newStack.copy();
         }
 
         @Override
         protected void onContentsChanged(int i) {
-            setChanged();
-            getOutputStacks(this, true);
-            byPass = false;
-            if (level != null && !level.isClientSide() && player != null) {
+            if (level != null && !level.isClientSide()){
+                setChanged();
+                getOutputStacks(this, true);
+                byPass = false;
                 currentStack = getStackInSlot(0);
                 RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
-                if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
-                    page = 0;
-                    index = 0;
+                boolean sendPacket = false;
+
+                if (player != null) {
+                    if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
+                        page = 0;
+                        index = 0;
+                        sendPacket = true;
+                    }
+                    else if (history.patch().equals(currentStack.getComponentsPatch())){
+                        page = history.page();
+                        index = history.index();
+                        data.set(9, index);
+                        currentRecipe = history.recipe();
+                        if (hasRecipe()) status = Status.BLANK;
+                    }
+                    level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+                    int fromIndex = page * 7;
+                    if (fromIndex >= currentRecipes.size()) {
+                        fromIndex = currentRecipes.size();
+                    }
+                    int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                    UncraftEverything.CHANNEL.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), sendPacket), PacketDistributor.PLAYER.with(player));
                 }
-                else if (history.patch().equals(currentStack.getComponentsPatch())){
-                    page = history.page();
-                    index = history.index();
-                    data.set(9, index);
-                }
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                int fromIndex = page * 7;
-                if (fromIndex >= currentRecipes.size()) {
-                    fromIndex = currentRecipes.size();
-                }
-                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                UncraftEverything.CHANNEL.send(new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false), PacketDistributor.PLAYER.with(player));
-            }
-            else if (level != null && !level.isClientSide()){
-                currentStack = getStackInSlot(0);
-                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
-                if (history != null && history.patch().equals(currentStack.getComponentsPatch())){
-                    currentRecipe = history.recipe();
-                    byPass = true;
+                else{
+                    if (history != null && history.patch().equals(currentStack.getComponentsPatch())){
+                        currentRecipe = history.recipe();
+                        byPass = true;
+                    }
                 }
             }
         }
