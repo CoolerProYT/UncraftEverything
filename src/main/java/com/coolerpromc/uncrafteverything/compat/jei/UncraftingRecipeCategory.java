@@ -1,4 +1,3 @@
-/*
 package com.coolerpromc.uncrafteverything.compat.jei;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
@@ -48,4 +47,3 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
         }
     }
 }
-*/

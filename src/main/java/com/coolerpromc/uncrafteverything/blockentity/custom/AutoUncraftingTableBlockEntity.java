@@ -53,37 +53,39 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     private final ModItemStackHandler inputHandler = new ModItemStackHandler(1){
         @Override
         protected void onContentsChanged(int i, ItemStack previousContents) {
-            setChanged();
-            getOutputStacks(this, true);
-            byPass = false;
-            if (level != null && !level.isClientSide() && player != null) {
+            if (level != null && !level.isClientSide()){
+                setChanged();
+                getOutputStacks(this, true);
+                byPass = false;
                 currentStack = getResource(0).toStack(getAmountAsInt(0));
                 RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
-                if (!currentStack.is(previousContents.getItem())){
-                    if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
-                        page = 0;
-                        index = 0;
+
+                if (player != null) {
+                    if (!currentStack.is(previousContents.getItem())){
+                        if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
+                            page = 0;
+                            index = 0;
+                        }
+                        else if (history.patch().equals(currentStack.getComponentsPatch())){
+                            page = history.page();
+                            index = history.index();
+                            data.set(9, index);
+                            currentRecipe = history.recipe();
+                        }
                     }
-                    else if (history.patch().equals(currentStack.getComponentsPatch())){
-                        page = history.page();
-                        index = history.index();
-                        data.set(9, index);
+                    level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+                    int fromIndex = page * 7;
+                    if (fromIndex >= currentRecipes.size()) {
+                        fromIndex = currentRecipes.size();
                     }
+                    int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                    PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
                 }
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                int fromIndex = page * 7;
-                if (fromIndex >= currentRecipes.size()) {
-                    fromIndex = currentRecipes.size();
-                }
-                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                PacketDistributor.sendToPlayer(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
-            }
-            else if (level != null && !level.isClientSide()){
-                currentStack = getResource(0).toStack(getAmountAsInt(0));
-                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
-                if (history != null && history.patch().equals(currentStack.getComponentsPatch())){
-                    currentRecipe = history.recipe();
-                    byPass = true;
+                else{
+                    if (history != null && history.patch().equals(currentStack.getComponentsPatch())){
+                        currentRecipe = history.recipe();
+                        byPass = true;
+                    }
                 }
             }
         }

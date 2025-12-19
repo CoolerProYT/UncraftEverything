@@ -109,7 +109,7 @@ public class UncraftingTableHelpers {
                 if (!UncraftEverythingConfig.CONFIG.allowUnSmithing() || (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook())){
                     return false;
                 }
-                return ItemStack.isSameItemSameComponents(inputStack, new ItemStack(smithingTransformRecipe.result.item(), smithingTransformRecipe.result.count(), smithingTransformRecipe.result.components()));
+                return validateSmithingRecipe(smithingTransformRecipe, inputStack);
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
@@ -154,6 +154,16 @@ public class UncraftingTableHelpers {
 
         }
         return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
+    }
+
+    public static <T extends AbstractUncraftingTableBE> boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
+            return false;
+        }
+        if (inputStack.isDamaged()){
+            return inputStack.is(smithingTransformRecipe.result.item()) && inputStack.getCount() >= smithingTransformRecipe.result.count();
+        }
+        return ItemStack.isSameItemSameComponents(inputStack, new ItemStack(smithingTransformRecipe.result.item(), smithingTransformRecipe.result.count(), smithingTransformRecipe.result.components()));
     }
 
     public static <T extends AbstractUncraftingTableBE> Tuple<List<UncraftingTableRecipe>, Boolean> getOutputs(ItemStack inputStack, List<RecipeHolder<?>> recipes, T blockEntity){

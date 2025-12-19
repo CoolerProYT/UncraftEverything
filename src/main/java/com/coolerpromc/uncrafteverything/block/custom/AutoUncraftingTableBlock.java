@@ -87,7 +87,7 @@ public class AutoUncraftingTableBlock extends BaseEntityBlock {
                         fromIndex = blockEntity.getCurrentRecipes().size();
                     }
                     int toIndex = Math.min(fromIndex + 7, blockEntity.getCurrentRecipes().size());
-                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes().subList(fromIndex, toIndex)), blockEntity.getCurrentRecipes().size()));
+                    PacketDistributor.sendToPlayer(serverPlayer, new UncraftingTableDataPayload(blockEntity.getBlockPos(), new ArrayList<>(blockEntity.getCurrentRecipes().subList(fromIndex, toIndex)), blockEntity.getCurrentRecipes().size(), false));
                     blockEntity.setChanged();
                 }
             }

@@ -1,4 +1,3 @@
-/*
 package com.coolerpromc.uncrafteverything.compat.jei;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
@@ -51,4 +50,3 @@ public class UEJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(UEBlocks.UNCRAFTING_TABLE.get()), UNCRAFTING_TYPE);
     }
 }
-*/

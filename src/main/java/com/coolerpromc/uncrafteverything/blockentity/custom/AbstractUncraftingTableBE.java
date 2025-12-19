@@ -106,7 +106,9 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
                 PacketDistributor.sendToPlayer(player, new UncraftingRecipeSelectionRequestPayload());
             }
             else{
-                currentRecipe = currentRecipes.getFirst();
+                if (currentRecipe == null){
+                    currentRecipe = currentRecipes.getFirst();
+                }
             }
             if(!hasRecipe()){
                 this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
