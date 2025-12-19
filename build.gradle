@@ -1,10 +1,8 @@
-import net.darkhax.curseforgegradle.TaskPublishCurseForge
-
 plugins {
 	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id 'maven-publish'
     id "com.modrinth.minotaur" version "2.+"
-    id 'net.darkhax.curseforgegradle' version '1.1.28'
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 version = project.mod_version
@@ -102,22 +100,22 @@ publishing {
 	}
 }
 
-modrinth {
-    token = findProperty("MODRINTH_TOKEN")
-    projectId = "9cz66Qto"
-    versionNumber = mod_version
-    versionName = "Uncraft Everything " + mod_version
-    versionType = "beta"
-    uploadFile = tasks.remapJar.archiveFile.get().asFile
+publishMods {
+    file.set(jar.archiveFile)
+    type = BETA
+    modLoaders.add("fabric")
     changelog = file("changelog.md").text
-}
+    displayName = "uncrafteverything-" + mod_version
 
-tasks.register('publishCurseForge', TaskPublishCurseForge) {
-    apiToken = findProperty("CF_TOKEN")
-    def projectId = "1244428"
-    dependsOn(tasks.remapJar)
-    def fileToUpload = tasks.remapJar.archiveFile.get().asFile
-    def mainFile = upload(projectId, fileToUpload)
-    mainFile.releaseType = 'beta'
-    mainFile.changelog = file("changelog.md")
+    curseforge {
+        projectId = "1244428"
+        accessToken = findProperty("CF_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
+
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
 }

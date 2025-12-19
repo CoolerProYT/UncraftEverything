@@ -53,6 +53,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     private int amountToAdd = 1;
 
     private final ImplementedInventory inputHandler = new ImplementedInventory(1, world){
+
         @Override
         public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
             return dir != Direction.DOWN;
@@ -64,38 +65,40 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         }
 
         @Override
-        public void setStack(int slot, ItemStack stack) {
-            super.setStack(slot, stack);
-            getOutputStacks(this, true);
-            byPass = false;
-            if (world != null && !world.isClient() && player != null) {
+        public void onContentChanged(ItemStack previousContents) {
+            if (world != null && !world.isClient()){
+                markDirty();
+                getOutputStacks(this, true);
+                byPass = false;
                 currentStack = getStack(0);
                 RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getRegistryEntry());
-                if (!currentStack.isOf(previousInputStack.getItem())){
-                    if (!(history != null && history.patch().equals(currentStack.getComponentChanges()))){
-                        page = 0;
-                        index = 0;
+
+                if (player != null) {
+                    if (!currentStack.isOf(previousContents.getItem())){
+                        if (!(history != null && history.patch().equals(currentStack.getComponentChanges()))){
+                            page = 0;
+                            index = 0;
+                        }
+                        else if (history.patch().equals(currentStack.getComponentChanges())){
+                            page = history.page();
+                            index = history.index();
+                            data.set(9, index);
+                            currentRecipe = history.recipe();
+                        }
                     }
-                    else if (history.patch().equals(currentStack.getComponentChanges())){
-                        page = history.page();
-                        index = history.index();
-                        data.set(9, index);
+                    world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
+                    int fromIndex = page * 7;
+                    if (fromIndex >= currentRecipes.size()) {
+                        fromIndex = currentRecipes.size();
                     }
+                    int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
+                    ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
                 }
-                world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
-                int fromIndex = page * 7;
-                if (fromIndex >= currentRecipes.size()) {
-                    fromIndex = currentRecipes.size();
-                }
-                int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
-            }
-            else if (world != null && !world.isClient()){
-                currentStack = getStack(0);
-                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getRegistryEntry());
-                if (history != null && history.patch().equals(currentStack.getComponentChanges())){
-                    currentRecipe = history.recipe();
-                    byPass = true;
+                else{
+                    if (history != null && history.patch().equals(currentStack.getComponentChanges())){
+                        currentRecipe = history.recipe();
+                        byPass = true;
+                    }
                 }
             }
         }

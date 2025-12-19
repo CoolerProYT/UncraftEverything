@@ -23,6 +23,7 @@ public abstract class ImplementedInventory extends SimpleInventory implements Si
             ItemStack newStack = inventory.getStack(0);
             if (!ItemStack.areEqual(previousInputStack, newStack)) {
                 isProcessingChange = true;
+                onContentChanged(previousInputStack);
                 previousInputStack = newStack.copy();
                 isProcessingChange = false;
             }
