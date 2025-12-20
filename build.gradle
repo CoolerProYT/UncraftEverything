@@ -134,7 +134,7 @@ sourceSets.each {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("forge")
     changelog = file("changelog.md").text
     displayName = mod_id + "-" + mod_version

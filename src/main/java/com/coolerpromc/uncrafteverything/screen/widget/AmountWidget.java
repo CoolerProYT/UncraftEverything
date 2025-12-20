@@ -32,8 +32,8 @@ public class AmountWidget extends AbstractWidget {
         guiGraphics.drawCenteredString(this.font, Component.literal(String.valueOf(value)), this.getX() + this.width / 2, this.getY() + this.height / 2 - font.lineHeight / 2, 0xFFFFFFFF);
         if (this.isHovered){
             List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.literal("Amount to add/remove").withStyle(ChatFormatting.BLUE));
-            tooltips.add(Component.literal("Scroll to change value").withStyle(ChatFormatting.GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.amount_info").withStyle(ChatFormatting.BLUE));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.scroll_info").withStyle(ChatFormatting.GRAY));
             guiGraphics.setTooltipForNextFrame(this.font, tooltips, Optional.empty(), mouseX, mouseY);
             guiGraphics.requestCursor(CursorTypes.RESIZE_NS);
         }
