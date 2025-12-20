@@ -102,7 +102,7 @@ publishing {
 
 publishMods {
     file.set(remapJar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("fabric")
     changelog = file("changelog.md").text
     displayName = "uncrafteverything-" + mod_version

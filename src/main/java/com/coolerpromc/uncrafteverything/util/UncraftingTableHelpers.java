@@ -138,10 +138,13 @@ public class UncraftingTableHelpers {
         if (inputStack.isDamaged()){
             return result.getItem() == inputStack.getItem() && inputStack.getCount() >= result.getCount();
         }
+        if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.allowEnchantedItems && result.getItem() == inputStack.getItem()){
+            return true;
+        }
         return ItemStack.areItemsAndComponentsEqual(result, inputStack) && inputStack.getCount() >= result.getCount();
     }
 
-    public static <T extends AbstractUncraftingTableBE> boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
+    public static boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
         if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.outputEnchantedBook()){
             return false;
         }

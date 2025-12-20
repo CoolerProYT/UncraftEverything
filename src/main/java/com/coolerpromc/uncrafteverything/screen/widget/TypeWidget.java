@@ -30,12 +30,12 @@ public class TypeWidget extends ClickableWidget {
         guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width - 1, this.getY() + this.height - 1, 0xFF373737);
         guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width, this.getY() + this.height, 0xFFFFFFFF);
         guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width - 1, this.getY() + this.height - 1, this.isHovered() ? 0xFFA4A4A4 : 0xFF8B8B8B);
-        String type = value == UncraftEverythingConfig.ExperienceType.LEVEL ? "Lvl" : "Pts";
-        guiGraphics.drawCenteredTextWithShadow(this.font, Text.literal(type), this.getX() + this.width / 2, this.getY() + this.height / 2 - font.fontHeight / 2, 0xFFFFFFFF);
+        String type = value == UncraftEverythingConfig.ExperienceType.LEVEL ? "tooltip.uncrafteverything.config.level" : "tooltip.uncrafteverything.config.point";
+        guiGraphics.drawCenteredTextWithShadow(this.font, Text.translatable(type), this.getX() + this.width / 2, this.getY() + this.height / 2 - font.fontHeight / 2, 0xFFFFFFFF);
         if (this.isHovered()){
             List<Text> tooltips = new ArrayList<>();
-            tooltips.add(Text.literal("Experience Type to add/remove").formatted(Formatting.BLUE));
-            tooltips.add(Text.literal("Scroll to change value").formatted(Formatting.GRAY));
+            tooltips.add(Text.translatable("screen.uncrafteverything.tooltip.type_info").formatted(Formatting.BLUE));
+            tooltips.add(Text.translatable("screen.uncrafteverything.tooltip.scroll_info").formatted(Formatting.GRAY));
             guiGraphics.drawTooltip(this.font, tooltips, Optional.empty(), mouseX, mouseY);
             guiGraphics.setCursor(StandardCursors.RESIZE_NS);
         }

@@ -32,8 +32,8 @@ public class AmountWidget extends ClickableWidget {
         guiGraphics.drawCenteredTextWithShadow(this.font, Text.literal(String.valueOf(value)), this.getX() + this.width / 2, this.getY() + this.height / 2 - font.fontHeight / 2, 0xFFFFFFFF);
         if (this.isHovered()){
             List<Text> tooltips = new ArrayList<>();
-            tooltips.add(Text.literal("Amount to add/remove").formatted(Formatting.BLUE));
-            tooltips.add(Text.literal("Scroll to change value").formatted(Formatting.GRAY));
+            tooltips.add(Text.translatable("screen.uncrafteverything.tooltip.amount_info").formatted(Formatting.BLUE));
+            tooltips.add(Text.translatable("screen.uncrafteverything.tooltip.scroll_info").formatted(Formatting.GRAY));
             guiGraphics.drawTooltip(this.font, tooltips, Optional.empty(), mouseX, mouseY);
             guiGraphics.setCursor(StandardCursors.RESIZE_NS);
         }

@@ -105,18 +105,18 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             Consumer<Text> addWrapped = (text) -> tooltips.addAll(this.textRenderer.wrapLines(text, maxWidth));
             Runnable addEmpty = () -> tooltips.add(OrderedText.EMPTY);
 
-            addWrapped.accept(Text.literal("Configs").formatted(Formatting.BLUE));
-            addWrapped.accept(Text.literal("/ueconfig client").formatted(Formatting.AQUA).append(Text.literal(" to change status color and other client config (Client side only)").formatted(Formatting.GRAY)));
+            addWrapped.accept(Text.translatable("screen.uncrafteverything.tooltip.configs").formatted(Formatting.BLUE));
+            addWrapped.accept(Text.literal("/ueconfig client").formatted(Formatting.AQUA).append(Text.translatable("screen.uncrafteverything.tooltip.client_config_info").formatted(Formatting.GRAY)));
             addEmpty.run();
 
-            addWrapped.accept(Text.literal("/ueconfig common").formatted(Formatting.AQUA).append(Text.literal(" to access common config to modify uncrafting recipe searching behaviour " + "(Server side only, OP level 4 required)").formatted(Formatting.GRAY)));
+            addWrapped.accept(Text.literal("/ueconfig common").formatted(Formatting.AQUA).append(Text.translatable("screen.uncrafteverything.tooltip.common_config_info").formatted(Formatting.GRAY)));
             addEmpty.run();
 
-            addWrapped.accept(Text.literal("/ueconfig exp").formatted(Formatting.AQUA).append(Text.literal(" to access per item exp config to modify exp needed for specific items " + "(Server side only, OP level 4 required)").formatted(Formatting.GRAY)));
+            addWrapped.accept(Text.literal("/ueconfig exp").formatted(Formatting.AQUA).append(Text.translatable("screen.uncrafteverything.tooltip.exp_config_info").formatted(Formatting.GRAY)));
 
             if (QuestHelper.FTBQUESTS_LOADED) {
                 addEmpty.run();
-                addWrapped.accept(Text.literal("/ueconfig progression").formatted(Formatting.AQUA).append(Text.literal(" to access ftb progression config to modify progression uncrafting " + "(Server side only, OP level 4 required)").formatted(Formatting.GRAY)));
+                addWrapped.accept(Text.literal("/ueconfig progression").formatted(Formatting.AQUA).append(Text.translatable("screen.uncrafteverything.tooltip.progression_config_info").formatted(Formatting.GRAY)));
             }
 
             guiGraphics.drawTooltip(this.textRenderer, tooltips, HoveredTooltipPositioner.INSTANCE, x, y, false);

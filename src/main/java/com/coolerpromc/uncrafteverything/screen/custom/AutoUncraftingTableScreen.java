@@ -2,11 +2,13 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AutoUncraftingTableBlockEntity;
-import com.coolerpromc.uncrafteverything.networking.*;
+import com.coolerpromc.uncrafteverything.networking.AmountToAddPayload;
+import com.coolerpromc.uncrafteverything.networking.ExpTransferPayload;
+import com.coolerpromc.uncrafteverything.networking.SelectedIndexSyncPayload;
+import com.coolerpromc.uncrafteverything.networking.TypeChangePayload;
 import com.coolerpromc.uncrafteverything.screen.widget.AmountWidget;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.screen.widget.TypeWidget;
-import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
@@ -37,24 +39,6 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
         super(menu, playerInventory, title);
         this.page = this.getScreenHandler().getPage();
         this.selectedRecipe = this.getScreenHandler().getIndex();
-    }
-
-    public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size) {
-        this.recipes = recipes;
-        this.recipeSize = size;
-        this.selectedRecipe = this.handler.getIndex();
-
-        if (size < 7 && this.page != 0){
-            this.page = 0;
-            ClientPlayNetworking.send(new UncraftingPageChangePayload(page, this.handler.blockEntity.getPos()));
-        }
-
-        if (!recipes.isEmpty()){
-            if (selectedRecipe >= this.recipes.size()){
-                selectedRecipe = 0;
-            }
-            ClientPlayNetworking.send(new UncraftingRecipeSelectionPayload(this.handler.blockEntity.getPos(), this.recipes.get(selectedRecipe)));
-        }
     }
 
     @Override
@@ -116,12 +100,12 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
 
         if (mouseX >= (this.x + 25) && mouseX <= (this.x + 150) && mouseY >= this.y + 93 && mouseY <= this.y + 98){
             List<Text> tooltip = new ArrayList<>();
-            tooltip.add(Text.literal("Recipe Require").formatted(Formatting.BLUE));
+            tooltip.add(Text.translatable("screen.uncrafteverything.tooltip.recipe_require").formatted(Formatting.BLUE));
             tooltip.add(Text.translatable("screen.uncrafteverything.exp_" + this.handler.getExpType().toLowerCase() + "_required",this.handler.getExpAmount()).formatted(Formatting.GRAY));
             tooltip.add(Text.empty());
-            tooltip.add(Text.literal("Experience Stored").formatted(Formatting.BLUE));
-            tooltip.add(Text.literal(this.handler.getExpLevels() + " Levels").formatted(Formatting.GRAY));
-            tooltip.add(Text.literal(this.handler.getExpPoints() + " Points").formatted(Formatting.GRAY));
+            tooltip.add(Text.translatable("screen.uncrafteverything.tooltip.exp_stored").formatted(Formatting.BLUE));
+            tooltip.add(Text.literal(this.handler.getExpLevels() + " ").append(Text.translatable("tooltip.uncrafteverything.config.level")).formatted(Formatting.GRAY));
+            tooltip.add(Text.literal(this.handler.getExpPoints() + " ").append(Text.translatable("tooltip.uncrafteverything.config.point")).formatted(Formatting.GRAY));
             guiGraphics.drawTooltip(this.textRenderer, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
@@ -188,19 +172,19 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
 
         if (removeExp.isHovered()) {
             List<OrderedText> tooltip = new ArrayList<>();
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Click to remove exp"), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Levels are converted to XP points using vanilla formula to prevent exploits or XP loss").formatted(Formatting.GRAY), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("1 level = varying XP depending on current level").formatted(Formatting.DARK_GRAY), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Higher levels = more XP points transferred").formatted(Formatting.DARK_GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.remove_exp"), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail").formatted(Formatting.GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail_2").formatted(Formatting.DARK_GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail_3").formatted(Formatting.DARK_GRAY), maxWidth));
             guiGraphics.drawTooltip(textRenderer, tooltip, HoveredTooltipPositioner.INSTANCE, x, y, false);
         }
 
         if (addExp.isHovered()) {
             List<OrderedText> tooltip = new ArrayList<>();
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Click to add exp"), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Levels are converted to XP points using vanilla formula to prevent exploits or XP loss").formatted(Formatting.GRAY), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("1 level = varying XP depending on current level").formatted(Formatting.DARK_GRAY), maxWidth));
-            tooltip.addAll(textRenderer.wrapLines(Text.literal("Higher levels = more XP points transferred").formatted(Formatting.DARK_GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.add_exp"), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail").formatted(Formatting.GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail_2").formatted(Formatting.DARK_GRAY), maxWidth));
+            tooltip.addAll(textRenderer.wrapLines(Text.translatable("screen.uncrafteverything.tooltip.level_detail_3").formatted(Formatting.DARK_GRAY), maxWidth));
             guiGraphics.drawTooltip(textRenderer, tooltip, HoveredTooltipPositioner.INSTANCE, x, y, false);
         }
     }
