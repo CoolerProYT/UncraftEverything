@@ -151,6 +151,9 @@ public class UncraftingTableHelpers {
         if (inputStack.isDamaged()){
             return inputStack.isOf(smithingTransformRecipe.result.itemEntry().value()) && inputStack.getCount() >= smithingTransformRecipe.result.count();
         }
+        if (inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT && UncraftEverythingConfig.allowEnchantedItems && smithingTransformRecipe.result.itemEntry().value() == inputStack.getItem()){
+            return true;
+        }
         return ItemStack.areItemsAndComponentsEqual(inputStack, new ItemStack(smithingTransformRecipe.result.itemEntry(), smithingTransformRecipe.result.count(), smithingTransformRecipe.result.components()));
     }
 
