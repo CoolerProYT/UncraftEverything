@@ -9,7 +9,6 @@ import com.coolerpromc.uncrafteverything.networking.TypeChangePayload;
 import com.coolerpromc.uncrafteverything.screen.widget.AmountWidget;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.screen.widget.TypeWidget;
-import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -99,12 +98,12 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
 
         if (mouseX >= (this.leftPos + 25) && mouseX <= (this.leftPos + 150) && mouseY >= this.topPos + 93 && mouseY <= this.topPos + 98){
             List<Component> tooltip = new ArrayList<>();
-            tooltip.add(Component.literal("Recipe Require").withStyle(ChatFormatting.BLUE));
+            tooltip.add(Component.translatable("screen.uncrafteverything.tooltip.recipe_require").withStyle(ChatFormatting.BLUE));
             tooltip.add(Component.translatable("screen.uncrafteverything.exp_" + this.menu.getExpType().toLowerCase() + "_required",this.menu.getExpAmount()).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.empty());
-            tooltip.add(Component.literal("Experience Stored").withStyle(ChatFormatting.BLUE));
-            tooltip.add(Component.literal(this.menu.getExpLevels() + " Levels").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal(this.menu.getExpPoints() + " Points").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("screen.uncrafteverything.tooltip.exp_stored").withStyle(ChatFormatting.BLUE));
+            tooltip.add(Component.literal(this.menu.getExpLevels() + " ").append(Component.translatable("tooltip.uncrafteverything.config.level")).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(this.menu.getExpPoints() + " ").append(Component.translatable("tooltip.uncrafteverything.config.point")).withStyle(ChatFormatting.GRAY));
             guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
@@ -168,18 +167,18 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
         super.renderTooltip(guiGraphics, x, y);
         if (removeExp.isHovered()){
             List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.literal("Click to remove exp"));
-            tooltips.add(Component.literal("Levels are converted to XP points using vanilla formula to prevent exploits or XP loss").withStyle(ChatFormatting.GRAY));
-            tooltips.add(Component.literal("1 level = varying XP depending on current level").withStyle(ChatFormatting.DARK_GRAY));
-            tooltips.add(Component.literal("Higher levels = more XP points transferred").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.remove_exp"));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail").withStyle(ChatFormatting.GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail_2").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail_3").withStyle(ChatFormatting.DARK_GRAY));
             guiGraphics.setTooltipForNextFrame(this.font, tooltips, Optional.empty(), x, y);
         }
         if (addExp.isHovered()){
             List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.literal("Click to add exp"));
-            tooltips.add(Component.literal("Levels are converted to XP points using vanilla formula to prevent exploits or XP loss").withStyle(ChatFormatting.GRAY));
-            tooltips.add(Component.literal("1 level = varying XP depending on current level").withStyle(ChatFormatting.DARK_GRAY));
-            tooltips.add(Component.literal("Higher levels = more XP points transferred").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.add_exp"));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail").withStyle(ChatFormatting.GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail_2").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.level_detail_3").withStyle(ChatFormatting.DARK_GRAY));
             guiGraphics.setTooltipForNextFrame(this.font, tooltips, Optional.empty(), x, y);
         }
     }

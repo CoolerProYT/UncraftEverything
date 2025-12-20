@@ -95,15 +95,15 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         Status status = Status.byIndex(this.menu.getStatus());
         if (isInfoHovered){
             List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.literal("Configs").withStyle(ChatFormatting.BLUE));
-            tooltips.add(Component.literal("/ueconfig client").withStyle(ChatFormatting.AQUA).append(Component.literal(" to change status color and other client config (Client side only)").withStyle(ChatFormatting.GRAY)));
+            tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.configs").withStyle(ChatFormatting.BLUE));
+            tooltips.add(Component.literal("/ueconfig client").withStyle(ChatFormatting.AQUA).append(Component.translatable("screen.uncrafteverything.tooltip.client_config_info").withStyle(ChatFormatting.GRAY)));
             tooltips.add(Component.empty());
-            tooltips.add(Component.literal("/ueconfig common").withStyle(ChatFormatting.AQUA).append(Component.literal(" to access common config to modify uncrafting recipe searching behaviour (Server side only, OP level 4 required)").withStyle(ChatFormatting.GRAY)));
+            tooltips.add(Component.literal("/ueconfig common").withStyle(ChatFormatting.AQUA).append(Component.translatable("screen.uncrafteverything.tooltip.common_config_info").withStyle(ChatFormatting.GRAY)));
             tooltips.add(Component.empty());
-            tooltips.add(Component.literal("/ueconfig exp").withStyle(ChatFormatting.AQUA).append(Component.literal(" to access per item exp config to modify exp needed for specific items (Server side only, OP level 4 required)").withStyle(ChatFormatting.GRAY)));
+            tooltips.add(Component.literal("/ueconfig exp").withStyle(ChatFormatting.AQUA).append(Component.translatable("screen.uncrafteverything.tooltip.exp_config_info").withStyle(ChatFormatting.GRAY)));
             if (QuestHelper.FTBQUESTS_LOADED){
                 tooltips.add(Component.empty());
-                tooltips.add(Component.literal("/ueconfig progression").withStyle(ChatFormatting.AQUA).append(Component.literal(" to access ftb progression config to modify progression uncrafting (Server side only, OP level 4 required)").withStyle(ChatFormatting.GRAY)));
+                tooltips.add(Component.literal("/ueconfig progression").withStyle(ChatFormatting.AQUA).append(Component.translatable("screen.uncrafteverything.tooltip.progression_config_info").withStyle(ChatFormatting.GRAY)));
             }
             guiGraphics.setTooltipForNextFrame(this.font, tooltips, Optional.empty(), x, y);
         }
@@ -137,7 +137,6 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_PANEL_TEXTURE, this.leftPos - 152, this.topPos, 0, 0, 152, 184, 152, 184);
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.uncraft_recipe_selection"), this.leftPos - 75, this.topPos + 7, 0xFF404040);
         this.drawCenteredWordWrapWithoutShadow(pGuiGraphics, font, Component.translatable("screen.uncrafteverything.page",pageToDisplay, maxPageCount), this.leftPos - 75, this.topPos + imageHeight - 18, 0xFF404040);
-
 
         this.renderNavigationButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick, maxPageCount);
         this.renderRecipeButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick);

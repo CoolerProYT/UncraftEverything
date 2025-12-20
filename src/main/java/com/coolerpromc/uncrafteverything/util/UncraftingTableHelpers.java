@@ -153,10 +153,13 @@ public class UncraftingTableHelpers {
         catch (Exception ignored){
 
         }
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.allowEnchantedItems.getAsBoolean() && result.getItem() == inputStack.getItem()){
+            return true;
+        }
         return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
     }
 
-    public static <T extends AbstractUncraftingTableBE> boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
+    public static boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
         if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             return false;
         }
