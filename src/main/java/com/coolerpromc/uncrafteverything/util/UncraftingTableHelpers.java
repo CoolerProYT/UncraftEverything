@@ -246,7 +246,9 @@ public class UncraftingTableHelpers {
             ItemStack lingeringPotion = new ItemStack(Items.LINGERING_POTION);
             PotionUtils.setPotion(lingeringPotion, potion);
 
-            outputStack.addOutput(new ItemStack(Items.ARROW, 8));
+            ItemStack output = new ItemStack(Items.ARROW, 8);
+            output.getOrCreateTag();
+            outputStack.addOutput(output);
             outputStack.addOutput(lingeringPotion);
             outputs.add(outputStack);
         }
@@ -258,6 +260,7 @@ public class UncraftingTableHelpers {
             EnchantmentHelper.setEnchantments(enchantments, book);
             ItemStack output = new ItemStack(inputStack.getItem(), 1);
             output.setDamageValue(inputStack.getDamageValue());
+            output.getOrCreateTag();
 
             outputStack.addOutput(output);
             outputStack.addOutput(book);
@@ -309,9 +312,12 @@ public class UncraftingTableHelpers {
                         if (outputStack.contains(item)) {
                             ItemStack stack = outputStack.getStack(item);
                             stack.grow(1);
+                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
-                            outputStack.addOutput(new ItemStack(item.getA(), 1, item.getB()));
+                            ItemStack stack = new ItemStack(item.getA(), 1, item.getB());
+                            stack.getOrCreateTag();
+                            outputStack.addOutput(stack);
                         }
                         allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
                     }
@@ -357,9 +363,12 @@ public class UncraftingTableHelpers {
                             if (outputStack.contains(item)) {
                                 ItemStack stack = outputStack.getStack(item);
                                 stack.grow(1);
+                                stack.getOrCreateTag();
                                 outputStack.setOutput(outputStack.indexOf(item), stack);
                             } else {
-                                outputStack.addOutput(new ItemStack(item.getA(), 1, item.getB()));
+                                ItemStack stack = new ItemStack(item.getA(), 1, item.getB());
+                                stack.getOrCreateTag();
+                                outputStack.addOutput(stack);
                             }
                             allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
                         }
@@ -402,6 +411,7 @@ public class UncraftingTableHelpers {
                                 stack.setDamageValue(inputStack.getDamageValue());
                             }
                             stack.grow(1);
+                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item.getA(), 1, item.getB());
@@ -412,6 +422,7 @@ public class UncraftingTableHelpers {
                                     itemStack = ItemStack.EMPTY;
                                 }
                             }
+                            itemStack.getOrCreateTag();
                             outputStack.addOutput(itemStack);
                         }
                     }
@@ -452,6 +463,7 @@ public class UncraftingTableHelpers {
                                 stack.setDamageValue(inputStack.getDamageValue());
                             }
                             stack.grow(1);
+                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item.getA(), 1, item.getB());
@@ -459,6 +471,7 @@ public class UncraftingTableHelpers {
                                 EnchantmentHelper.setEnchantments(itemEnchantments, itemStack);
                                 itemStack.setDamageValue(inputStack.getDamageValue());
                             }
+                            itemStack.getOrCreateTag();
                             outputStack.addOutput(itemStack);
                         }
                     }

@@ -120,6 +120,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
     implementation fg.deobf("curse.maven:jade-324717:6855440")
     implementation fg.deobf("curse.maven:travelers-backpack-321117:7236164")
+    implementation fg.deobf("curse.maven:peaceful-recipes-446709:4575292")
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -156,12 +157,18 @@ tasks.named('jar', Jar).configure {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             artifact jar
         }
     }
     repositories {
+        mavenLocal()
         maven {
-            url "file://${project.projectDir}/mcmodsrepo"
+            url = findProperty("repsy_url")
+            credentials {
+                username = findProperty("repsy_username")
+                password = findProperty("repsy_password")
+            }
         }
     }
 }
@@ -172,7 +179,7 @@ tasks.withType(JavaCompile).configureEach {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("forge")
     changelog = file("changelog.md").text
     displayName = mod_id + "-" + mod_version
