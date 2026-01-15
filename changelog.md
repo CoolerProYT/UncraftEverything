@@ -1,0 +1,1 @@
+- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
