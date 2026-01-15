@@ -1,3 +1,1 @@
-# v2.0.3 - 1.21.11 Changelog
-## Fixes
-- Fixed enchanted netherite item unable to uncraft
+- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
