@@ -38,6 +38,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean enableProgression = config.enableProgression();
     private boolean onlyAllowDefinedProgression = config.onlyAllowDefinedProgression();
     private boolean outputEnchantedBook = config.outputEnchantedBook();
+    private boolean prioritizeVanillaIngredientRecipe = config.prioritizeVanillaIngredientRecipe();
 
     private Button restrictionTypeButton;
     private Button toggleEnchantedBtn;
@@ -48,13 +49,14 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private Button toggleOutputEnchantedBook;
     private Button toggleOnlyAllowDefinedProgression;
     private Button togglePreventModdedIngredientsFromVanillaItems;
+    private Button togglePrioritizeVanillaIngredientRecipe;
     private MultiLineEditBox restrictionsInput;
     private EditBox experienceInput;
     private MultiLineEditBox restrictedModInput;
     private Button saveButton;
 
     public UEConfigScreen(Component title) {
-        super(title, 413);
+        super(title, 438);
     }
 
     @Override
@@ -142,6 +144,13 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         }).bounds(x, (int) (baseY + 415 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleOutputEnchantedBook);
 
+        // Toggle for allowPrioritizeVanillaIngredientRecipe
+        togglePrioritizeVanillaIngredientRecipe = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.prioritize_", prioritizeVanillaIngredientRecipe)), btn -> {
+            prioritizeVanillaIngredientRecipe = !prioritizeVanillaIngredientRecipe;
+            btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.prioritize_", prioritizeVanillaIngredientRecipe)));
+        }).bounds(x, (int) (baseY + 440 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(togglePrioritizeVanillaIngredientRecipe);
+
         // Save button
         saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::pressSaveButton).bounds(this.width / 2 - 100, (this.height - 45) + 15, 200, 20).build();
         this.addRenderableWidget(saveButton);
@@ -210,6 +219,9 @@ public class UEConfigScreen extends AbstractScrollableScreen {
 
         Component allowEnchantedBook = Component.translatable("screen.uncrafteverything.config.output_enchanted_book");
         pGuiGraphics.drawWordWrap(this.font, allowEnchantedBook, x, (int) (baseY + 417 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        Component prioritizeVanillaIngredientRecipe = Component.translatable("screen.uncrafteverything.config.prioritize");
+        pGuiGraphics.drawWordWrap(this.font, prioritizeVanillaIngredientRecipe, x, (int) (baseY + 443 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(prioritizeVanillaIngredientRecipe, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
@@ -298,7 +310,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         experience = Integer.parseInt(experienceInput.getValue());
         restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
+        UEConfigPayload configPayload = new UEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
         UEConfigPayload.INSTANCE.send(PacketDistributor.SERVER.noArg(), configPayload);
         RequestConfigPayload.INSTANCE.send(PacketDistributor.SERVER.noArg(), new RequestConfigPayload());
         onClose();
@@ -419,6 +431,18 @@ public class UEConfigScreen extends AbstractScrollableScreen {
                     valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_output_enchanted_book_yes"),
                     Component.empty(),
                     valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_output_enchanted_book_no")
+            );
+            guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (togglePrioritizeVanillaIngredientRecipe.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("tooltip.uncrafteverything.config.toggle_prioritize"),
+                    description("tooltip.uncrafteverything.config.toggle_prioritize_description"),
+                    Component.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.toggle_prioritize_yes"),
+                    Component.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.toggle_prioritize_no")
             );
             guiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }

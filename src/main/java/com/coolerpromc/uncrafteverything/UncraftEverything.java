@@ -102,7 +102,8 @@ public class UncraftEverything
                     FTBQuestProgressionConfig.getProgressionMap(),
                     config.enableProgression.get(),
                     config.onlyAllowDefinedProgression.get(),
-                    config.outputEnchantedBook.get()
+                    config.outputEnchantedBook.get(),
+                    config.prioritizeVanillaIngredientRecipe.get()
             );
             ResponseConfigPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), configPayload);
         }

@@ -21,7 +21,8 @@ public record UEConfigPayload(
     List<String> restrictedModIngredients,
     boolean enableProgression,
     boolean onlyAllowDefinedProgression,
-    boolean outputEnchantedBook
+    boolean outputEnchantedBook,
+    boolean prioritizeVanillaIngredientRecipe
 ){
     public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "ue_config");
     private static final String PROTOCOL_VERSION = "1";
@@ -50,6 +51,7 @@ public record UEConfigPayload(
         byteBuf.writeBoolean(payload.enableProgression);
         byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
         byteBuf.writeBoolean(payload.outputEnchantedBook);
+        byteBuf.writeBoolean(payload.prioritizeVanillaIngredientRecipe);
     }
 
     public static UEConfigPayload decode(FriendlyByteBuf byteBuf){
@@ -65,8 +67,9 @@ public record UEConfigPayload(
         boolean enableProgression = byteBuf.readBoolean();
         boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
         boolean outputEnchantedBook = byteBuf.readBoolean();
+        boolean prioritizeVanillaIngredientRecipe = byteBuf.readBoolean();
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
     }
 
     public static void register(){
