@@ -38,6 +38,7 @@ public class UncraftEverythingConfig {
     public final ForgeConfigSpec.BooleanValue enableProgression;
     public final ForgeConfigSpec.BooleanValue onlyAllowDefinedProgression;
     public final ForgeConfigSpec.BooleanValue outputEnchantedBook;
+    public final ForgeConfigSpec.BooleanValue prioritizeVanillaIngredientRecipe;
 
     static {
         Pair<UncraftEverythingConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(UncraftEverythingConfig::new);
@@ -79,6 +80,10 @@ public class UncraftEverythingConfig {
         restrictedModIngredients = builder.comment("A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues.",
                 "Format: modid")
                 .defineList("restrictedModIngredients", List.of("productivetrees", "chipped"), o -> o instanceof String modid && !modid.equals("minecraft"));
+        builder.pop();
+
+        builder.push("RecipeSelectionOrder");
+        prioritizeVanillaIngredientRecipe = builder.comment("Recipe selection should prioritize recipe with more vanilla ingredients. [true/false]").define("prioritizeVanillaIngredientRecipe", true);
         builder.pop();
 
         builder.push("FTBQuestProgression");

@@ -33,7 +33,8 @@ public record ResponseConfigPayload(
         Map<String, String> ftbQuestProgression,
         boolean enableProgression,
         boolean onlyAllowDefinedProgression,
-        boolean outputEnchantedBook
+        boolean outputEnchantedBook,
+        boolean prioritizeVanillaIngredientRecipe
 ) implements CustomPacketPayload {
     public static final Type<ResponseConfigPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(UncraftEverything.MODID, "response_config"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ResponseConfigPayload> STREAM_CODEC = StreamCodec.of(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
@@ -53,6 +54,7 @@ public record ResponseConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
+        ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
     }
 
     private static ResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -70,8 +72,9 @@ public record ResponseConfigPayload(
         boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
+        boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
 
-        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
+        return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
     }
 
     @Override
