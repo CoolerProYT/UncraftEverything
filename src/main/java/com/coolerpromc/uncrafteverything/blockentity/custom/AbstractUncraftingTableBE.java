@@ -33,10 +33,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
@@ -99,7 +96,12 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
 
         Tuple<List<UncraftingTableRecipe>, Boolean> outputs = UncraftingTableHelpers.getOutputs(inputStack, recipes, this);
         if (!outputs.getB()) return;
-        this.currentRecipes = outputs.getA();
+        if (UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe.get()){
+            this.currentRecipes = new ArrayList<>(outputs.getA().stream().sorted(Comparator.comparingInt(this::countVanillaIngredients).reversed()).toList());
+        }
+        else{
+            this.currentRecipes = outputs.getA();
+        }
 
         if (!currentRecipes.isEmpty()) {
             if (!isAuto){
@@ -124,6 +126,14 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
                 this.status = Status.NO_RECIPE_FOUND;
             }
         }
+    }
+
+    public int countVanillaIngredients(UncraftingTableRecipe recipe){
+        int count = 0;
+        for (ItemStack stack : recipe.getOutputs()){
+            if (stack.getItemHolder().getKey().identifier().getNamespace().equals("minecraft")) count++;
+        }
+        return count;
     }
 
     protected int getExperience(ItemStacksResourceHandler inputHandler) {

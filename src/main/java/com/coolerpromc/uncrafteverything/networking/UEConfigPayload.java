@@ -21,7 +21,8 @@ public record UEConfigPayload(
         List<String> restrictedModIngredients,
         boolean enableProgression,
         boolean onlyAllowDefinedProgression,
-        boolean outputEnchantedBook
+        boolean outputEnchantedBook,
+        boolean prioritizeVanillaIngredientRecipe
 ) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<UEConfigPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "ue_config"));
@@ -41,6 +42,7 @@ public record UEConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
+        ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
     }
 
     private static UEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -56,8 +58,9 @@ public record UEConfigPayload(
         boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
+        boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
 
-        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook);
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
     }
 
     @Override
