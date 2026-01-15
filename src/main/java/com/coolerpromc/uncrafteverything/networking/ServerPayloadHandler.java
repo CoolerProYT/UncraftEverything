@@ -75,6 +75,7 @@ public class ServerPayloadHandler {
                 config.enableProgression.set(payload.enableProgression());
                 config.onlyAllowDefinedProgression.set(payload.onlyAllowDefinedProgression());
                 config.outputEnchantedBook.set(payload.outputEnchantedBook());
+                config.prioritizeVanillaIngredientRecipe.set(payload.prioritizeVanillaIngredientRecipe());
                 UncraftEverythingConfig.CONFIG_SPEC.save();
             }
         }).exceptionally(e -> {
@@ -101,7 +102,8 @@ public class ServerPayloadHandler {
                         FTBQuestProgressionConfig.getProgressionMap(),
                         config.enableProgression.get(),
                         config.onlyAllowDefinedProgression.get(),
-                        config.outputEnchantedBook.get()
+                        config.outputEnchantedBook.get(),
+                        config.prioritizeVanillaIngredientRecipe.get()
                 );
                 UncraftEverything.CHANNEL.send(configPayload, PacketDistributor.PLAYER.with(player));
             }
