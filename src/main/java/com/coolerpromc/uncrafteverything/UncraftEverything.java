@@ -110,6 +110,7 @@ public class UncraftEverything implements ModInitializer {
 				UncraftEverythingConfig.enableProgression = payload.enableProgression();
 				UncraftEverythingConfig.onlyAllowDefinedProgression = payload.onlyAllowDefinedProgression();
 				UncraftEverythingConfig.outputEnchantedBook = payload.outputEnchantedBook();
+				UncraftEverythingConfig.prioritizeVanillaIngredientRecipe = payload.prioritizeVanillaIngredientRecipe();
 				UncraftEverythingConfig.save();
 			}
 		});
@@ -130,7 +131,8 @@ public class UncraftEverything implements ModInitializer {
 						FTBQuestProgressionConfig.getProgressionMap(),
 						UncraftEverythingConfig.enableProgression,
 						UncraftEverythingConfig.onlyAllowDefinedProgression,
-						UncraftEverythingConfig.outputEnchantedBook
+						UncraftEverythingConfig.outputEnchantedBook,
+						UncraftEverythingConfig.prioritizeVanillaIngredientRecipe
 				));
 			}
 		});
@@ -270,7 +272,8 @@ public class UncraftEverything implements ModInitializer {
 					FTBQuestProgressionConfig.getProgressionMap(),
 					UncraftEverythingConfig.enableProgression,
 					UncraftEverythingConfig.onlyAllowDefinedProgression,
-					UncraftEverythingConfig.outputEnchantedBook
+					UncraftEverythingConfig.outputEnchantedBook,
+					UncraftEverythingConfig.prioritizeVanillaIngredientRecipe
 			);
 			ServerPlayNetworking.send(serverPlayerEntity, configPayload);
         });

@@ -43,6 +43,7 @@ public class UncraftEverythingConfig {
     public static boolean enableProgression;
     public static boolean onlyAllowDefinedProgression;
     public static boolean outputEnchantedBook;
+    public static boolean prioritizeVanillaIngredientRecipe;
 
     public static void load() {
         configFile = CommentedFileConfig.builder(CONFIG_PATH)
@@ -97,6 +98,8 @@ public class UncraftEverythingConfig {
 
         restrictedModIngredients = configFile.getOrElse("RestrictedModIngredients.restrictedModIngredients", List.of("productivetrees", "chipped"));
 
+        prioritizeVanillaIngredientRecipe = configFile.getOrElse("RecipeSelectionOrder.prioritizeVanillaIngredientRecipe", true);
+
         enableProgression = configFile.getOrElse("FTBQuestProgression.enableProgression", false);
         onlyAllowDefinedProgression = configFile.getOrElse("FTBQuestProgression.onlyAllowDefinedProgression", false);
 
@@ -134,6 +137,9 @@ public class UncraftEverythingConfig {
 
         configFile.set("RestrictedModIngredients.restrictedModIngredients", restrictedModIngredients);
         configFile.setComment("RestrictedModIngredients.restrictedModIngredients", "A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues. \nFormat: modid");
+
+        configFile.set("RecipeSelectionOrder.prioritizeVanillaIngredientRecipe", prioritizeVanillaIngredientRecipe);
+        configFile.setComment("RecipeSelectionOrder.prioritizeVanillaIngredientRecipe", "Recipe selection should prioritize recipe with more vanilla ingredients. [true/false]");
 
         configFile.set("FTBQuestProgression.enableProgression", enableProgression);
         configFile.setComment("FTBQuestProgression.enableProgression","Enable progression based uncrafting recipe search (Only available when FTB Quests is added to the mod pack)");

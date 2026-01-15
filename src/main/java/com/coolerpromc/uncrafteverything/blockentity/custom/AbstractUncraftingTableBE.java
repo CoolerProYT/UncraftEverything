@@ -33,10 +33,7 @@ import net.minecraft.util.math.BlockPos;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
@@ -99,7 +96,12 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
 
         Pair<List<UncraftingTableRecipe>, Boolean> outputs = UncraftingTableHelpers.getOutputs(inputStack, recipes, this);
         if (!outputs.getRight()) return;
-        this.currentRecipes = outputs.getLeft();
+        if (UncraftEverythingConfig.prioritizeVanillaIngredientRecipe){
+            this.currentRecipes = new ArrayList<>(outputs.getLeft().stream().sorted(Comparator.comparingInt(this::countVanillaIngredients).reversed()).toList());
+        }
+        else{
+            this.currentRecipes = outputs.getLeft();
+        }
 
         if (!currentRecipes.isEmpty()) {
             if (!isAuto){
@@ -122,6 +124,14 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
                 this.status = Status.NO_RECIPE_FOUND;
             }
         }
+    }
+
+    public int countVanillaIngredients(UncraftingTableRecipe recipe){
+        int count = 0;
+        for (ItemStack stack : recipe.getOutputs()){
+            if (stack.getRegistryEntry().getKey().get().getValue().getNamespace().equals("minecraft")) count++;
+        }
+        return count;
     }
 
     protected int getExperience(ImplementedInventory inputHandler) {
