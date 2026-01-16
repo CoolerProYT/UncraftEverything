@@ -1,1 +1,1 @@
-- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
+This snapshot affected some logic related to ingredient searching, if there is any bug feel free to let me know

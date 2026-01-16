@@ -2,36 +2,35 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) implements CustomPayload {
+public record UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) implements CustomPacketPayload {
     public UncraftingTableDataPayload(BlockPos blockPos, List<UncraftingTableRecipe> recipes, int size){
         this(blockPos, recipes, size, true);
     }
-    public static final CustomPayload.Id<UncraftingTableDataPayload> TYPE = new CustomPayload.Id<>(Identifier.of(UncraftEverything.MODID, "uncrafting_table_data"));
+    public static final CustomPacketPayload.Type<UncraftingTableDataPayload> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_data"));
 
-    public static final PacketCodec<RegistryByteBuf, UncraftingTableDataPayload> STREAM_CODEC =
-            PacketCodec.tuple(
-                    BlockPos.PACKET_CODEC,
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingTableDataPayload> STREAM_CODEC =
+            StreamCodec.composite(
+                    BlockPos.STREAM_CODEC,
                     UncraftingTableDataPayload::blockPos,
-                    UncraftingTableRecipe.STREAM_CODEC.collect(PacketCodecs.toList()),
+                    UncraftingTableRecipe.STREAM_CODEC.apply(ByteBufCodecs.list()),
                     UncraftingTableDataPayload::recipes,
-                    PacketCodecs.INTEGER,
+                    ByteBufCodecs.INT,
                     UncraftingTableDataPayload::size,
-                    PacketCodecs.BOOLEAN,
+                    ByteBufCodecs.BOOL,
                     UncraftingTableDataPayload::shouldSendPacket,
                     UncraftingTableDataPayload::new
             );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

@@ -1,23 +1,23 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record ClientConfigSyncPayload(boolean autoMoveToInventory) implements CustomPayload {
-    public static final Id<ClientConfigSyncPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "client_config_sync"));
+public record ClientConfigSyncPayload(boolean autoMoveToInventory) implements CustomPacketPayload {
+    public static final Type<ClientConfigSyncPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "client_config_sync"));
 
-    public static final PacketCodec<RegistryByteBuf, ClientConfigSyncPayload> STREAM_CODEC = PacketCodec.tuple(
-            PacketCodecs.BOOLEAN,
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientConfigSyncPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BOOL,
             ClientConfigSyncPayload::autoMoveToInventory,
             ClientConfigSyncPayload::new
     );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

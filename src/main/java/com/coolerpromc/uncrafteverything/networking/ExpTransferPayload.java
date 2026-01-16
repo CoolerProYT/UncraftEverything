@@ -4,15 +4,15 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record ExpTransferPayload(BlockPos pos, int amount, UncraftEverythingConfig.ExperienceType experienceType) implements CustomPayload {
-    public static Id<ExpTransferPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "exp_transfer_payload"));
+public record ExpTransferPayload(BlockPos pos, int amount, UncraftEverythingConfig.ExperienceType experienceType) implements CustomPacketPayload {
+    public static Type<ExpTransferPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "exp_transfer_payload"));
 
     public static Codec<ExpTransferPayload> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.fieldOf("pos").forGetter(ExpTransferPayload::pos),
@@ -20,10 +20,10 @@ public record ExpTransferPayload(BlockPos pos, int amount, UncraftEverythingConf
             UncraftEverythingConfig.ExperienceType.CODEC.fieldOf("experienceType").forGetter(ExpTransferPayload::experienceType)
     ).apply(instance, ExpTransferPayload::new));
 
-    public static PacketCodec<RegistryByteBuf, ExpTransferPayload> STREAM_CODEC = PacketCodec.tuple(
-            BlockPos.PACKET_CODEC,
+    public static StreamCodec<RegistryFriendlyByteBuf, ExpTransferPayload> STREAM_CODEC = StreamCodec.composite(
+            BlockPos.STREAM_CODEC,
             ExpTransferPayload::pos,
-            PacketCodecs.INTEGER,
+            ByteBufCodecs.INT,
             ExpTransferPayload::amount,
             UncraftEverythingConfig.ExperienceType.STREAM_CODEC,
             ExpTransferPayload::experienceType,
@@ -31,7 +31,7 @@ public record ExpTransferPayload(BlockPos pos, int amount, UncraftEverythingConf
     );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

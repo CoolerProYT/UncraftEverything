@@ -9,27 +9,27 @@ import com.coolerpromc.uncrafteverything.util.Status;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableHelpers;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.inventory.SidedInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -37,10 +37,10 @@ import java.util.regex.Pattern;
 
 import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
 
-public abstract class AbstractUncraftingTableBE extends BlockEntity implements SidedInventory {
+public abstract class AbstractUncraftingTableBE extends BlockEntity implements WorldlyContainer {
     protected List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     public UncraftingTableRecipe currentRecipe = null;
-    protected ServerPlayerEntity player;
+    protected ServerPlayer player;
     protected int experience = 0;
     protected int experienceType; // 0 = POINT, 1 = LEVEL
     protected ItemStack currentStack = ItemStack.EMPTY;
@@ -52,13 +52,13 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        return createNbt(registries);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
-    public @org.jspecify.annotations.Nullable Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public @org.jspecify.annotations.Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public int getPage() {
@@ -67,27 +67,27 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
 
     public void updatePage(int page){
         this.page = page;
-        ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
+        ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(page * 7, Math.min(page * 7 + 7, currentRecipes.size()))), currentRecipes.size()));
     }
 
     public void getOutputStacks(ImplementedInventory inputHandler, boolean isAuto) {
-        if (!(world instanceof ServerWorld serverLevel) || (player == null && !isAuto)) return;
+        if (!(level instanceof ServerLevel serverLevel) || (player == null && !isAuto)) return;
         this.status = Status.BLANK;
-        ItemStack inputStack = inputHandler.getStack(0);
+        ItemStack inputStack = inputHandler.getItem(0);
         if (!UncraftingTableHelpers.validateInput(inputStack, player, this)){
             currentRecipes.clear();
             currentRecipe = null;
             experience = 0;
-            markDirty();
-            if (world != null && !world.isClient()) {
-                world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
+            setChanged();
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
             return;
         }
 
-        List<RecipeEntry<?>> recipes = UncraftingTableHelpers.findRecipe(serverLevel, inputStack, this);
+        List<RecipeHolder<?>> recipes = UncraftingTableHelpers.findRecipe(serverLevel, inputStack, this);
 
-        if (!recipes.isEmpty() || inputStack.isOf(Items.TIPPED_ARROW) || (UncraftEverythingConfig.allowEnchantedItems && inputStack.get(DataComponentTypes.ENCHANTMENTS) != ItemEnchantmentsComponent.DEFAULT)) {
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.allowEnchantedItems && inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY)) {
             this.status = Status.BLANK;
             this.experience = getExperience(inputHandler);
             this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
@@ -128,7 +128,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
     public int countVanillaIngredients(UncraftingTableRecipe recipe){
         int count = 0;
         for (ItemStack stack : recipe.getOutputs()){
-            if (stack.getRegistryEntry().getKey().get().getValue().getNamespace().equals("minecraft")) count++;
+            if (stack.typeHolder().unwrapKey().get().identifier().getNamespace().equals("minecraft")) count++;
         }
         return count;
     }
@@ -141,7 +141,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
             if (exp.getKey().startsWith("#")){
                 String tagName = exp.getKey().substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && inputHandler.getStack(0).isIn(tagKey.get())) {
+                if (tagKey.isPresent() && inputHandler.getItem(0).is(tagKey.get())) {
                     experience = exp.getValue();
                     break;
                 }
@@ -160,7 +160,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
     }
 
     public Identifier inputStackLocation(ImplementedInventory inputHandler) {
-        return Registries.ITEM.getId(inputHandler.getStack(0).getItem());
+        return BuiltInRegistries.ITEM.getKey(inputHandler.getItem(0).getItem());
     }
 
     public int calculateBaseXpFromLevel(int level) {
@@ -173,7 +173,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements S
         }
     }
 
-    public void setPlayer(ServerPlayerEntity player) {
+    public void setPlayer(ServerPlayer player) {
         this.player = player;
     }
 

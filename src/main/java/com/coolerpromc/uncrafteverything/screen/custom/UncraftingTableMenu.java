@@ -2,30 +2,30 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class UncraftingTableMenu extends AbstractUncraftingMenu<UncraftingTableBlockEntity> {
-    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockPos blockPos) {
-        this(syncId, playerInventory, playerInventory.player.getEntityWorld().getBlockEntity(blockPos), new ArrayPropertyDelegate(3));
+    public UncraftingTableMenu(int syncId, Inventory playerInventory, BlockPos blockPos) {
+        this(syncId, playerInventory, playerInventory.player.level().getBlockEntity(blockPos), new SimpleContainerData(3));
     }
 
-    public UncraftingTableMenu(int syncId, PlayerInventory playerInventory, BlockEntity blockEntity, PropertyDelegate data) {
-        super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId, (UncraftingTableBlockEntity) blockEntity, playerInventory.player.getEntityWorld(), playerInventory.player, data);
+    public UncraftingTableMenu(int syncId, Inventory playerInventory, BlockEntity blockEntity, ContainerData data) {
+        super(UEMenuTypes.UNCRAFTING_TABLE_MENU, syncId, (UncraftingTableBlockEntity) blockEntity, playerInventory.player.level(), playerInventory.player, data);
 
         this.addSlot(new Slot(this.blockEntity.getSlots(), this.blockEntity.getInputSlots()[0], 26, 35));
 
         for (int i = 0; i < this.blockEntity.getOutputSlots().length; i++) {
             this.addSlot(new Slot(this.blockEntity.getSlots(), this.blockEntity.getOutputSlots()[i], 98 + 18 * (i % 3), 17 + (i / 3) * 18){
                 @Override
-                public boolean canInsert(ItemStack stack) {
+                public boolean mayPlace(ItemStack stack) {
                     return false;
                 }
             });
@@ -36,28 +36,28 @@ public class UncraftingTableMenu extends AbstractUncraftingMenu<UncraftingTableB
     }
 
     @Override
-    public void onContentChanged(Inventory inventory) {
-        super.onContentChanged(inventory);
-        this.sendContentUpdates();
+    public void slotsChanged(Container inventory) {
+        super.slotsChanged(inventory);
+        this.broadcastChanges();
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        if (!player.getEntityWorld().isClient()){
-            ItemStack stack = blockEntity.getSlots().getStack(blockEntity.getInputSlots()[0]);
+    public void removed(Player player) {
+        super.removed(player);
+        if (!player.level().isClientSide()){
+            ItemStack stack = blockEntity.getSlots().getItem(blockEntity.getInputSlots()[0]);
             if (!stack.isEmpty()) {
-                player.getInventory().offerOrDrop(stack);
-                blockEntity.getSlots().setStack(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
-                blockEntity.markDirty();
+                player.getInventory().placeItemBackInInventory(stack);
+                blockEntity.getSlots().setItem(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
+                blockEntity.setChanged();
             }
 
             for (int i : blockEntity.getOutputSlots()) {
-                ItemStack outputStack = blockEntity.getSlots().getStack(i);
+                ItemStack outputStack = blockEntity.getSlots().getItem(i);
                 if (!outputStack.isEmpty()) {
-                    player.getInventory().offerOrDrop(outputStack);
-                    blockEntity.getSlots().setStack(i, ItemStack.EMPTY);
-                    blockEntity.markDirty();
+                    player.getInventory().placeItemBackInInventory(outputStack);
+                    blockEntity.getSlots().setItem(i, ItemStack.EMPTY);
+                    blockEntity.setChanged();
                 }
             }
         }

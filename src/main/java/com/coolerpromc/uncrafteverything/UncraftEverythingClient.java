@@ -16,31 +16,30 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.world.World;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UncraftEverythingClient implements ClientModInitializer {
     public static ResponseConfigPayload payloadFromServer;
-    public static List<RecipeEntry<?>> recipesFromServer = new ArrayList<>();
+    public static List<RecipeHolder<?>> recipesFromServer = new ArrayList<>();
 
     @Override
     public void onInitializeClient() {
-        HandledScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
-        HandledScreens.register(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU, AutoUncraftingTableScreen::new);
+        MenuScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU, UncraftingTableScreen::new);
+        MenuScreens.register(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU, AutoUncraftingTableScreen::new);
 
         UncraftEverythingClientConfig.load();
         UncraftEverythingClientConfig.save();
 
         ClientPlayNetworking.registerGlobalReceiver(UncraftingTableDataPayload.TYPE, (uncraftingTableDataPayload, context) -> {
-            MinecraftClient minecraft = MinecraftClient.getInstance();
-            World world = minecraft.world;
-            Screen screen = minecraft.currentScreen;
+            Minecraft minecraft = Minecraft.getInstance();
+            Level world = minecraft.level;
+            Screen screen = minecraft.screen;
 
             if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen){
                 if (world.getBlockEntity(uncraftingTableDataPayload.blockPos()) instanceof AbstractUncraftingTableBE){
@@ -54,9 +53,9 @@ public class UncraftEverythingClient implements ClientModInitializer {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(UncraftingRecipeSelectionRequestPayload.TYPE, (uncraftingRecipeSelectionRequestPayload, context) -> {
-            MinecraftClient minecraft = MinecraftClient.getInstance();
-            World world = minecraft.world;
-            Screen screen = minecraft.currentScreen;
+            Minecraft minecraft = Minecraft.getInstance();
+            Level world = minecraft.level;
+            Screen screen = minecraft.screen;
 
             if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen) {
                 uncraftingTableScreen.getRecipeSelection();

@@ -3,17 +3,17 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.screen.widget.ColorPickerWidget;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public class UEClientConfigScreen extends AbstractScrollableScreen {
     public boolean autoMoveToInventory = UncraftEverythingClientConfig.autoMoveToInventory;
@@ -31,22 +31,22 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     private final int baseY = 30;
     private final Map<ColorPickerWidget, Pair<Integer, Integer>> widgets = new HashMap<>();
 
-    private ButtonWidget moveToInventoryButton;
-    private ButtonWidget cancelButton;
-    private ButtonWidget saveButton;
+    private Button moveToInventoryButton;
+    private Button cancelButton;
+    private Button saveButton;
 
-    public UEClientConfigScreen(Text title) {
+    public UEClientConfigScreen(Component title) {
         super(title, 250);
-        ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, (int) (baseY + 25 - scrollAmount), 0, noRecipeFoundColor, Text.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
-        ColorPickerWidget noSuitableOutputSlotButton = new ColorPickerWidget(0, (int) (baseY + 50 - scrollAmount), 0, noSuitableOutputSlotColor, Text.translatable("screen.uncrafteverything.config.no_suitable_output_slot"), this, this::setNoSuitableOutputSlotColor);
-        ColorPickerWidget notEnoughExpButton = new ColorPickerWidget(0, (int) (baseY + 75 - scrollAmount), 0, notEnoughExpColor, Text.translatable("screen.uncrafteverything.config.not_enough_exp"), this, this::setNotEnoughExpColor);
-        ColorPickerWidget notEnoughInputItemButton = new ColorPickerWidget(0, (int) (baseY + 100 - scrollAmount), 0, notEnoughInputItemColor, Text.translatable("screen.uncrafteverything.config.not_enough_input_item"), this, this::setNotEnoughInputItemColor);
-        ColorPickerWidget notEmptyShulkerButton = new ColorPickerWidget(0, (int) (baseY + 125 - scrollAmount), 0, notEmptyShulkerColor, Text.translatable("screen.uncrafteverything.config.not_empty_shulker"), this, this::setNotEmptyShulkerColor);
-        ColorPickerWidget restrictedByConfigButton = new ColorPickerWidget(0, (int) (baseY + 150 - scrollAmount), 0, restrictedByConfigColor, Text.translatable("screen.uncrafteverything.config.restricted_by_config"), this, this::setRestrictedByConfigColor);
-        ColorPickerWidget damagedItemButton = new ColorPickerWidget(0, (int) (baseY + 175 - scrollAmount), 0, damagedItemColor, Text.translatable("screen.uncrafteverything.config.damaged_item"), this, this::setDamagedItemColor);
-        ColorPickerWidget enchantedItemButton = new ColorPickerWidget(0, (int) (baseY + 200 - scrollAmount), 0, enchantedItemColor, Text.translatable("screen.uncrafteverything.config.enchanted_item"), this, this::setEnchantedItemColor);
-        ColorPickerWidget lockedItemButton = new ColorPickerWidget(0, (int) (baseY + 225 - scrollAmount), 0, lockedItemColor, Text.translatable("screen.uncrafteverything.config.locked_item"), this, this::setLockedItemColor);
-        ColorPickerWidget progressionNotDefinedButton = new ColorPickerWidget(0, (int) (baseY + 250 - scrollAmount), 0, progressionNotDefinedColor, Text.translatable("screen.uncrafteverything.config.progression_not_defined"), this, this::setProgressionNotDefinedColor);
+        ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, (int) (baseY + 25 - scrollAmount), 0, noRecipeFoundColor, Component.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
+        ColorPickerWidget noSuitableOutputSlotButton = new ColorPickerWidget(0, (int) (baseY + 50 - scrollAmount), 0, noSuitableOutputSlotColor, Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot"), this, this::setNoSuitableOutputSlotColor);
+        ColorPickerWidget notEnoughExpButton = new ColorPickerWidget(0, (int) (baseY + 75 - scrollAmount), 0, notEnoughExpColor, Component.translatable("screen.uncrafteverything.config.not_enough_exp"), this, this::setNotEnoughExpColor);
+        ColorPickerWidget notEnoughInputItemButton = new ColorPickerWidget(0, (int) (baseY + 100 - scrollAmount), 0, notEnoughInputItemColor, Component.translatable("screen.uncrafteverything.config.not_enough_input_item"), this, this::setNotEnoughInputItemColor);
+        ColorPickerWidget notEmptyShulkerButton = new ColorPickerWidget(0, (int) (baseY + 125 - scrollAmount), 0, notEmptyShulkerColor, Component.translatable("screen.uncrafteverything.config.not_empty_shulker"), this, this::setNotEmptyShulkerColor);
+        ColorPickerWidget restrictedByConfigButton = new ColorPickerWidget(0, (int) (baseY + 150 - scrollAmount), 0, restrictedByConfigColor, Component.translatable("screen.uncrafteverything.config.restricted_by_config"), this, this::setRestrictedByConfigColor);
+        ColorPickerWidget damagedItemButton = new ColorPickerWidget(0, (int) (baseY + 175 - scrollAmount), 0, damagedItemColor, Component.translatable("screen.uncrafteverything.config.damaged_item"), this, this::setDamagedItemColor);
+        ColorPickerWidget enchantedItemButton = new ColorPickerWidget(0, (int) (baseY + 200 - scrollAmount), 0, enchantedItemColor, Component.translatable("screen.uncrafteverything.config.enchanted_item"), this, this::setEnchantedItemColor);
+        ColorPickerWidget lockedItemButton = new ColorPickerWidget(0, (int) (baseY + 225 - scrollAmount), 0, lockedItemColor, Component.translatable("screen.uncrafteverything.config.locked_item"), this, this::setLockedItemColor);
+        ColorPickerWidget progressionNotDefinedButton = new ColorPickerWidget(0, (int) (baseY + 250 - scrollAmount), 0, progressionNotDefinedColor, Component.translatable("screen.uncrafteverything.config.progression_not_defined"), this, this::setProgressionNotDefinedColor);
 
         widgets.put(noRecipeFoundButton, new Pair<>(noRecipeFoundColor, 25));
         widgets.put(noSuitableOutputSlotButton, new Pair<>(noSuitableOutputSlotColor, 50));
@@ -65,11 +65,11 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         int x = this.width / 2 + 10;
         int widgetWidth = this.width - x - 10;
 
-        moveToInventoryButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.config.move_to_inventory_" + autoMoveToInventory), button -> {
+        moveToInventoryButton = Button.builder(Component.translatable("screen.uncrafteverything.config.move_to_inventory_" + autoMoveToInventory), button -> {
             autoMoveToInventory = !autoMoveToInventory;
-            button.setMessage(Text.translatable("screen.uncrafteverything.config.move_to_inventory_" + autoMoveToInventory));
-        }).dimensions(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
-        this.addDrawableChild(moveToInventoryButton);
+            button.setMessage(Component.translatable("screen.uncrafteverything.config.move_to_inventory_" + autoMoveToInventory));
+        }).bounds(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(moveToInventoryButton);
 
         Pair<ColorPickerWidget, Pair<Integer, Integer>> visible = null;
 
@@ -91,22 +91,22 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
             }
         }
 
-        cancelButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.cancel"), this::pressCancelButton).dimensions(this.width / 2 - 210, (this.height - 45) + 15, 200, 20).build();
-        saveButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.save"), this::pressSaveButton).dimensions(this.width / 2 + 10, (this.height - 45) + 15, 200, 20).build();
-        this.addDrawableChild(cancelButton);
-        this.addDrawableChild(saveButton);
+        cancelButton = Button.builder(Component.translatable("screen.uncrafteverything.cancel"), this::pressCancelButton).bounds(this.width / 2 - 210, (this.height - 45) + 15, 200, 20).build();
+        saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::pressSaveButton).bounds(this.width / 2 + 10, (this.height - 45) + 15, 200, 20).build();
+        this.addRenderableWidget(cancelButton);
+        this.addRenderableWidget(saveButton);
     }
 
     @Override
-    public void renderBackground(@NotNull DrawContext guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderDarkening(guiGraphics);
-        applyBlur(guiGraphics);
+    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        renderMenuBackground(guiGraphics);
+        renderBlurredBackground(guiGraphics);
         renderSeparator(guiGraphics);
         renderScrollbar(guiGraphics, 70);
     }
 
     @Override
-    public void render(@NotNull DrawContext pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         int scissorTop = 25;
         int scissorBottom = this.height - 45;
         pGuiGraphics.enableScissor(0, scissorTop, this.width, scissorBottom);
@@ -115,44 +115,44 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         int textWidth = this.width / 2 - 10;
         int baseY = 30;
 
-        Text moveToInventory = Text.translatable("screen.uncrafteverything.config.move_to_inventory");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, moveToInventory, x, (int) (baseY - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component moveToInventory = Component.translatable("screen.uncrafteverything.config.move_to_inventory");
+        pGuiGraphics.drawWordWrap(this.font, moveToInventory, x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text noRecipeFound = Text.translatable("screen.uncrafteverything.config.no_recipe_found");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, noRecipeFound, x, (int) (baseY + 25 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component noRecipeFound = Component.translatable("screen.uncrafteverything.config.no_recipe_found");
+        pGuiGraphics.drawWordWrap(this.font, noRecipeFound, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text noSuitableOutputSlot = Text.translatable("screen.uncrafteverything.config.no_suitable_output_slot");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, noSuitableOutputSlot, x, (int) (baseY + 50 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component noSuitableOutputSlot = Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot");
+        pGuiGraphics.drawWordWrap(this.font, noSuitableOutputSlot, x, (int) (baseY + 50 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text notEnoughExpSlot = Text.translatable("screen.uncrafteverything.config.not_enough_exp");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, notEnoughExpSlot, x, (int) (baseY + 75 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component notEnoughExpSlot = Component.translatable("screen.uncrafteverything.config.not_enough_exp");
+        pGuiGraphics.drawWordWrap(this.font, notEnoughExpSlot, x, (int) (baseY + 75 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text notEnoughInputItemSlot = Text.translatable("screen.uncrafteverything.config.not_enough_input_item");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, notEnoughInputItemSlot, x, (int) (baseY + 100 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component notEnoughInputItemSlot = Component.translatable("screen.uncrafteverything.config.not_enough_input_item");
+        pGuiGraphics.drawWordWrap(this.font, notEnoughInputItemSlot, x, (int) (baseY + 100 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text notEmptyShulkerSlot = Text.translatable("screen.uncrafteverything.config.not_empty_shulker");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, notEmptyShulkerSlot, x, (int) (baseY + 125 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component notEmptyShulkerSlot = Component.translatable("screen.uncrafteverything.config.not_empty_shulker");
+        pGuiGraphics.drawWordWrap(this.font, notEmptyShulkerSlot, x, (int) (baseY + 125 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text restrictedByConfigSlot = Text.translatable("screen.uncrafteverything.config.restricted_by_config");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, restrictedByConfigSlot, x, (int) (baseY + 150 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component restrictedByConfigSlot = Component.translatable("screen.uncrafteverything.config.restricted_by_config");
+        pGuiGraphics.drawWordWrap(this.font, restrictedByConfigSlot, x, (int) (baseY + 150 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text damagedItemSlot = Text.translatable("screen.uncrafteverything.config.damaged_item");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, damagedItemSlot, x, (int) (baseY + 175 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component damagedItemSlot = Component.translatable("screen.uncrafteverything.config.damaged_item");
+        pGuiGraphics.drawWordWrap(this.font, damagedItemSlot, x, (int) (baseY + 175 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text enchantedItemSlot = Text.translatable("screen.uncrafteverything.config.enchanted_item");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, enchantedItemSlot, x, (int) (baseY + 200 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component enchantedItemSlot = Component.translatable("screen.uncrafteverything.config.enchanted_item");
+        pGuiGraphics.drawWordWrap(this.font, enchantedItemSlot, x, (int) (baseY + 200 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text lockedItemSlot = Text.translatable("screen.uncrafteverything.config.locked_item");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, lockedItemSlot, x, (int) (baseY + 225 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component lockedItemSlot = Component.translatable("screen.uncrafteverything.config.locked_item");
+        pGuiGraphics.drawWordWrap(this.font, lockedItemSlot, x, (int) (baseY + 225 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        Text progressionNotDefinedSlot = Text.translatable("screen.uncrafteverything.config.progression_not_defined");
-        pGuiGraphics.drawWrappedTextWithShadow(this.textRenderer, progressionNotDefinedSlot, x, (int) (baseY + 250 - scrollAmount + (this.textRenderer.fontHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component progressionNotDefinedSlot = Component.translatable("screen.uncrafteverything.config.progression_not_defined");
+        pGuiGraphics.drawWordWrap(this.font, progressionNotDefinedSlot, x, (int) (baseY + 250 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         pGuiGraphics.disableScissor();
 
-        pGuiGraphics.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.uncrafteverything.uncraft_everything_client_config"), this.width / 2, (23 - this.textRenderer.fontHeight) / 2, 0xFFFFFFFF);
+        pGuiGraphics.drawCenteredString(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_client_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
         cancelButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         saveButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
@@ -198,7 +198,7 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public boolean mouseDragged(Click buttonEvent, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent buttonEvent, double dragX, double dragY) {
         for (ColorPickerWidget x : widgets.keySet()){
             if (x.isVisible()){
                 return x.mouseDragged(buttonEvent, dragX, dragY);
@@ -208,7 +208,7 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public boolean mouseClicked(Click buttonEvent, boolean doubled) {
+    public boolean mouseClicked(MouseButtonEvent buttonEvent, boolean doubled) {
         int scrollTop = 25;
         int scrollBottom = this.height - 45;
 
@@ -251,7 +251,7 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     }
 
     public void redraw(){
-        this.clearChildren();
+        this.clearWidgets();
         this.init();
     }
 
@@ -260,10 +260,10 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         colorPickerWidget.setButtonWidth(widgetWidth);
         colorPickerWidget.setY((int) (baseY + yOffset - scrollAmount));
         colorPickerWidget.setHeight((int) (ColorPickerWidget.PICKER_SIZE + 60 + scrollAmount));
-        this.addDrawableChild(colorPickerWidget);
+        this.addRenderableWidget(colorPickerWidget);
     }
 
-    private void pressSaveButton(ButtonWidget button){
+    private void pressSaveButton(Button button){
         UncraftEverythingClientConfig.autoMoveToInventory = this.autoMoveToInventory;
         UncraftEverythingClientConfig.noRecipeFoundColor = this.noRecipeFoundColor;
         UncraftEverythingClientConfig.noSuitableOutputSlotColor = this.noSuitableOutputSlotColor;
@@ -276,42 +276,42 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         UncraftEverythingClientConfig.lockedItemColor = this.lockedItemColor;
         UncraftEverythingClientConfig.progressionNotDefinedColor = this.progressionNotDefinedColor;
         UncraftEverythingClientConfig.save();
-        close();
+        onClose();
     }
 
-    private void pressCancelButton(ButtonWidget button){
-        close();
+    private void pressCancelButton(Button button){
+        onClose();
     }
 
-    protected void renderSeparator(DrawContext guiGraphics){
-        Identifier header = this.client.world == null ? Screen.HEADER_SEPARATOR_TEXTURE : Screen.INWORLD_HEADER_SEPARATOR_TEXTURE;
-        Identifier footer = this.client.world == null ? Screen.FOOTER_SEPARATOR_TEXTURE : Screen.INWORLD_FOOTER_SEPARATOR_TEXTURE;
-        guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
-        guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, footer, 0, this.height - 45, 0.0F, 0.0F, this.width, 2, 32, 2);
+    protected void renderSeparator(GuiGraphics guiGraphics){
+        Identifier header = this.minecraft.level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
+        Identifier footer = this.minecraft.level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, footer, 0, this.height - 45, 0.0F, 0.0F, this.width, 2, 32, 2);
     }
 
-    private void renderButtonTooltip(DrawContext guiGraphics, int mouseX, int mouseY){
+    private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
         if (moveToInventoryButton.isHovered()){
-            List<Text> tooltip = List.of(
+            List<Component> tooltip = List.of(
                     title("tooltip.uncrafteverything.config.move_to_inventory"),
                     valueInfo("tooltip.uncrafteverything.config.true", "tooltip.uncrafteverything.config.auto_move_true"),
-                    Text.empty(),
+                    Component.empty(),
                     valueInfo("tooltip.uncrafteverything.config.false", "tooltip.uncrafteverything.config.auto_move_false")
             );
-            guiGraphics.drawTooltip(this.textRenderer, tooltip, Optional.empty(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
 
-    private Text title(String title){
-        return Text.translatable(title).formatted(Formatting.BLUE);
+    private Component title(String title){
+        return Component.translatable(title).withStyle(ChatFormatting.BLUE);
     }
 
-    private Text valueInfo(String value, String info){
-        return Text.translatable(value).append(": ").formatted(Formatting.AQUA).append(Text.translatable(info).formatted(Formatting.GRAY));
+    private Component valueInfo(String value, String info){
+        return Component.translatable(value).append(": ").withStyle(ChatFormatting.AQUA).append(Component.translatable(info).withStyle(ChatFormatting.GRAY));
     }
 
-    private Text description(String desc){
-        return Text.translatable(desc).formatted(Formatting.GRAY);
+    private Component description(String desc){
+        return Component.translatable(desc).withStyle(ChatFormatting.GRAY);
     }
 
     private void setNoRecipeFoundColor(int noRecipeFoundColor, ColorPickerWidget button) {

@@ -2,15 +2,14 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 public record ResponseConfigPayload(
         UncraftEverythingConfig.RestrictionType restrictionType,
@@ -28,52 +27,52 @@ public record ResponseConfigPayload(
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook,
         boolean prioritizeVanillaIngredientRecipe
-) implements CustomPayload {
+) implements CustomPacketPayload {
 
-    public static final Id<ResponseConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "response_config"));
+    public static final Type<ResponseConfigPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "response_config"));
 
-    public static final PacketCodec<RegistryByteBuf, ResponseConfigPayload> STREAM_CODEC = PacketCodec.ofStatic(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ResponseConfigPayload> STREAM_CODEC = StreamCodec.of(ResponseConfigPayload::encode, ResponseConfigPayload::decode);
 
-    private static void encode(RegistryByteBuf buf, ResponseConfigPayload payload) {
+    private static void encode(RegistryFriendlyByteBuf buf, ResponseConfigPayload payload) {
         UncraftEverythingConfig.RestrictionType.STREAM_CODEC.encode(buf, payload.restrictionType);
-        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedItems);
-        PacketCodecs.BOOLEAN.encode(buf, payload.allowEnchantedItem);
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedItems);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowEnchantedItem);
         UncraftEverythingConfig.ExperienceType.STREAM_CODEC.encode(buf, payload.experienceType);
-        PacketCodecs.INTEGER.encode(buf, payload.experience);
-        PacketCodecs.BOOLEAN.encode(buf, payload.allowUnsmithing);
-        PacketCodecs.BOOLEAN.encode(buf, payload.allowDamaged);
-        PacketCodecs.BOOLEAN.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
-        PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
-        PacketCodecs.STRING.collect(PacketCodecs.toList()).encode(buf, payload.restrictedModIngredients);
-        PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING).encode(buf, new HashMap<>(payload.ftbQuestProgression));
-        PacketCodecs.BOOLEAN.encode(buf, payload.enableProgression);
-        PacketCodecs.BOOLEAN.encode(buf, payload.onlyAllowDefinedProgression);
-        PacketCodecs.BOOLEAN.encode(buf, payload.outputEnchantedBook);
-        PacketCodecs.BOOLEAN.encode(buf, payload.prioritizeVanillaIngredientRecipe);
+        ByteBufCodecs.INT.encode(buf, payload.experience);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowUnsmithing);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowDamaged);
+        ByteBufCodecs.BOOL.encode(buf, payload.preventModdedIngredientsFromVanillaItems);
+        ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).encode(buf, new HashMap<>(payload.perItemExp));
+        ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).encode(buf, payload.restrictedModIngredients);
+        ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8).encode(buf, new HashMap<>(payload.ftbQuestProgression));
+        ByteBufCodecs.BOOL.encode(buf, payload.enableProgression);
+        ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
+        ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
+        ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
     }
 
-    private static ResponseConfigPayload decode(RegistryByteBuf buf){
+    private static ResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
         UncraftEverythingConfig.RestrictionType restrictionType = UncraftEverythingConfig.RestrictionType.STREAM_CODEC.decode(buf);
-        List<String> restrictedItems = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
-        boolean allowEnchantedItem = PacketCodecs.BOOLEAN.decode(buf);
+        List<String> restrictedItems = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
+        boolean allowEnchantedItem = ByteBufCodecs.BOOL.decode(buf);
         UncraftEverythingConfig.ExperienceType experienceType = UncraftEverythingConfig.ExperienceType.STREAM_CODEC.decode(buf);
-        int experience = PacketCodecs.INTEGER.decode(buf);
-        boolean allowUnsmithing = PacketCodecs.BOOLEAN.decode(buf);
-        boolean allowDamaged = PacketCodecs.BOOLEAN.decode(buf);
-        boolean preventModdedIngredientsFromVanillaItems = PacketCodecs.BOOLEAN.decode(buf);
-        Map<String, Integer> perItemExp = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.VAR_INT).decode(buf);
-        List<String> restrictedModIngredients = PacketCodecs.STRING.collect(PacketCodecs.toList()).decode(buf);
-        Map<String, String> ftbQuestProgression = PacketCodecs.map(HashMap::new, PacketCodecs.STRING, PacketCodecs.STRING).decode(buf);
-        boolean enableProgression = PacketCodecs.BOOLEAN.decode(buf);
-        boolean onlyAllowDefinedProgression = PacketCodecs.BOOLEAN.decode(buf);
-        boolean outputEnchantedBook = PacketCodecs.BOOLEAN.decode(buf);
-        boolean prioritizeVanillaIngredientRecipe = PacketCodecs.BOOLEAN.decode(buf);
+        int experience = ByteBufCodecs.INT.decode(buf);
+        boolean allowUnsmithing = ByteBufCodecs.BOOL.decode(buf);
+        boolean allowDamaged = ByteBufCodecs.BOOL.decode(buf);
+        boolean preventModdedIngredientsFromVanillaItems = ByteBufCodecs.BOOL.decode(buf);
+        Map<String, Integer> perItemExp = ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT).decode(buf);
+        List<String> restrictedModIngredients = ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).decode(buf);
+        Map<String, String> ftbQuestProgression = ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8).decode(buf);
+        boolean enableProgression = ByteBufCodecs.BOOL.decode(buf);
+        boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
+        boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
+        boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
 
         return new ResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

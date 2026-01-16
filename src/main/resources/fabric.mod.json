@@ -23,18 +23,21 @@
 		"fabric-datagen": [
 			"com.coolerpromc.uncrafteverything.datagen.UncraftEverythingDataGenerator"
 		],
-		"rei_client": [
-			"com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
-		]
+      "rei_client": [
+        "com.coolerpromc.uncrafteverything.compat.rei.UEREIPlugin"
+      ],
+      "jei_mod_plugin": [
+        "com.coolerpromc.uncrafteverything.compat.jei.UEJEIPlugin"
+      ]
 	},
 	"depends": {
-		"fabricloader": ">=0.18.2",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~26.1-alpha.3",
+		"java": ">=25",
 		"fabric-api": "*"
 	},
 	"suggests": {
 		"another-mod": "*"
 	},
-	"accessWidener": "uncrafteverything.accesswidener"
+	"accessWidener": "uncrafteverything.classtweaker"
 }

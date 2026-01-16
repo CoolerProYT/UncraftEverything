@@ -8,17 +8,17 @@ import com.electronwill.nightconfig.core.file.FileWatcher;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.mojang.serialization.Codec;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,7 +177,7 @@ public class UncraftEverythingConfig {
     }
 
     public static boolean isEnchantedItemsAllowed(ItemStack itemStack) {
-        return allowEnchantedItems || itemStack.get(DataComponentTypes.ENCHANTMENTS) == ItemEnchantmentsComponent.DEFAULT;
+        return allowEnchantedItems || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
     }
 
     public static boolean preventModdedIngredientRecipes(){
@@ -196,7 +196,7 @@ public class UncraftEverythingConfig {
         return outputEnchantedBook;
     }
 
-    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayerEntity player, ItemStack itemStack){
+    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
         if (UncraftEverythingConfig.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
             String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
             if (player == null){
@@ -232,7 +232,7 @@ public class UncraftEverythingConfig {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.isIn(tagKey.get())) {
+                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
                     return true;
                 }
             }
@@ -264,7 +264,7 @@ public class UncraftEverythingConfig {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.isIn(tagKey.get())) {
+                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
                     return false;
                 }
             }
@@ -285,13 +285,13 @@ public class UncraftEverythingConfig {
     }
 
     public static Identifier inputStackLocation(ItemStack itemStack) {
-        return Registries.ITEM.getId(itemStack.getItem());
+        return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
     public static Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
-            Identifier location = Identifier.of(input);
-            return Optional.of(TagKey.of(RegistryKeys.ITEM, location));
+            Identifier location = Identifier.parse(input);
+            return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -303,15 +303,15 @@ public class UncraftEverythingConfig {
 
         public static final Codec<ExperienceType> CODEC = Codec.STRING.xmap(ExperienceType::valueOf, Enum::name);
 
-        public static final PacketCodec<RegistryByteBuf, ExperienceType> STREAM_CODEC = new PacketCodec<>() {
+        public static final StreamCodec<RegistryFriendlyByteBuf, ExperienceType> STREAM_CODEC = new StreamCodec<>() {
             @Override
-            public ExperienceType decode(RegistryByteBuf buffer) {
-                return buffer.readEnumConstant(ExperienceType.class);
+            public ExperienceType decode(RegistryFriendlyByteBuf buffer) {
+                return buffer.readEnum(ExperienceType.class);
             }
 
             @Override
-            public void encode(RegistryByteBuf buffer, ExperienceType value) {
-                buffer.writeEnumConstant(value);
+            public void encode(RegistryFriendlyByteBuf buffer, ExperienceType value) {
+                buffer.writeEnum(value);
             }
         };
 
@@ -327,15 +327,15 @@ public class UncraftEverythingConfig {
         BLACKLIST,
         WHITELIST;
 
-        public static final PacketCodec<RegistryByteBuf, RestrictionType> STREAM_CODEC = new PacketCodec<>() {
+        public static final StreamCodec<RegistryFriendlyByteBuf, RestrictionType> STREAM_CODEC = new StreamCodec<>() {
             @Override
-            public RestrictionType decode(RegistryByteBuf buffer) {
-                return buffer.readEnumConstant(RestrictionType.class);
+            public RestrictionType decode(RegistryFriendlyByteBuf buffer) {
+                return buffer.readEnum(RestrictionType.class);
             }
 
             @Override
-            public void encode(RegistryByteBuf buffer, RestrictionType value) {
-                buffer.writeEnumConstant(value);
+            public void encode(RegistryFriendlyByteBuf buffer, RestrictionType value) {
+                buffer.writeEnum(value);
             }
         };
     }

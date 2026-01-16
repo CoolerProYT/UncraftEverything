@@ -3,18 +3,18 @@ package com.coolerpromc.uncrafteverything.screen;
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.screen.custom.AutoUncraftingTableMenu;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.MenuType;
 
 public class UEMenuTypes {
-    public static final ScreenHandlerType<UncraftingTableMenu> UNCRAFTING_TABLE_MENU =
-            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "uncrafting_table_menu"), new ExtendedScreenHandlerType<>(UncraftingTableMenu::new, BlockPos.PACKET_CODEC));
-    public static final ScreenHandlerType<AutoUncraftingTableMenu> AUTO_UNCRAFTING_TABLE_MENU =
-            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(UncraftEverything.MODID, "auto_uncrafting_table_menu"), new ExtendedScreenHandlerType<>(AutoUncraftingTableMenu::new, BlockPos.PACKET_CODEC));
+    public static final MenuType<UncraftingTableMenu> UNCRAFTING_TABLE_MENU =
+            Registry.register(BuiltInRegistries.MENU, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_menu"), new ExtendedMenuType<>(UncraftingTableMenu::new, BlockPos.STREAM_CODEC));
+    public static final MenuType<AutoUncraftingTableMenu> AUTO_UNCRAFTING_TABLE_MENU =
+            Registry.register(BuiltInRegistries.MENU, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "auto_uncrafting_table_menu"), new ExtendedMenuType<>(AutoUncraftingTableMenu::new, BlockPos.STREAM_CODEC));
 
     public static void register() {
 

@@ -1,18 +1,18 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record RequestConfigPayload() implements CustomPayload {
-    public static final Id<RequestConfigPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "request_config"));
+public record RequestConfigPayload() implements CustomPacketPayload {
+    public static final Type<RequestConfigPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "request_config"));
 
-    public static final PacketCodec<RegistryByteBuf, RequestConfigPayload> STREAM_CODEC = PacketCodec.of((buffer, value) -> {}, buffer -> new RequestConfigPayload());
+    public static final StreamCodec<RegistryFriendlyByteBuf, RequestConfigPayload> STREAM_CODEC = StreamCodec.ofMember((buffer, value) -> {}, buffer -> new RequestConfigPayload());
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

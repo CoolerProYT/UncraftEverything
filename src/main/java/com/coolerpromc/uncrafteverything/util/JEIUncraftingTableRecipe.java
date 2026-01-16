@@ -1,10 +1,7 @@
 package com.coolerpromc.uncrafteverything.util;
 
-import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +31,7 @@ public class JEIUncraftingTableRecipe {
         return outputs;
     }
 
-    public List<EntryIngredient> getEntryIngredientOutput(){
+    /*public List<EntryIngredient> getEntryIngredientOutput(){
         List<EntryIngredient> entryIngredients = new ArrayList<>();
         if (isItemStackOutputs){
             for (ItemStack output : itemStackOutputs) {
@@ -56,5 +53,5 @@ public class JEIUncraftingTableRecipe {
             }
         }
         return entryIngredients;
-    }
+    }*/
 }

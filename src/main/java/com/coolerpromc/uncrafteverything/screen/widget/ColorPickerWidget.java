@@ -2,36 +2,35 @@ package com.coolerpromc.uncrafteverything.screen.widget;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.screen.custom.UEClientConfigScreen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.cursor.StandardCursors;
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
-
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.function.BiConsumer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 
 @SuppressWarnings("all")
-public class ColorPickerWidget extends ClickableWidget {
+public class ColorPickerWidget extends AbstractWidget {
     private static final int HUE_BAR_WIDTH = 15;
     public static final int PICKER_SIZE = 100;
     private static final int PREVIEW_HEIGHT = 15;
     private static final int BUTTON_HEIGHT = 20;
-    protected static final ButtonTextures SPRITES = new ButtonTextures(
-            Identifier.of(UncraftEverything.MODID, "widget/color_picker_button"),
-            Identifier.ofVanilla("widget/button_disabled"),
-            Identifier.of(UncraftEverything.MODID, "widget/color_picker_button_highlighted")
+    protected static final WidgetSprites SPRITES = new WidgetSprites(
+            Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button"),
+            Identifier.withDefaultNamespace("widget/button_disabled"),
+            Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "widget/color_picker_button_highlighted")
     );
-    protected static final ButtonTextures VANILLA_SPRITES = new ButtonTextures(
-            Identifier.ofVanilla("widget/button"),
-            Identifier.ofVanilla("widget/button_disabled"),
-            Identifier.ofVanilla("widget/button_highlighted")
+    protected static final WidgetSprites VANILLA_SPRITES = new WidgetSprites(
+            Identifier.withDefaultNamespace("widget/button"),
+            Identifier.withDefaultNamespace("widget/button_disabled"),
+            Identifier.withDefaultNamespace("widget/button_highlighted")
     );
 
     private float hue = 0f;
@@ -51,8 +50,8 @@ public class ColorPickerWidget extends ClickableWidget {
     private boolean isSaveHoveredOrFocused = false;
     private int color;
 
-    public ColorPickerWidget(int x, int y, int buttonWidth, int color, Text message, UEClientConfigScreen parent, BiConsumer<Integer, ColorPickerWidget> consumer) {
-        super(x, y, MinecraftClient.getInstance().getWindow().getScaledWidth(), PICKER_SIZE + 60, message);
+    public ColorPickerWidget(int x, int y, int buttonWidth, int color, Component message, UEClientConfigScreen parent, BiConsumer<Integer, ColorPickerWidget> consumer) {
+        super(x, y, Minecraft.getInstance().getWindow().getGuiScaledWidth(), PICKER_SIZE + 60, message);
         this.consumer = consumer;
         this.parent = parent;
         this.buttonWidth = buttonWidth;
@@ -60,28 +59,28 @@ public class ColorPickerWidget extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext graphics, int mouseX, int mouseY, float partialTick) {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        int screenWidth = minecraft.getWindow().getScaledWidth();
-        int screenHeight = minecraft.getWindow().getScaledHeight();
+    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        Minecraft minecraft = Minecraft.getInstance();
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
 
         this.isHoveredOrFocused = mouseX >= screenWidth / 2 + 10 && mouseX <= screenWidth / 2 + 10 + buttonWidth && mouseY >= this.getY() && mouseY <= this.getY() + BUTTON_HEIGHT && !isVisible && !hasOverlay;
 
-        graphics.drawGuiTexture(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SPRITES.get(this.active, this.isHoveredOrFocused),
                 screenWidth / 2 + 10,
                 this.getY(),
                 buttonWidth,
                 BUTTON_HEIGHT,
-                ColorHelper.getWhite(this.alpha)
+                ARGB.white(this.alpha)
         );
-        int i = ColorHelper.withAlpha(this.alpha, -6250336);
+        int i = ARGB.color(this.alpha, -6250336);
         if (this.isHoveredOrFocused) {
-            graphics.setCursor(this.active ? StandardCursors.POINTING_HAND : StandardCursors.NOT_ALLOWED);
+            graphics.requestCursor(this.active ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
         }
-        graphics.fill(screenWidth / 2 + 10 + 1, this.getY() + 1, screenWidth / 2 + 10 + buttonWidth - 1, this.getY() + BUTTON_HEIGHT - 1, ColorHelper.withAlpha(0xDD, color));
-        graphics.drawCenteredTextWithShadow(minecraft.textRenderer, Text.literal(String.format("#%08X", color)), screenWidth / 2 + 10 + buttonWidth / 2, this.getY() + BUTTON_HEIGHT / 2 - minecraft.textRenderer.fontHeight / 2, i);
+        graphics.fill(screenWidth / 2 + 10 + 1, this.getY() + 1, screenWidth / 2 + 10 + buttonWidth - 1, this.getY() + BUTTON_HEIGHT - 1, ARGB.color(0xDD, color));
+        graphics.drawCenteredString(minecraft.font, Component.literal(String.format("#%08X", color)), screenWidth / 2 + 10 + buttonWidth / 2, this.getY() + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, i);
 
         if (!this.isVisible) return;
 
@@ -92,17 +91,17 @@ public class ColorPickerWidget extends ClickableWidget {
 
         graphics.fillGradient(0, 0, screenWidth, screenHeight, -1072689136, -804253680);
 
-        graphics.drawGuiTexture(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
-                Identifier.of(UncraftEverything.MODID, "color_picker_background"),
+                Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "color_picker_background"),
                 screenWidth / 2 - 130,
                 screenHeight / 2 - 100,
                 260,
                 180,
-                ColorHelper.getWhite(this.alpha)
+                ARGB.white(this.alpha)
         );
 
-        graphics.drawCenteredTextWithShadow(minecraft.textRenderer, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.textRenderer.fontHeight / 2, ColorHelper.withAlpha(0xFF, Formatting.WHITE.getColorValue()));
+        graphics.drawCenteredString(minecraft.font, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.font.lineHeight / 2, ARGB.color(0xFF, ChatFormatting.WHITE.getColor()));
 
         // --- SV (Saturation/Value) Square ---
         for (int x = 0; x < PICKER_SIZE; x++) {
@@ -141,11 +140,11 @@ public class ColorPickerWidget extends ClickableWidget {
         graphics.fill(selX - 2, selY - 2, selX + 2, selY + 2, previewColor);
 
         // --- Text Info ---
-        graphics.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, "Hue: " + Math.round(hue), pickerX, previewTop - 12, 0xFFFFFF);
-        graphics.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, String.format("#%08X", previewColor), pickerX + 60, previewTop - 12, 0xFFFFFF);
+        graphics.drawString(Minecraft.getInstance().font, "Hue: " + Math.round(hue), pickerX, previewTop - 12, 0xFFFFFF);
+        graphics.drawString(Minecraft.getInstance().font, String.format("#%08X", previewColor), pickerX + 60, previewTop - 12, 0xFFFFFF);
 
         // --- Buttons ---
-        double scale = MinecraftClient.getInstance().getWindow().getScaleFactor();
+        double scale = Minecraft.getInstance().getWindow().getGuiScale();
 
         int scaledButtonWidth = 260 / 2 - 10;
 
@@ -157,24 +156,24 @@ public class ColorPickerWidget extends ClickableWidget {
         this.isCancelHoveredOrFocused = mouseX >= cancelX && mouseX <= cancelX + scaledButtonWidth && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT;
 
         if (this.isSaveHoveredOrFocused || this.isCancelHoveredOrFocused) {
-            graphics.setCursor(this.active ? StandardCursors.POINTING_HAND : StandardCursors.NOT_ALLOWED);
+            graphics.requestCursor(this.active ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
         }
 
-        graphics.drawGuiTexture(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isSaveHoveredOrFocused), confirmX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ColorHelper.getWhite(this.alpha));
-        graphics.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer, "Confirm", confirmX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.textRenderer.fontHeight / 2, 0xFFFFFFFF);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isSaveHoveredOrFocused), confirmX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
+        graphics.drawCenteredString(Minecraft.getInstance().font, "Confirm", confirmX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
 
-        graphics.drawGuiTexture(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isCancelHoveredOrFocused), cancelX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ColorHelper.getWhite(this.alpha));
-        graphics.drawCenteredTextWithShadow(MinecraftClient.getInstance().textRenderer, "Cancel", cancelX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.textRenderer.fontHeight / 2, 0xFFFFFFFF);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isCancelHoveredOrFocused), cancelX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
+        graphics.drawCenteredString(Minecraft.getInstance().font, "Cancel", cancelX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
     }
 
     @Override
-    public boolean mouseClicked(Click event, boolean isDoubleClick) {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        int screenWidth = minecraft.getWindow().getScaledWidth();
-        int screenHeight = minecraft.getWindow().getScaledHeight();
+    public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
+        Minecraft minecraft = Minecraft.getInstance();
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
 
         if (event.x() >= screenWidth / 2 + 10 && event.x() <= screenWidth / 2 + 10 + buttonWidth && event.y() >= this.getY() && event.y() <= this.getY() + BUTTON_HEIGHT && !isVisible){
-            playClickSound(minecraft.getSoundManager());
+            playButtonClickSound(minecraft.getSoundManager());
             this.isVisible = true;
             parent.redraw();
             rgbToHsv(color);
@@ -207,13 +206,13 @@ public class ColorPickerWidget extends ClickableWidget {
         int cancelX = screenWidth / 2 - buttonWidth / 2 - 10;
 
         if (this.isSaveHoveredOrFocused) {
-            playClickSound(minecraft.getSoundManager());
+            playButtonClickSound(minecraft.getSoundManager());
             confirm();
             return true;
         }
 
         if (this.isCancelHoveredOrFocused) {
-            playClickSound(minecraft.getSoundManager());
+            playButtonClickSound(minecraft.getSoundManager());
             this.isVisible = false;
             parent.redraw();
             return true;
@@ -223,12 +222,12 @@ public class ColorPickerWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseDragged(Click event, double mouseX, double mouseY) {
+    public boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY) {
         if (event.button() != 0 || !this.isVisible) return false;
 
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        int screenWidth = minecraft.getWindow().getScaledWidth();
-        int screenHeight = minecraft.getWindow().getScaledHeight();
+        Minecraft minecraft = Minecraft.getInstance();
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
 
         int pickerX = screenWidth / 2 - (PICKER_SIZE + 10 + HUE_BAR_WIDTH) / 2;
         int pickerY = screenHeight / 2 - (PICKER_SIZE + PREVIEW_HEIGHT + 6) / 2;
@@ -246,7 +245,7 @@ public class ColorPickerWidget extends ClickableWidget {
     }
 
     @Override
-    public void onRelease(Click event) {
+    public void onRelease(MouseButtonEvent event) {
         draggingSV = false;
         draggingHue = false;
     }
@@ -342,8 +341,8 @@ public class ColorPickerWidget extends ClickableWidget {
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder narrationElementOutput) {
-        appendDefaultNarrations(narrationElementOutput);
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        defaultButtonNarrationText(narrationElementOutput);
     }
 
     public void setButtonWidth(int buttonWidth) {
@@ -351,7 +350,7 @@ public class ColorPickerWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean isSelected() {
+    public boolean isHoveredOrFocused() {
         return isHoveredOrFocused;
     }
 

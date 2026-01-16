@@ -2,18 +2,18 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) implements CustomPayload {
-    public static final CustomPayload.Id<UncraftingRecipeSelectionPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "uncrafting_table_recipe_selection"));
+public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTableRecipe recipe) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<UncraftingRecipeSelectionPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection"));
 
-    public static final PacketCodec<RegistryByteBuf, UncraftingRecipeSelectionPayload> STREAM_CODEC =
-            PacketCodec.tuple(
-                    BlockPos.PACKET_CODEC,
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionPayload> STREAM_CODEC =
+            StreamCodec.composite(
+                    BlockPos.STREAM_CODEC,
                     UncraftingRecipeSelectionPayload::blockPos,
                     UncraftingTableRecipe.STREAM_CODEC,
                     UncraftingRecipeSelectionPayload::recipe,
@@ -22,7 +22,7 @@ public record UncraftingRecipeSelectionPayload(BlockPos blockPos, UncraftingTabl
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

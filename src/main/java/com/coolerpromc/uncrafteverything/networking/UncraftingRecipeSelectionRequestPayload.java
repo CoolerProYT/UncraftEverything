@@ -2,17 +2,16 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record UncraftingRecipeSelectionRequestPayload() implements CustomPayload {
-    public static final Id<UncraftingRecipeSelectionRequestPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request"));
+public record UncraftingRecipeSelectionRequestPayload() implements CustomPacketPayload {
+    public static final Type<UncraftingRecipeSelectionRequestPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_recipe_selection_request"));
 
-    public static final PacketCodec<RegistryByteBuf, UncraftingRecipeSelectionRequestPayload> STREAM_CODEC =
-            PacketCodec.ofStatic(
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingRecipeSelectionRequestPayload> STREAM_CODEC =
+            StreamCodec.of(
                     (buf, value) -> {
 
                     },
@@ -21,7 +20,7 @@ public record UncraftingRecipeSelectionRequestPayload() implements CustomPayload
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

@@ -10,24 +10,24 @@ import com.coolerpromc.uncrafteverything.util.Status;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import com.mojang.serialization.Codec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
@@ -39,9 +39,9 @@ import java.util.Map;
 import static com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock.ACTIVE;
 
 @SuppressWarnings({"unused", "NullableProblems"})
-public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE implements ExtendedScreenHandlerFactory<BlockPos> {
-    protected final PropertyDelegate data;
-    private final Map<RegistryEntry<Item>, RecipeSelectionHistory> recipeSelectionHistory = new HashMap<>();
+public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE implements ExtendedMenuProvider<BlockPos> {
+    protected final ContainerData data;
+    private final Map<Holder<Item>, RecipeSelectionHistory> recipeSelectionHistory = new HashMap<>();
     private int totalExperience = 0;
     private int experienceLevel = 0;
     private int experienceProgress = 0;
@@ -52,50 +52,50 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     private int typeToAdd = 0; // 0 = LEVEL, 1 = POINT
     private int amountToAdd = 1;
 
-    private final ImplementedInventory inputHandler = new ImplementedInventory(1, world){
+    private final ImplementedInventory inputHandler = new ImplementedInventory(1, level){
 
         @Override
-        public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+        public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
             return dir != Direction.DOWN;
         }
 
         @Override
-        public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+        public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
             return false;
         }
 
         @Override
         public void onContentChanged(ItemStack previousContents) {
-            if (world != null && !world.isClient()){
-                markDirty();
+            if (level != null && !level.isClientSide()){
+                setChanged();
                 getOutputStacks(this, true);
                 byPass = false;
-                currentStack = getStack(0);
-                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getRegistryEntry());
+                currentStack = getItem(0);
+                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.typeHolder());
 
                 if (player != null) {
-                    if (!currentStack.isOf(previousContents.getItem())){
-                        if (!(history != null && history.patch().equals(currentStack.getComponentChanges()))){
+                    if (!currentStack.is(previousContents.getItem())){
+                        if (!(history != null && history.patch().equals(currentStack.getComponentsPatch()))){
                             page = 0;
                             index = 0;
                         }
-                        else if (history.patch().equals(currentStack.getComponentChanges())){
+                        else if (history.patch().equals(currentStack.getComponentsPatch())){
                             page = history.page();
                             index = history.index();
                             data.set(9, index);
                             currentRecipe = history.recipe();
                         }
                     }
-                    world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
+                    level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
                     int fromIndex = page * 7;
                     if (fromIndex >= currentRecipes.size()) {
                         fromIndex = currentRecipes.size();
                     }
                     int toIndex = Math.min(fromIndex + 7, currentRecipes.size());
-                    ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
+                    ServerPlayNetworking.send(player, new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), false));
                 }
                 else{
-                    if (history != null && history.patch().equals(currentStack.getComponentChanges())){
+                    if (history != null && history.patch().equals(currentStack.getComponentsPatch())){
                         currentRecipe = history.recipe();
                         byPass = true;
                     }
@@ -106,28 +106,28 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
 
     private final ImplementedInventory outputHandler = new ImplementedInventory(9){
         @Override
-        public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+        public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
             return false;
         }
 
         @Override
-        public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+        public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
             return dir == Direction.DOWN;
         }
 
         @Override
-        public void setStack(int slot, ItemStack stack) {
-            super.setStack(slot, stack);
+        public void setItem(int slot, ItemStack stack) {
+            super.setItem(slot, stack);
             if (player != null){
                 handleRecipeSelection(currentRecipe);
             }
-            if (world != null && !world.isClient()) {
-                world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
+            if (level != null && !level.isClientSide()) {
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
         }
 
         @Override
-        public boolean isValid(int slot, ItemStack stack) {
+        public boolean canPlaceItem(int slot, ItemStack stack) {
             return false;
         }
     };
@@ -135,7 +135,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     public AutoUncraftingTableBlockEntity(BlockPos pos, BlockState blockState) {
         super(UEBlockEntities.AUTO_UNCRAFTING_TABLE_BE, pos, blockState);
         this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
-        this.data = new PropertyDelegate() {
+        this.data = new ContainerData() {
             @Override
             public int get(int i) {
                 return switch (i){
@@ -167,41 +167,41 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                     case 8 -> page = value;
                     case 9 -> index = value;
                 }
-                markDirty();
+                setChanged();
             }
 
             @Override
-            public int size() {
+            public int getCount() {
                 return 10;
             }
         };
     }
 
     @Override
-    public Text getDisplayName() {
-        return Text.translatable("block.uncrafteverything.auto_uncrafting_table");
+    public Component getDisplayName() {
+        return Component.translatable("block.uncrafteverything.auto_uncrafting_table");
     }
 
     @Override
-    public BlockPos getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
-        return getPos();
+    public BlockPos getScreenOpeningData(ServerPlayer serverPlayerEntity) {
+        return getBlockPos();
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int containerId, @NotNull PlayerInventory playerInventory, @NotNull PlayerEntity player) {
-        if (player instanceof ServerPlayerEntity serverPlayer){
+    public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory playerInventory, @NotNull Player player) {
+        if (player instanceof ServerPlayer serverPlayer){
             this.player = serverPlayer;
         }
         return new AutoUncraftingTableMenu(containerId, playerInventory, this);
     }
 
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
+    protected void saveAdditional(ValueOutput view) {
+        super.saveAdditional(view);
 
-        Inventories.writeData(view.get("input"), this.inputHandler.heldStacks);
-        Inventories.writeData(view.get("output"), this.outputHandler.heldStacks);
+        ContainerHelper.saveAllItems(view.child("input"), this.inputHandler.items);
+        ContainerHelper.saveAllItems(view.child("output"), this.outputHandler.items);
 
         view.putInt("experience", experience);
         view.putInt("experienceType", experienceType);
@@ -212,30 +212,30 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         view.putInt("amountToAdd", amountToAdd);
         view.putInt("page", page);
         view.putBoolean("isActive", isActive);
-        view.putNullable("recipe", UncraftingTableRecipe.CODEC, currentRecipe);
+        view.storeNullable("recipe", UncraftingTableRecipe.CODEC, currentRecipe);
         view.putInt("index", index);
-        view.put("history", Codec.unboundedMap(Item.ENTRY_CODEC, RecipeSelectionHistory.CODEC), recipeSelectionHistory);
+        view.store("history", Codec.unboundedMap(Item.CODEC, RecipeSelectionHistory.CODEC), recipeSelectionHistory);
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
+    protected void loadAdditional(ValueInput view) {
+        super.loadAdditional(view);
 
-        Inventories.readData(view.getReadView("input"), this.inputHandler.heldStacks);
-        Inventories.readData(view.getReadView("output"), this.outputHandler.heldStacks);
+        ContainerHelper.loadAllItems(view.childOrEmpty("input"), this.inputHandler.items);
+        ContainerHelper.loadAllItems(view.childOrEmpty("output"), this.outputHandler.items);
 
-        experience = view.getInt("experience", 0);
-        experienceType = view.getInt("experienceType", 0);
-        totalExperience = view.getInt("totalExperience", 0);
-        experienceLevel = view.getInt("experienceLevel", 0);
-        experienceProgress = view.getInt("experienceProgress", 0);
-        typeToAdd = view.getInt("typeToAdd", 0);
-        amountToAdd = view.getInt("amountToAdd", 1);
-        page = view.getInt("page", 0);
-        isActive = view.getBoolean("isActive", false);
+        experience = view.getIntOr("experience", 0);
+        experienceType = view.getIntOr("experienceType", 0);
+        totalExperience = view.getIntOr("totalExperience", 0);
+        experienceLevel = view.getIntOr("experienceLevel", 0);
+        experienceProgress = view.getIntOr("experienceProgress", 0);
+        typeToAdd = view.getIntOr("typeToAdd", 0);
+        amountToAdd = view.getIntOr("amountToAdd", 1);
+        page = view.getIntOr("page", 0);
+        isActive = view.getBooleanOr("isActive", false);
         currentRecipe = view.read("recipe", UncraftingTableRecipe.CODEC).orElse(null);
-        index = view.getInt("index", 0);
-        recipeSelectionHistory.putAll(view.read("history", Codec.unboundedMap(Item.ENTRY_CODEC, RecipeSelectionHistory.CODEC)).orElse(new HashMap<>()));
+        index = view.getIntOr("index", 0);
+        recipeSelectionHistory.putAll(view.read("history", Codec.unboundedMap(Item.CODEC, RecipeSelectionHistory.CODEC)).orElse(new HashMap<>()));
     }
 
     public ImplementedInventory getInputHandler() {
@@ -268,7 +268,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         }
     }
 
-    public void addExperienceLevels(int levels, ServerPlayerEntity player) {
+    public void addExperienceLevels(int levels, ServerPlayer player) {
         int totalExp = calculateBaseXpFromLevel(Math.abs(levels));
         if (levels > 0){
             addExperiencePoints(totalExp, player);
@@ -278,32 +278,32 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         }
     }
 
-    public void addExperiencePoints(int xpPoints, ServerPlayerEntity player) {
+    public void addExperiencePoints(int xpPoints, ServerPlayer player) {
         boolean process = true;
 
         if (xpPoints > 0) {
             if (player.totalExperience >= xpPoints) {
-                player.addExperience(-xpPoints);
+                player.giveExperiencePoints(-xpPoints);
             } else {
                 process = false;
             }
         } else {
             int xpToGive = -xpPoints;
             if (this.totalExperience >= xpToGive) {
-                player.addExperience(xpToGive);
+                player.giveExperiencePoints(xpToGive);
             } else {
                 process = false;
             }
         }
 
         if (process) {
-            this.totalExperience = MathHelper.clamp(this.totalExperience + xpPoints, 0, Integer.MAX_VALUE);
+            this.totalExperience = Mth.clamp(this.totalExperience + xpPoints, 0, Integer.MAX_VALUE);
             this.experienceLevel = getLevelFromTotalXp();
             int baseXp = getTotalXpForLevel();
             int nextRequired = getXpNeededForNextLevel();
             this.experienceProgress = (int) ((nextRequired > 0 ? (float)(this.totalExperience - baseXp) / (float)nextRequired : 0.0f) * 125f);
             checkExpStatus();
-            markDirty();
+            setChanged();
         }
     }
 
@@ -313,14 +313,14 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     public void removeExperiencePoints(int xpPoints) {
-        this.totalExperience = MathHelper.clamp(this.totalExperience + xpPoints, 0, Integer.MAX_VALUE);
+        this.totalExperience = Mth.clamp(this.totalExperience + xpPoints, 0, Integer.MAX_VALUE);
         this.experienceLevel = getLevelFromTotalXp();
         int baseXp = getTotalXpForLevel();
         int nextRequired = getXpNeededForNextLevel();
         this.experienceProgress = (int) ((nextRequired > 0 ? (float)(this.totalExperience - baseXp) / (float)nextRequired : 0.0f) * 125f);
 
         checkExpStatus();
-        markDirty();
+        setChanged();
     }
 
     public int getXpNeededForNextLevel() {
@@ -335,22 +335,22 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         return experienceProgress;
     }
 
-    public void tick(World level, BlockPos pos, BlockState state){
-        if (!level.isClient()){
+    public void tick(Level level, BlockPos pos, BlockState state){
+        if (!level.isClientSide()){
             if (isActive && hasRecipe() && hasEnoughExperience()){
-                level.setBlockState(pos, state.with(ACTIVE, true), 3);
+                level.setBlock(pos, state.setValue(ACTIVE, true), 3);
                 processUncraft();
             }
             else{
-                level.setBlockState(pos, state.with(ACTIVE, false), 3);
+                level.setBlock(pos, state.setValue(ACTIVE, false), 3);
             }
         }
     }
 
     @Override
     public void setCurrentRecipe(List<UncraftingTableRecipe> currentRecipes) {
-        RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getRegistryEntry());
-        if (history != null && history.patch().equals(currentStack.getComponentChanges())) {
+        RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.typeHolder());
+        if (history != null && history.patch().equals(currentStack.getComponentsPatch())) {
             currentRecipe = history.recipe();
         } else {
             currentRecipe = currentRecipes.getFirst();
@@ -362,11 +362,11 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         this.currentRecipe = recipe;
 
         if(!hasRecipe()){
-            if (inputHandler.getStack(0).isEmpty()){
+            if (inputHandler.getItem(0).isEmpty()){
                 this.status = Status.BLANK;
             }
             else {
-                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getStack(0)).getLeft()){
+                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getItem(0)).getLeft()){
                     this.status = Status.LOCKED_ITEM;
                 }
                 else{
@@ -377,7 +377,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         else{
             checkExpStatus();
             if (!this.currentStack.isEmpty()){
-                recipeSelectionHistory.put(currentStack.getRegistryEntry(), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getComponentChanges()));
+                recipeSelectionHistory.put(currentStack.typeHolder(), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getComponentsPatch()));
             }
         }
     }
@@ -403,9 +403,9 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     private int findSuitableOutputSlot(ItemStack result) {
-        for (int i = 0; i < this.outputHandler.size(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStack(i);
-            if (stackInSlot.isEmpty() || (ItemStack.areItemsAndComponentsEqual(stackInSlot, result) && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxCount())) {
+        for (int i = 0; i < this.outputHandler.getContainerSize(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getItem(i);
+            if (stackInSlot.isEmpty() || (ItemStack.isSameItemSameComponents(stackInSlot, result) && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxStackSize())) {
                 return i;
             }
         }
@@ -419,11 +419,11 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
             ItemStack output = o.copy();
             int slot = this.findSuitableOutputSlot(output);
             if (slot != -1) {
-                ItemStack slotStack = outputHandler.getStack(slot);
+                ItemStack slotStack = outputHandler.getItem(slot);
                 if (slotStack.isEmpty()) {
-                    outputHandler.setStack(slot, output);
-                } else if (ItemStack.areItemsAndComponentsEqual(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxCount()) {
-                    slotStack.increment(output.getCount());
+                    outputHandler.setItem(slot, output);
+                } else if (ItemStack.isSameItemSameComponents(slotStack, output) && slotStack.getCount() + output.getCount() <= slotStack.getMaxStackSize()) {
+                    slotStack.grow(output.getCount());
                 }
             }
         }
@@ -435,12 +435,12 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
             removeExperienceLevels(-getExperience(this.inputHandler));
         }
 
-        inputHandler.removeStack(0, this.currentRecipe.getInput().getCount());
-        markDirty();
+        inputHandler.removeItem(0, this.currentRecipe.getInput().getCount());
+        setChanged();
         getOutputStacks(this.inputHandler, true);
 
-        if (world != null && !world.isClient()) {
-            world.updateListeners(getPos(), getCachedState(), getCachedState(), 3);
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         }
     }
 
@@ -449,7 +449,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
             return false;
         }
 
-        ItemStack inputStack = inputHandler.getStack(0);
+        ItemStack inputStack = inputHandler.getItem(0);
         if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
             return false;
         }
@@ -469,8 +469,8 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         int count = results.size();
         int emptyCount = 0;
 
-        for (int i = 0; i < this.outputHandler.size(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStack(i);
+        for (int i = 0; i < this.outputHandler.getContainerSize(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getItem(i);
             if(!stackInSlot.isEmpty()){
                 for (ItemStack result : results){
                     if(stackInSlot.getItem() == result.getItem()){
@@ -489,9 +489,9 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     private boolean cannotInsertAmountIntoOutputSlot(ItemStack result) {
-        for (int i = 0; i < this.outputHandler.size(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStack(i);
-            if (stackInSlot.isEmpty() || (ItemStack.areItemsAndComponentsEqual(stackInSlot, result) && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxCount())) {
+        for (int i = 0; i < this.outputHandler.getContainerSize(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getItem(i);
+            if (stackInSlot.isEmpty() || (ItemStack.isSameItemSameComponents(stackInSlot, result) && stackInSlot.getCount() + result.getCount() <= stackInSlot.getMaxStackSize())) {
                 return false;
             }
         }
@@ -499,9 +499,9 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     private boolean cannotInsertItemIntoOutputSlot(ItemStack item) {
-        for (int i = 0; i < this.outputHandler.size(); i++) {
-            ItemStack stackInSlot = this.outputHandler.getStack(i);
-            if (stackInSlot.isEmpty() || ItemStack.areItemsAndComponentsEqual(stackInSlot, item)) {
+        for (int i = 0; i < this.outputHandler.getContainerSize(); i++) {
+            ItemStack stackInSlot = this.outputHandler.getItem(i);
+            if (stackInSlot.isEmpty() || ItemStack.isSameItemSameComponents(stackInSlot, item)) {
                 return false;
             }
         }
@@ -512,7 +512,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         return currentRecipes;
     }
 
-    public PropertyDelegate getData() {
+    public ContainerData getData() {
         return data;
     }
 
@@ -529,7 +529,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     @Override
-    public int[] getAvailableSlots(Direction side) {
+    public int[] getSlotsForFace(Direction side) {
         if (side == Direction.DOWN){
             return new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
         }
@@ -537,23 +537,23 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
         if (dir == Direction.DOWN){
-            return outputHandler.canInsert(slot, stack, dir);
+            return outputHandler.canPlaceItemThroughFace(slot, stack, dir);
         }
-        return inputHandler.canInsert(slot, stack, dir);
+        return inputHandler.canPlaceItemThroughFace(slot, stack, dir);
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
         if (dir == Direction.DOWN){
-            return outputHandler.canExtract(slot, stack, dir);
+            return outputHandler.canTakeItemThroughFace(slot, stack, dir);
         }
-        return inputHandler.canExtract(slot, stack, dir);
+        return inputHandler.canTakeItemThroughFace(slot, stack, dir);
     }
 
     @Override
-    public int size() {
+    public int getContainerSize() {
         return 10;
     }
 
@@ -563,47 +563,47 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
     }
 
     @Override
-    public ItemStack getStack(int slot) {
+    public ItemStack getItem(int slot) {
         if (slot > 0){
-            return outputHandler.getStack(slot - 1);
+            return outputHandler.getItem(slot - 1);
         }
-        return inputHandler.getStack(slot);
+        return inputHandler.getItem(slot);
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         if (slot > 0){
-            return outputHandler.removeStack(slot - 1, amount);
+            return outputHandler.removeItem(slot - 1, amount);
         }
-        return inputHandler.removeStack(slot, amount);
+        return inputHandler.removeItem(slot, amount);
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         if (slot > 0){
-            return outputHandler.removeStack(slot - 1);
+            return outputHandler.removeItemNoUpdate(slot - 1);
         }
-        return inputHandler.removeStack(slot);
+        return inputHandler.removeItemNoUpdate(slot);
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         if (slot > 0){
-            outputHandler.setStack(slot - 1, stack);
+            outputHandler.setItem(slot - 1, stack);
         }
         else{
-            inputHandler.setStack(slot, stack);
+            inputHandler.setItem(slot, stack);
         }
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
     @Override
-    public void clear() {
-        inputHandler.clear();
-        outputHandler.clear();
+    public void clearContent() {
+        inputHandler.clearContent();
+        outputHandler.clearContent();
     }
 }

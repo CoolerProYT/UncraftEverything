@@ -1,3 +1,4 @@
+/*
 package com.coolerpromc.uncrafteverything.compat.rei;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
@@ -27,3 +28,4 @@ public class UncraftingRecipeDisplay extends BasicDisplay {
         return null;
     }
 }
+*/

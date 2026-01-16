@@ -3,12 +3,11 @@ package com.coolerpromc.uncrafteverything.config;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -128,7 +127,7 @@ public class FTBQuestProgressionConfig {
             if (map.getKey().startsWith("#")){
                 String tagName = map.getKey().substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
-                if (tagKey.isPresent() && itemStack.isIn(tagKey.get())) {
+                if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
                     return map.getValue();
                 }
             }
@@ -144,6 +143,6 @@ public class FTBQuestProgressionConfig {
     }
 
     private static Identifier getItemLocation(ItemStack itemStack){
-        return Registries.ITEM.getId(itemStack.getItem());
+        return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 }

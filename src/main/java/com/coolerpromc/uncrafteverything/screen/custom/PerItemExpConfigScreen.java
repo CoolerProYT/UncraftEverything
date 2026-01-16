@@ -4,14 +4,14 @@ import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEExpPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,21 +26,21 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     private final int ENTRIES_END_Y = 200;
     private boolean hasLoadedFromConfig = false;
 
-    private ButtonWidget addButton;
-    private ButtonWidget cancelButton;
-    private ButtonWidget saveButton;
+    private Button addButton;
+    private Button cancelButton;
+    private Button saveButton;
 
-    private final List<TextFieldWidget> scrollableEditBoxes = new ArrayList<>();
-    private final List<ButtonWidget> scrollableButtons = new ArrayList<>();
+    private final List<EditBox> scrollableEditBoxes = new ArrayList<>();
+    private final List<Button> scrollableButtons = new ArrayList<>();
 
-    public PerItemExpConfigScreen(Text text) {
+    public PerItemExpConfigScreen(Component text) {
         super(text, 200);
     }
 
     @Override
     protected void init() {
         saveCurrentValues();
-        this.clearChildren();
+        this.clearWidgets();
         scrollableEditBoxes.clear();
         scrollableButtons.clear();
 
@@ -67,20 +67,20 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
             }
         }
 
-        addButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.add_new_entry"), b -> {
+        addButton = Button.builder(Component.translatable("screen.uncrafteverything.add_new_entry"), b -> {
             entries.add(new Entry("", 0));
             this.init();
-        }).dimensions(width / 2 - 100, height - 53, 200, 20).build();
-        addDrawableChild(addButton);
+        }).bounds(width / 2 - 100, height - 53, 200, 20).build();
+        addRenderableWidget(addButton);
 
-        cancelButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.cancel"), button -> close()).dimensions(width / 2 - width / 3 - 10, height - 28, width / 3, 20).build();
-        addDrawableChild(cancelButton);
+        cancelButton = Button.builder(Component.translatable("screen.uncrafteverything.cancel"), button -> onClose()).bounds(width / 2 - width / 3 - 10, height - 28, width / 3, 20).build();
+        addRenderableWidget(cancelButton);
 
-        saveButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).dimensions(width / 2 + 10, height - 28, width / 3, 20).build();
-        addDrawableChild(saveButton);
+        saveButton = Button.builder(Component.translatable("screen.uncrafteverything.save"), this::saveButtonPressed).bounds(width / 2 + 10, height - 28, width / 3, 20).build();
+        addRenderableWidget(saveButton);
     }
 
-    private void saveButtonPressed(ButtonWidget button){
+    private void saveButtonPressed(Button button){
         saveCurrentValues();
         Map<String, Integer> newConfig = new HashMap<>();
         for (Entry entry : entries) {
@@ -94,16 +94,16 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         UEExpPayload configPayload = new UEExpPayload(newConfig);
         ClientPlayNetworking.send(configPayload);
         ClientPlayNetworking.send(new RequestConfigPayload());
-        close();
+        onClose();
     }
 
     private void saveCurrentValues() {
         for (Entry entry : entries) {
             if (entry.keyBox != null) {
-                entry.currentKey = entry.keyBox.getText();
+                entry.currentKey = entry.keyBox.getValue();
             }
             if (entry.valueBox != null) {
-                entry.currentValue = entry.valueBox.getText();
+                entry.currentValue = entry.valueBox.getValue();
             }
         }
     }
@@ -137,46 +137,46 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public void renderBackground(DrawContext guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderDarkening(guiGraphics);
-        applyBlur(guiGraphics);
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        renderMenuBackground(guiGraphics);
+        renderBlurredBackground(guiGraphics);
         renderSeparator(guiGraphics);
         renderScrollbar(guiGraphics, 90);
     }
 
     @Override
-    public void render(@NotNull DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, (23 - this.textRenderer.fontHeight) / 2, 0xFFFFFFFF);
+    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawCenteredString(font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         guiGraphics.enableScissor(0, ENTRIES_START_Y - 5, width, this.height - 65);
 
-        Text key = Text.translatable("screen.uncrafteverything.per_item_xp_config.key");
-        guiGraphics.drawText(textRenderer, key, (width / 2 - 115) + (150 - textRenderer.getWidth(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        Component key = Component.translatable("screen.uncrafteverything.per_item_xp_config.key");
+        guiGraphics.drawString(font, key, (width / 2 - 115) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
-        Text value = Text.translatable("screen.uncrafteverything.per_item_xp_config.value");
-        guiGraphics.drawText(textRenderer, value, (width / 2 - 115 + 160) + (40 - textRenderer.getWidth(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        Component value = Component.translatable("screen.uncrafteverything.per_item_xp_config.value");
+        guiGraphics.drawString(font, value, (width / 2 - 115 + 160) + (40 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
-        Text del = Text.translatable("screen.uncrafteverything.per_item_xp_config.del");
-        guiGraphics.drawText(textRenderer, del, (width / 2 - 115 + 210) + (20 - textRenderer.getWidth(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        Component del = Component.translatable("screen.uncrafteverything.per_item_xp_config.del");
+        guiGraphics.drawString(font, del, (width / 2 - 115 + 210) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
-        for (TextFieldWidget editBox : scrollableEditBoxes) {
+        for (EditBox editBox : scrollableEditBoxes) {
             editBox.render(guiGraphics, mouseX, mouseY, delta);
         }
-        for (ButtonWidget button : scrollableButtons) {
+        for (Button button : scrollableButtons) {
             button.render(guiGraphics, mouseX, mouseY, delta);
         }
 
         guiGraphics.disableScissor();
 
         this.children().forEach(renderable -> {
-            if (renderable instanceof ButtonWidget buttonWidget && !scrollableButtons.contains(buttonWidget)) {
+            if (renderable instanceof Button buttonWidget && !scrollableButtons.contains(buttonWidget)) {
                 buttonWidget.render(guiGraphics, mouseX, mouseY, delta);
             }
         });
     }
 
     @Override
-    public boolean mouseClicked(Click click, boolean doubled) {
+    public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
         int scrollTop = 25;
         int scrollBottom = this.height - 65;
 
@@ -204,17 +204,17 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         return super.mouseClicked(click, doubled);
     }
 
-    protected void renderSeparator(DrawContext guiGraphics){
-        Identifier header = this.client.world == null ? Screen.HEADER_SEPARATOR_TEXTURE : Screen.INWORLD_HEADER_SEPARATOR_TEXTURE;
-        Identifier footer = this.client.world == null ? Screen.FOOTER_SEPARATOR_TEXTURE : Screen.INWORLD_FOOTER_SEPARATOR_TEXTURE;
-        guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
-        guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, footer, 0, this.height - 65, 0.0F, 0.0F, this.width, 2, 32, 2);
+    protected void renderSeparator(GuiGraphics guiGraphics){
+        Identifier header = this.minecraft.level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
+        Identifier footer = this.minecraft.level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, footer, 0, this.height - 65, 0.0F, 0.0F, this.width, 2, 32, 2);
     }
 
     private class Entry {
-        TextFieldWidget keyBox;
-        TextFieldWidget valueBox;
-        ButtonWidget deleteButton;
+        EditBox keyBox;
+        EditBox valueBox;
+        Button deleteButton;
 
         String currentKey;
         String currentValue;
@@ -225,23 +225,22 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         }
 
         void initWidgets(int x, int y) {
-            keyBox = new TextFieldWidget(textRenderer, x, y, 150, 20, Text.translatable("screen.uncrafteverything.key"));
-            keyBox.setText(currentKey);
+            keyBox = new EditBox(font, x, y, 150, 20, Component.translatable("screen.uncrafteverything.key"));
+            keyBox.setValue(currentKey);
 
-            valueBox = new TextFieldWidget(textRenderer, x + 160, y, 40, 20, Text.translatable("screen.uncrafteverything.value"));
-            valueBox.setText(currentValue);
-            valueBox.setTextPredicate(s -> s.matches("\\d*"));
+            valueBox = new EditBox(font, x + 160, y, 40, 20, Component.translatable("screen.uncrafteverything.value"));
+            valueBox.setValue(currentValue);
 
-            deleteButton = ButtonWidget.builder(Text.translatable("screen.uncrafteverything.x"), b -> {
+            deleteButton = Button.builder(Component.translatable("screen.uncrafteverything.x"), b -> {
                 entries.remove(this);
                 init();
-            }).dimensions(x + 210, y, 20, 20).build();
+            }).bounds(x + 210, y, 20, 20).build();
         }
 
         void addToScreen(PerItemExpConfigScreen screen) {
-            screen.addDrawableChild(keyBox);
-            screen.addDrawableChild(valueBox);
-            screen.addDrawableChild(deleteButton);
+            screen.addRenderableWidget(keyBox);
+            screen.addRenderableWidget(valueBox);
+            screen.addRenderableWidget(deleteButton);
 
             screen.scrollableEditBoxes.add(keyBox);
             screen.scrollableEditBoxes.add(valueBox);

@@ -1,9 +1,7 @@
+/*
 package com.coolerpromc.uncrafteverything.compat.rei;
 
-import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
-import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
-import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingScreen;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableScreen;
 import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
@@ -17,33 +15,8 @@ import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.PotionContentsComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.EnchantmentLevelEntry;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.DyeItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.equipment.trim.*;
-import net.minecraft.potion.Potions;
-import net.minecraft.recipe.*;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.collection.DefaultedList;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class UEREIPlugin implements REIClientPlugin {
     @Override
@@ -72,3 +45,4 @@ public class UEREIPlugin implements REIClientPlugin {
         ));
     }
 }
+*/

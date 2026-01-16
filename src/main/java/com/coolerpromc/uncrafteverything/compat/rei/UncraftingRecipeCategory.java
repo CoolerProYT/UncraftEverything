@@ -1,3 +1,4 @@
+/*
 package com.coolerpromc.uncrafteverything.compat.rei;
 
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
@@ -9,8 +10,7 @@ import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.text.Text;
-
+import net.minecraft.network.chat.Component;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,8 +21,8 @@ public class UncraftingRecipeCategory implements DisplayCategory<UncraftingRecip
     }
 
     @Override
-    public Text getTitle() {
-        return Text.translatable("block.uncrafteverything.uncrafting_table");
+    public Component getTitle() {
+        return Component.translatable("block.uncrafteverything.uncrafting_table");
     }
 
     @Override
@@ -59,3 +59,4 @@ public class UncraftingRecipeCategory implements DisplayCategory<UncraftingRecip
         return widgets;
     }
 }
+*/

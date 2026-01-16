@@ -2,27 +2,27 @@ package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) implements CustomPayload {
-    public static final CustomPayload.Id<UncraftingTableCraftButtonClickPayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
+public record UncraftingTableCraftButtonClickPayload(BlockPos blockPos, boolean hasShiftDown) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<UncraftingTableCraftButtonClickPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_table_craft_button_click"));
 
-    public static final PacketCodec<ByteBuf, UncraftingTableCraftButtonClickPayload> STREAM_CODEC =
-            PacketCodec.tuple(
-                    BlockPos.PACKET_CODEC,
+    public static final StreamCodec<ByteBuf, UncraftingTableCraftButtonClickPayload> STREAM_CODEC =
+            StreamCodec.composite(
+                    BlockPos.STREAM_CODEC,
                     UncraftingTableCraftButtonClickPayload::blockPos,
-                    PacketCodecs.BOOLEAN,
+                    ByteBufCodecs.BOOL,
                     UncraftingTableCraftButtonClickPayload::hasShiftDown,
                     UncraftingTableCraftButtonClickPayload::new
             );
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

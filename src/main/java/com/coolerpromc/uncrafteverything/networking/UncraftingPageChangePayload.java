@@ -1,26 +1,26 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.UncraftEverything;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record UncraftingPageChangePayload(int page, BlockPos blockPos) implements CustomPayload {
-    public static final Id<UncraftingPageChangePayload> TYPE = new Id<>(Identifier.of(UncraftEverything.MODID, "uncrafting_recipe_selection_data_payload"));
+public record UncraftingPageChangePayload(int page, BlockPos blockPos) implements CustomPacketPayload {
+    public static final Type<UncraftingPageChangePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "uncrafting_recipe_selection_data_payload"));
 
-    public static final PacketCodec<RegistryByteBuf, UncraftingPageChangePayload> STREAM_CODEC = PacketCodec.tuple(
-            PacketCodecs.INTEGER,
+    public static final StreamCodec<RegistryFriendlyByteBuf, UncraftingPageChangePayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT,
             UncraftingPageChangePayload::page,
-            BlockPos.PACKET_CODEC,
+            BlockPos.STREAM_CODEC,
             UncraftingPageChangePayload::blockPos,
             UncraftingPageChangePayload::new
     );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

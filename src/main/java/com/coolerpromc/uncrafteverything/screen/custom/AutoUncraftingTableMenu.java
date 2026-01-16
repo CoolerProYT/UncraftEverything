@@ -5,27 +5,27 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.CloseMenuPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class AutoUncraftingTableMenu extends AbstractUncraftingMenu<AutoUncraftingTableBlockEntity> {
-    public AutoUncraftingTableMenu(int pContainerId, PlayerInventory inventory, BlockPos blockPos){
-        this(pContainerId, inventory, inventory.player.getEntityWorld().getBlockEntity(blockPos));
+    public AutoUncraftingTableMenu(int pContainerId, Inventory inventory, BlockPos blockPos){
+        this(pContainerId, inventory, inventory.player.level().getBlockEntity(blockPos));
     }
 
-    public AutoUncraftingTableMenu(int pContainerId, PlayerInventory inventory, BlockEntity blockEntity){
-        super(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU, pContainerId, (AutoUncraftingTableBlockEntity) blockEntity, inventory.player.getEntityWorld(), inventory.player, ((AutoUncraftingTableBlockEntity) blockEntity).getData());
+    public AutoUncraftingTableMenu(int pContainerId, Inventory inventory, BlockEntity blockEntity){
+        super(UEMenuTypes.AUTO_UNCRAFTING_TABLE_MENU, pContainerId, (AutoUncraftingTableBlockEntity) blockEntity, inventory.player.level(), inventory.player, ((AutoUncraftingTableBlockEntity) blockEntity).getData());
 
         this.addSlot(new Slot(this.blockEntity.getInputHandler(), 0, 26, 35));
 
-        for (int i = 0; i < this.blockEntity.getOutputHandler().size(); i ++){
+        for (int i = 0; i < this.blockEntity.getOutputHandler().getContainerSize(); i ++){
             this.addSlot(new Slot(this.blockEntity.getOutputHandler(), i, 98 + 18 * (i % 3), 17 + (i / 3) * 18){
                 @Override
-                public boolean canInsert(ItemStack stack) {
+                public boolean mayPlace(ItemStack stack) {
                     return false;
                 }
             });
@@ -86,10 +86,10 @@ public class AutoUncraftingTableMenu extends AbstractUncraftingMenu<AutoUncrafti
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        if (this.level.isClient()){
-            ClientPlayNetworking.send(new CloseMenuPayload(this.blockEntity.getPos()));
+    public void removed(Player player) {
+        super.removed(player);
+        if (this.level.isClientSide()){
+            ClientPlayNetworking.send(new CloseMenuPayload(this.blockEntity.getBlockPos()));
         }
     }
 }
