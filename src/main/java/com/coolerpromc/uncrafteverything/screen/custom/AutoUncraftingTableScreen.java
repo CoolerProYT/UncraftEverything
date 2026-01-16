@@ -34,14 +34,13 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     private Button addExp;
 
     public AutoUncraftingTableScreen(AutoUncraftingTableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, 176, 184);
         this.page = this.getMenu().getPage();
         this.selectedRecipe = this.getMenu().getIndex();
     }
 
     @Override
     protected void init() {
-        this.imageHeight = 184;
         this.inventoryLabelY = 10000;
 
         super.init();

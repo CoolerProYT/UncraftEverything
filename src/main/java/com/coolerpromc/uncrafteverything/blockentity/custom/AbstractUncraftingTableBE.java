@@ -131,7 +131,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity {
     public int countVanillaIngredients(UncraftingTableRecipe recipe){
         int count = 0;
         for (ItemStack stack : recipe.getOutputs()){
-            if (stack.getItemHolder().getKey().identifier().getNamespace().equals("minecraft")) count++;
+            if (stack.typeHolder().getKey().identifier().getNamespace().equals("minecraft")) count++;
         }
         return count;
     }

@@ -58,7 +58,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                 getOutputStacks(this, true);
                 byPass = false;
                 currentStack = getResource(0).toStack(getAmountAsInt(0));
-                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.getItemHolder());
+                RecipeSelectionHistory history = recipeSelectionHistory.get(currentStack.typeHolder());
 
                 if (player != null) {
                     if (!currentStack.is(previousContents.getItem())){
@@ -357,7 +357,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         else{
             checkExpStatus();
             if (!this.currentStack.isEmpty()){
-                recipeSelectionHistory.put(currentStack.getItemHolder(), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getComponentsPatch()));
+                recipeSelectionHistory.put(currentStack.typeHolder(), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getComponentsPatch()));
             }
         }
     }

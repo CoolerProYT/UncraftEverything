@@ -46,8 +46,8 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
 
     private boolean isInfoHovered = false;
 
-    public AbstractUncraftingScreen(T menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+    public AbstractUncraftingScreen(T menu, Inventory playerInventory, Component title, int imageWidth, int imageHeight) {
+        super(menu, playerInventory, title, imageWidth, imageHeight);
     }
 
     public void updateFromBlockEntity(List<UncraftingTableRecipe> recipes, int size, boolean shouldSendPacket) {

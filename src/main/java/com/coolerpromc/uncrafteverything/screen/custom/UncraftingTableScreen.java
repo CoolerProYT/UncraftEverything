@@ -16,12 +16,11 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png");
 
     public UncraftingTableScreen(UncraftingTableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, title, 176, 184);
     }
 
     @Override
     protected void init() {
-        this.imageHeight = 184;
         this.inventoryLabelY = this.imageHeight - 94;
 
         super.init();

@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.173'
+    id 'net.neoforged.gradle.userdev' version '7.1.20'
     id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
@@ -16,10 +16,6 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
-    maven { url = 'https://maven.minecraftforge.net/' }
-    maven { // TOP
-        url "https://maven.k-4u.nl"
-    }
     maven {
         name = "Jared's maven"
         url = "https://maven.blamejared.com/"
@@ -46,7 +42,7 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 runs {
     configureEach {
@@ -155,7 +151,7 @@ idea {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = STABLE
+    type = BETA
     modLoaders.add("neoforge")
     changelog = file("changelog.md").text
     displayName = mod_id + "-" + mod_version
@@ -163,7 +159,7 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.add(minecraft_version)
+        minecraftVersions.add("26.1-snapshot")
     }
 
     modrinth {
