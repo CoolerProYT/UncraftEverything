@@ -155,10 +155,21 @@ public class UncraftingTableHelpers {
         if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.allowEnchantedItems.getAsBoolean() && result.getItem() == inputStack.getItem()){
             return true;
         }
-        if (ItemStack.isSameItem(result, inputStack) && !ItemStack.isSameItemSameComponents(result, inputStack)){
+        if (ItemStack.isSameItem(result, inputStack) && !isSameItemSameComponents(result, inputStack)){
             UncraftDebugLogger.log("Input Stack: " + inputStack.getItemHolder().getKey().location() + "\nInput Stack Components:  " + inputStack.getComponentsPatch() + "\nTarget Stack Components: " + result.getComponentsPatch());
         }
-        return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
+        return isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
+    }
+
+    public static boolean isSameItemSameComponents(ItemStack stack, ItemStack other){
+        if (ModList.get().isLoaded("owo") && ModList.get().isLoaded("combatify")){
+            if (!stack.is(other.getItem())) {
+                return false;
+            } else {
+                return stack.isEmpty() && other.isEmpty() || Objects.equals(stack.getComponentsPatch(), other.getComponentsPatch());
+            }
+        }
+        return ItemStack.isSameItemSameComponents(stack, other);
     }
 
     public static boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){

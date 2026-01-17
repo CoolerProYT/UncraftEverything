@@ -96,6 +96,12 @@ dependencies {
     implementation "curse.maven:ftb-teams-forge-404468:6930910"
 
     implementation "curse.maven:travelers-backpack-321117:7240666"
+
+    implementation "curse.maven:owo-lib-532610:6785734"
+    implementation "curse.maven:defaulted-1177694:7216366"
+    implementation "curse.maven:atlas-core-1073789:7455630"
+    implementation "curse.maven:forgified-fabric-api-889079:7377533"
+    implementation "curse.maven:combatify-658569:7169149"
 }
 
 tasks.withType(ProcessResources).configureEach {
