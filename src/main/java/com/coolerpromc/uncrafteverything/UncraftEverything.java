@@ -11,6 +11,7 @@ import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.item.UEItems;
 import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
+import com.coolerpromc.uncrafteverything.util.UncraftDebugLogger;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -20,6 +21,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
@@ -48,6 +50,8 @@ public class UncraftEverything
         FTBQuestProgressionConfig.load();
         PerItemExpCostConfig.startWatcher();
         FTBQuestProgressionConfig.startWatcher();
+
+        UncraftDebugLogger.init(FMLPaths.GAMEDIR.get().resolve("logs"));
     }
 
     @SubscribeEvent
@@ -84,6 +88,7 @@ public class UncraftEverything
     public void onServerStopping(ServerStoppingEvent event) {
         PerItemExpCostConfig.stopWatcher();
         FTBQuestProgressionConfig.stopWatcher();
+        UncraftDebugLogger.close();
     }
 
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

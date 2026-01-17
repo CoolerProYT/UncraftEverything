@@ -1,1 +1,1 @@
-- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
+- Added debug log under `logs/uncrafteverything-debug.log`

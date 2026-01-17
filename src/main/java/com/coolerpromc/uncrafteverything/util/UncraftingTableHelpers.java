@@ -25,12 +25,14 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -152,6 +154,9 @@ public class UncraftingTableHelpers {
         }
         if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.allowEnchantedItems.getAsBoolean() && result.getItem() == inputStack.getItem()){
             return true;
+        }
+        if (ItemStack.isSameItem(result, inputStack) && !ItemStack.isSameItemSameComponents(result, inputStack)){
+            UncraftDebugLogger.log("Input Stack: " + inputStack.getItemHolder().getKey().location() + "\nInput Stack Components:  " + inputStack.getComponentsPatch() + "\nTarget Stack Components: " + result.getComponentsPatch());
         }
         return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
     }
