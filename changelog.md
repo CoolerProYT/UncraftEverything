@@ -1,1 +1,1 @@
-- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
+- Fixed JEI favourite item overlap with recipe selection gui
