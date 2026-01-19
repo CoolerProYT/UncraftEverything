@@ -8,15 +8,18 @@ import com.coolerpromc.uncrafteverything.util.RecipeViewerHelpers;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.types.IRecipeType;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("removal")
@@ -43,6 +46,14 @@ public class UEJEIPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addRecipeClickArea(AbstractUncraftingScreen.class, 59, 35, 22, 15, UNCRAFTING_TYPE);
+        registration.addGuiContainerHandler(AbstractUncraftingScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(AbstractUncraftingScreen screen) {
+                List<Rect2i> areas = new ArrayList<>();
+                areas.add(new Rect2i(0, 0, screen.getGuiLeft(), screen.height));
+                return areas;
+            }
+        });
     }
 
     @Override
