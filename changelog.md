@@ -1,1 +1,1 @@
-- Added debug log under `logs/uncrafteverything-debug.log`
+- Fixed JEI favourite item overlap with recipe selection gui
