@@ -121,6 +121,8 @@ dependencies {
     implementation fg.deobf("curse.maven:jade-324717:6855440")
     implementation fg.deobf("curse.maven:travelers-backpack-321117:7236164")
     implementation fg.deobf("curse.maven:peaceful-recipes-446709:4575292")
+
+    implementation fg.deobf("curse.maven:item-nbt-viewer-514135:4578522")
 }
 
 tasks.named('processResources', ProcessResources).configure {

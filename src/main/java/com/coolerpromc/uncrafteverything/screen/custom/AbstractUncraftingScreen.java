@@ -198,11 +198,11 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             for (ItemStack itemStack : recipe.getOutputs()) {
                 if (inputs.containsKey(itemStack.getItem())){
                     inputs.put(itemStack.getItem(), itemStack.getCount() + inputs.get(itemStack.getItem()));
-                    inputComponents.put(itemStack.getItem(), itemStack.getOrCreateTag());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
                 else{
                     inputs.put(itemStack.getItem(), itemStack.getCount());
-                    inputComponents.put(itemStack.getItem(), itemStack.getOrCreateTag());
+                    inputComponents.put(itemStack.getItem(), itemStack.getTag());
                 }
             }
 

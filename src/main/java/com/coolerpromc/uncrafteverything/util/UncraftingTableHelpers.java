@@ -217,9 +217,7 @@ public class UncraftingTableHelpers {
         if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && result.getItem() == inputStack.getItem()){
             return true;
         }
-        result.setTag(result.getOrCreateTag());
-        inputStack.setTag(inputStack.getOrCreateTag());
-        return (ItemStack.isSameItemSameTags(result, inputStack) && inputStack.getCount() >= result.getCount()) || (inputStack.is(Items.FIREWORK_ROCKET) && result.is(Items.FIREWORK_ROCKET));
+        return (canStack(result, inputStack) && inputStack.getCount() >= result.getCount()) || (inputStack.is(Items.FIREWORK_ROCKET) && result.is(Items.FIREWORK_ROCKET));
     }
 
     public static boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
@@ -232,9 +230,20 @@ public class UncraftingTableHelpers {
         if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && UncraftEverythingConfig.CONFIG.allowEnchantedItems.get() && smithingTransformRecipe.result.getItem() == inputStack.getItem()){
             return true;
         }
-        smithingTransformRecipe.result.setTag(smithingTransformRecipe.result.getOrCreateTag());
-        inputStack.setTag(inputStack.getOrCreateTag());
-        return ItemStack.isSameItemSameTags(inputStack, smithingTransformRecipe.result);
+        return canStack(inputStack, smithingTransformRecipe.result);
+    }
+
+    public static boolean canStack(ItemStack stack1, ItemStack stack2) {
+        if (!ItemStack.isSameItem(stack1, stack2)) return false;
+
+        CompoundTag tag1 = stack1.getTag();
+        CompoundTag tag2 = stack2.getTag();
+
+        boolean empty1 = tag1 == null || tag1.isEmpty();
+        boolean empty2 = tag2 == null || tag2.isEmpty();
+
+        if (empty1 && empty2) return true;
+        return Objects.equals(tag1, tag2);
     }
 
     public static <T extends AbstractUncraftingTableBE> Tuple<List<UncraftingTableRecipe>, Boolean> getOutputs(ItemStack inputStack, List<Recipe<?>> recipes, ServerLevel serverLevel){
@@ -242,25 +251,23 @@ public class UncraftingTableHelpers {
 
         if (inputStack.is(Items.TIPPED_ARROW)){
             Potion potion = PotionUtils.getPotion(inputStack);
-            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8, inputStack.getOrCreateTag()));
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 8, inputStack.getTag()));
             ItemStack lingeringPotion = new ItemStack(Items.LINGERING_POTION);
             PotionUtils.setPotion(lingeringPotion, potion);
 
             ItemStack output = new ItemStack(Items.ARROW, 8);
-            output.getOrCreateTag();
             outputStack.addOutput(output);
             outputStack.addOutput(lingeringPotion);
             outputs.add(outputStack);
         }
 
         if (!EnchantmentHelper.getEnchantments(inputStack).isEmpty() && recipes.isEmpty() && !inputStack.getItem().equals(Items.ENCHANTED_BOOK) && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
-            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1, inputStack.getOrCreateTag()));
+            UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem(), 1, inputStack.getTag()));
             Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(inputStack);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             EnchantmentHelper.setEnchantments(enchantments, book);
             ItemStack output = new ItemStack(inputStack.getItem(), 1);
             output.setDamageValue(inputStack.getDamageValue());
-            output.getOrCreateTag();
 
             outputStack.addOutput(output);
             outputStack.addOutput(book);
@@ -305,18 +312,16 @@ public class UncraftingTableHelpers {
 
                 // Create a recipe for each combination
                 for (List<Tuple<Item, CompoundTag>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount(), inputStack.getOrCreateTag()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem(), shapedRecipe.result.getCount(), inputStack.getTag()));
                     Map<Tuple<Item, CompoundTag>, Integer> allIngredients = new HashMap<>();
 
                     for (Tuple<Item, CompoundTag> item : ingredientCombination) {
                         if (outputStack.contains(item)) {
                             ItemStack stack = outputStack.getStack(item);
                             stack.grow(1);
-                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
                             ItemStack stack = new ItemStack(item.getA(), 1, item.getB());
-                            stack.getOrCreateTag();
                             outputStack.addOutput(stack);
                         }
                         allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
@@ -355,7 +360,7 @@ public class UncraftingTableHelpers {
 
                 // Create a recipe for each combination
                 for (List<Tuple<Item, CompoundTag>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount(), inputStack.getOrCreateTag()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem(), shapelessRecipe.result.getCount(), inputStack.getTag()));
                     Map<Tuple<Item, CompoundTag>, Integer> allIngredients = new HashMap<>();
 
                     for (Tuple<Item, CompoundTag> item : ingredientCombination) {
@@ -363,11 +368,9 @@ public class UncraftingTableHelpers {
                             if (outputStack.contains(item)) {
                                 ItemStack stack = outputStack.getStack(item);
                                 stack.grow(1);
-                                stack.getOrCreateTag();
                                 outputStack.setOutput(outputStack.indexOf(item), stack);
                             } else {
                                 ItemStack stack = new ItemStack(item.getA(), 1, item.getB());
-                                stack.getOrCreateTag();
                                 outputStack.addOutput(stack);
                             }
                             allIngredients.put(item, allIngredients.getOrDefault(item, 0) + 1);
@@ -402,7 +405,7 @@ public class UncraftingTableHelpers {
 
                 // Create a recipe for each combination
                 for (List<Tuple<Item, CompoundTag>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.getItem(), 1, inputStack.getOrCreateTag()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.getItem(), 1, inputStack.getTag()));
 
                     for (Tuple<Item, CompoundTag> item : ingredientCombination) {
                         if (outputStack.contains(item)) {
@@ -411,7 +414,6 @@ public class UncraftingTableHelpers {
                                 stack.setDamageValue(inputStack.getDamageValue());
                             }
                             stack.grow(1);
-                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item.getA(), 1, item.getB());
@@ -422,7 +424,6 @@ public class UncraftingTableHelpers {
                                     itemStack = ItemStack.EMPTY;
                                 }
                             }
-                            itemStack.getOrCreateTag();
                             outputStack.addOutput(itemStack);
                         }
                     }
@@ -463,7 +464,6 @@ public class UncraftingTableHelpers {
                                 stack.setDamageValue(inputStack.getDamageValue());
                             }
                             stack.grow(1);
-                            stack.getOrCreateTag();
                             outputStack.setOutput(outputStack.indexOf(item), stack);
                         } else {
                             ItemStack itemStack = new ItemStack(item.getA(), 1, item.getB());
@@ -471,7 +471,6 @@ public class UncraftingTableHelpers {
                                 EnchantmentHelper.setEnchantments(itemEnchantments, itemStack);
                                 itemStack.setDamageValue(inputStack.getDamageValue());
                             }
-                            itemStack.getOrCreateTag();
                             outputStack.addOutput(itemStack);
                         }
                     }
@@ -489,24 +488,24 @@ public class UncraftingTableHelpers {
         if (!ingredient.isSimple()) {
             if (ingredient instanceof PartialNBTIngredient partialNBTIngredient){
                 for (var holder : partialNBTIngredient.getItems()) {
-                    items.add(new Tuple<>(holder.getItem(), holder.getOrCreateTag()));
+                    items.add(new Tuple<>(holder.getItem(), holder.getTag()));
                 }
             }
             else if (ingredient instanceof StrictNBTIngredient strictNBTIngredient){
                 for (var holder : strictNBTIngredient.getItems()) {
-                    items.add(new Tuple<>(holder.getItem(), holder.getOrCreateTag()));
+                    items.add(new Tuple<>(holder.getItem(), holder.getTag()));
                 }
             }
             else{
                 for (var holder : ingredient.getItems()) {
-                    items.add(new Tuple<>(holder.getItem(), holder.getOrCreateTag()));
+                    items.add(new Tuple<>(holder.getItem(), holder.getTag()));
                 }
             }
         }
         else {
             try {
                 items = Arrays.stream(ingredient.getItems())
-                        .map(holder -> new Tuple<>(holder.getItem(), holder.getOrCreateTag()))
+                        .map(holder -> new Tuple<>(holder.getItem(), holder.getTag()))
                         .distinct()
                         .toList();
             } catch (IllegalStateException e) {

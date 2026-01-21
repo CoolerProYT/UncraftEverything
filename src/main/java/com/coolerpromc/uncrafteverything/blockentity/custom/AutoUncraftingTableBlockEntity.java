@@ -64,12 +64,12 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                 boolean sendPacket = false;
 
                 if (player != null) {
-                    if (!(history != null && history.tag().equals(currentStack.getOrCreateTag()))){
+                    if (!(history != null && history.tag().equals(currentStack.getTag()))){
                         page = 0;
                         index = 0;
                         sendPacket = true;
                     }
-                    else if (history.tag().equals(currentStack.getOrCreateTag())){
+                    else if (history.tag().equals(currentStack.getTag())){
                         page = history.page();
                         index = history.index();
                         data.set(9, index);
@@ -84,7 +84,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                     UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), sendPacket));
                 }
                 else {
-                    if (history != null && history.tag().equals(currentStack.getOrCreateTag())) {
+                    if (history != null && history.tag().equals(currentStack.getTag())) {
                         currentRecipe = history.recipe();
                         byPass = true;
                     }
@@ -363,7 +363,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         else{
             checkExpStatus();
             if (!this.currentStack.isEmpty()){
-                recipeSelectionHistory.put(ForgeRegistries.ITEMS.getKey(currentStack.getItem()), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getOrCreateTag()));
+                recipeSelectionHistory.put(ForgeRegistries.ITEMS.getKey(currentStack.getItem()), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getTag()));
             }
         }
     }

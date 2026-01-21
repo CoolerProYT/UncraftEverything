@@ -1,1 +1,1 @@
-- Fixed JEI favourite item overlap with recipe selection gui
+- Hopefully this time really fixed uncrafted ingredient unable to stack with existing ingredient caused by null nbt and empty nbt
