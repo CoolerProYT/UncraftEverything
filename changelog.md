@@ -1,1 +1,1 @@
-- Fixed JEI favourite item overlap with recipe selection gui
+- Port to 26.1-snapshot-3

@@ -91,11 +91,11 @@ public class UncraftingTableHelpers {
             }
 
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                return validateRecipe(shapedRecipe.result, inputStack, blockEntity);
+                return validateRecipe(shapedRecipe.result.create(), inputStack, blockEntity);
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                return validateRecipe(shapelessRecipe.result, inputStack, blockEntity);
+                return validateRecipe(shapelessRecipe.result.create(), inputStack, blockEntity);
             }
 
             if(recipeHolder.value() instanceof TransmuteRecipe transmuteRecipe){
@@ -228,7 +228,7 @@ public class UncraftingTableHelpers {
 
                 // Create a recipe for each combination
                 for (List<Tuple<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.getItem().builtInRegistryHolder(), shapedRecipe.result.getCount(), inputStack.getComponentsPatch()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapedRecipe.result.item(), shapedRecipe.result.count(), inputStack.getComponentsPatch()));
                     Map<Tuple<Item, DataComponentPatch>, Integer> allIngredients = new HashMap<>();
 
                     for (Tuple<Item, DataComponentPatch> item : ingredientCombination) {
@@ -280,7 +280,7 @@ public class UncraftingTableHelpers {
 
                 // Create a recipe for each combination
                 for (List<Tuple<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.getItem().builtInRegistryHolder(), shapelessRecipe.result.getCount(), inputStack.getComponentsPatch()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(shapelessRecipe.result.item(), shapelessRecipe.result.count(), inputStack.getComponentsPatch()));
                     Map<Tuple<Item, DataComponentPatch>, Integer> allIngredients = new HashMap<>();
 
                     for (Tuple<Item, DataComponentPatch> item : ingredientCombination) {
@@ -415,7 +415,7 @@ public class UncraftingTableHelpers {
         if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().items().toList().isEmpty()) {
             if (ingredient.getCustomIngredient() instanceof DataComponentIngredient dataComponentIngredient){
                 for (var holder : dataComponentIngredient.itemSet()) {
-                    items.add(new Tuple<>(holder.value(), dataComponentIngredient.components().asPatch()));
+                    items.add(new Tuple<>(holder.value(), dataComponentIngredient.components()));
                 }
             }
             else{
@@ -472,7 +472,7 @@ public class UncraftingTableHelpers {
         catch (Exception ignored){
 
         }
-        return item.getA().getCraftingRemainder(item.getA().getDefaultInstance()) == ItemStack.EMPTY || item.getA().getCraftingRemainder(item.getA().getDefaultInstance()).getItem() != item.getA().getDefaultInstance().getItem();
+        return item.getA().getCraftingRemainder(item.getA().getDefaultInstance()) == null || item.getA().getCraftingRemainder(item.getA().getDefaultInstance()).is(item.getA().getDefaultInstance().getItem());
     }
 
     public static List<List<Tuple<Item, DataComponentPatch>>> getAllIngredientCombinations(List<Optional<Ingredient>> ingredients, ItemStack inputStack) {

@@ -22,7 +22,6 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
-import net.minecraft.world.item.equipment.trim.TrimMaterials;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -118,14 +117,14 @@ public class RecipeViewerHelpers {
         // Add all items that can be uncrafted
         UERecipeReceivedEvent.recipeMap.values().forEach(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                if (!(isItemBlacklisted(shapedRecipe.result) || isItemWhitelisted(shapedRecipe.result))){
-                    entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result, shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
+                if (!(isItemBlacklisted(shapedRecipe.result.create()) || isItemWhitelisted(shapedRecipe.result.create()))){
+                    entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result.create(), shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
                 }
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                if (!(isItemBlacklisted(shapelessRecipe.result) || isItemWhitelisted(shapelessRecipe.result))){
-                    entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result, shapelessRecipe.ingredients));
+                if (!(isItemBlacklisted(shapelessRecipe.result.create()) || isItemWhitelisted(shapelessRecipe.result.create()))){
+                    entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result.create(), shapelessRecipe.ingredients));
                 }
             }
 
@@ -147,10 +146,10 @@ public class RecipeViewerHelpers {
                     output.set(0, Ingredient.of(itemHolder.value().asItem()));
                     smithingTrimRecipe.additionIngredient().get().getValues().forEach(itemHolder1 -> {
                         output.set(1, Ingredient.of(itemHolder1.value()));
-                        Optional<Holder<TrimMaterial>> trimMaterialReference = TrimMaterials.getFromIngredient(registryAccess, itemHolder1.value().getDefaultInstance());
-                        if (trimMaterialReference.isPresent() && itemHolder.getKey().identifier().getPath().contains("diamond")){
+                        Holder<TrimMaterial> trimMaterialReference = itemHolder1.value().getDefaultInstance().get(DataComponents.PROVIDES_TRIM_MATERIAL);
+                        if (itemHolder.getKey().identifier().getPath().contains("diamond")){
                             ItemStack stack = itemHolder.value().asItem().getDefaultInstance();
-                            stack.set(DataComponents.TRIM, new ArmorTrim(trimMaterialReference.get(), smithingTrimRecipe.pattern));
+                            stack.set(DataComponents.TRIM, new ArmorTrim(trimMaterialReference, smithingTrimRecipe.pattern));
                             entries.add(new JEIUncraftingTableRecipe(stack, output));
                         }
                     });
