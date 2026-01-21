@@ -1,1 +1,1 @@
-This snapshot affected some logic related to ingredient searching, if there is any bug feel free to let me know
+- Port to 26.1-snapshot-4
