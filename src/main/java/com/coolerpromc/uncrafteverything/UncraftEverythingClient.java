@@ -3,7 +3,6 @@ package com.coolerpromc.uncrafteverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
 import com.coolerpromc.uncrafteverything.command.ModCommands;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
-import com.coolerpromc.uncrafteverything.networking.RecipeSyncPayload;
 import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingRecipeSelectionRequestPayload;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableDataPayload;
@@ -16,10 +15,13 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeMap;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,21 +64,19 @@ public class UncraftEverythingClient implements ClientModInitializer {
             }
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(RecipeSyncPayload.TYPE, (recipeSyncPayload, context) -> {
-            context.client().execute(() -> {
-                if (recipesFromServer.size() >= recipeSyncPayload.totalRecipe()){
-                    recipesFromServer.clear();
-                }
-                recipesFromServer.addAll(recipeSyncPayload.recipes());
-            });
-        });
-
         ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftServer -> {
             UncraftEverythingClientConfig.shutdown();
         });
 
         ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess) -> {
             ModCommands.register(commandDispatcher);
+        });
+
+        ClientRecipeSynchronizedEvent.EVENT.register((minecraft, synchronizedRecipes) -> {
+            RecipeMap recipes = RecipeMap.create(synchronizedRecipes.recipes().stream().toList());
+            recipesFromServer.clear();
+            recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
+            recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
         });
     }
 }

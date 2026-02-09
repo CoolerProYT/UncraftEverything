@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,7 +58,6 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.clientboundPlay().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
-		PayloadTypeRegistry.clientboundPlay().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(UncraftingPageChangePayload.TYPE, UncraftingPageChangePayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(UEProgressionPayload.TYPE, UEProgressionPayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ExpTransferPayload.TYPE, ExpTransferPayload.STREAM_CODEC);
@@ -246,17 +246,17 @@ public class UncraftEverything implements ModInitializer {
 			AUTO_MOVE = payload.autoMoveToInventory();
 		});
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
-            RecipeManager recipeManager = serverPlayerEntity.level().recipeAccess();
-            List<RecipeHolder<?>> recipeEntries = new ArrayList<>();
-			recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING).stream().filter(recipeEntry -> {
-				RecipeSerializer<?> serializer = recipeEntry.value().getSerializer();
-				return !serializer.getClass().getName().equals("eu.pb4.factorytools.api.recipe.LazyRecipeSerializer");
-			}).toList());
-            recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));
-            List<List<RecipeHolder<?>>> recipes = Lists.partition(recipeEntries, 100);
-            recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPED_RECIPE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPELESS_RECIPE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_ROCKET);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR_FADE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.TIPPED_ARROW);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.TRANSMUTE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRANSFORM);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRIM);
 
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
 			ResponseConfigPayload configPayload = new ResponseConfigPayload(
 					UncraftEverythingConfig.restrictionType,
 					UncraftEverythingConfig.restrictions,
