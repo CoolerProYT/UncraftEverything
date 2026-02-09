@@ -18,13 +18,15 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.ServerRecipeManager;
+import net.minecraft.recipe.*;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -58,7 +60,6 @@ public class UncraftEverything implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(ResponseConfigPayload.TYPE, ResponseConfigPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEExpPayload.TYPE, UEExpPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playS2C().register(UncraftingRecipeSelectionRequestPayload.TYPE, UncraftingRecipeSelectionRequestPayload.STREAM_CODEC);
-		PayloadTypeRegistry.playS2C().register(RecipeSyncPayload.TYPE, RecipeSyncPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UncraftingPageChangePayload.TYPE, UncraftingPageChangePayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(UEProgressionPayload.TYPE, UEProgressionPayload.STREAM_CODEC);
 		PayloadTypeRegistry.playC2S().register(ExpTransferPayload.TYPE, ExpTransferPayload.STREAM_CODEC);
@@ -247,17 +248,17 @@ public class UncraftEverything implements ModInitializer {
 			AUTO_MOVE = payload.autoMoveToInventory();
 		});
 
-		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
-            ServerRecipeManager recipeManager = serverPlayerEntity.getEntityWorld().getRecipeManager();
-            List<RecipeEntry<?>> recipeEntries = new ArrayList<>();
-			recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.CRAFTING).stream().filter(recipeEntry -> {
-				RecipeSerializer<?> serializer = recipeEntry.value().getSerializer();
-				return !serializer.getClass().getName().equals("eu.pb4.factorytools.api.recipe.LazyRecipeSerializer");
-			}).toList());
-            recipeEntries.addAll(recipeManager.getAllOfType(RecipeType.SMITHING));
-            List<List<RecipeEntry<?>>> recipes = Lists.partition(recipeEntries, 100);
-            recipes.forEach(recipeEntryList -> ServerPlayNetworking.send(serverPlayerEntity, new RecipeSyncPayload(recipeEntryList, recipeEntries.size())));
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPED);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPELESS);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_ROCKET);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR_FADE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.TIPPED_ARROW);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.CRAFTING_TRANSMUTE);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRANSFORM);
+		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRIM);
 
+		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
 			ResponseConfigPayload configPayload = new ResponseConfigPayload(
 					UncraftEverythingConfig.restrictionType,
 					UncraftEverythingConfig.restrictions,
