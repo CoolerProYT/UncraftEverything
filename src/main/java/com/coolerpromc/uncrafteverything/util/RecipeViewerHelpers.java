@@ -5,17 +5,17 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.impl.recipe.ingredient.builtin.ComponentsIngredient;
-import net.minecraft.core.Holder;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.*;
@@ -25,11 +25,9 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ShulkerBoxBlock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class RecipeViewerHelpers {
@@ -39,9 +37,13 @@ public class RecipeViewerHelpers {
 
         // Add Shulker Boxes (Prevent duplication, only normal shulker box will be outputted)
         Ingredient shulkerBoxIngredient = Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ItemTags.SHULKER_BOXES));
-        shulkerBoxIngredient.items().forEach(itemStack -> {
-            if (!itemStack.value().equals(Items.SHULKER_BOX) && !(isItemBlacklisted(itemStack.value().getDefaultInstance()) || isItemWhitelisted(itemStack.value().getDefaultInstance()))){
-                entries.add(new JEIUncraftingTableRecipe(itemStack.value().getDefaultInstance(), List.of(Ingredient.of(Blocks.SHULKER_BOX), Ingredient.of(DyeItem.byColor(Objects.requireNonNull(((ShulkerBoxBlock) ((BlockItem) itemStack.value()).getBlock()).getColor()))))));
+        shulkerBoxIngredient.items().forEach(itemHolder -> {
+            if (!itemHolder.value().equals(Items.SHULKER_BOX) && !(isItemBlacklisted(itemHolder.value().getDefaultInstance()) || isItemWhitelisted(itemHolder.value().getDefaultInstance()))){
+                DyeColor dyeColor = itemHolder.value().components().get(DataComponents.DYE);
+                if (dyeColor != null){
+                    HolderSet.Named<Item> itemNamed = BuiltInRegistries.ITEM.getOrThrow(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "dyes/" + dyeColor.getName())));
+                    itemNamed.forEach(dyeItem -> entries.add(new JEIUncraftingTableRecipe(itemHolder.value().getDefaultInstance(), List.of(Ingredient.of(Blocks.SHULKER_BOX), Ingredient.of(dyeItem.value())))));
+                }
             }
         });
 

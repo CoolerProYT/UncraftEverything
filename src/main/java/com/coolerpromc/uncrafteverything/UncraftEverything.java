@@ -12,7 +12,6 @@ import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
-import com.google.common.collect.Lists;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -22,13 +21,8 @@ import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UncraftEverything implements ModInitializer {
 	public static final String MODID = "uncrafteverything";
@@ -246,15 +240,15 @@ public class UncraftEverything implements ModInitializer {
 			AUTO_MOVE = payload.autoMoveToInventory();
 		});
 
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPED_RECIPE);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SHAPELESS_RECIPE);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_ROCKET);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.FIREWORK_STAR_FADE);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.TIPPED_ARROW);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.TRANSMUTE);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRANSFORM);
-		RecipeSynchronization.synchronizeRecipeSerializer(RecipeSerializer.SMITHING_TRIM);
+		RecipeSynchronization.synchronizeRecipeSerializer(ShapedRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(ShapelessRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(FireworkRocketRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(FireworkStarRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(FireworkStarFadeRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(ImbueRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(TransmuteRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(SmithingTransformRecipe.SERIALIZER);
+		RecipeSynchronization.synchronizeRecipeSerializer(SmithingTrimRecipe.SERIALIZER);
 
 		ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayerEntity, b) -> {
 			ResponseConfigPayload configPayload = new ResponseConfigPayload(
