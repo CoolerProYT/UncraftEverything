@@ -81,8 +81,8 @@ configurations {
 }
 
 dependencies {
-    compileOnly "mezz.jei:jei-26.1-snapshot-3-neoforge-api:${jei_version}"
-    compileOnly "mezz.jei:jei-26.1-snapshot-3-neoforge:${jei_version}"
+    compileOnly "mezz.jei:jei-26.1-snapshot-4-neoforge-api:${jei_version}"
+    compileOnly "mezz.jei:jei-26.1-snapshot-4-neoforge:${jei_version}"
 
     compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
