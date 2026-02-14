@@ -1,1 +1,1 @@
-- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
+- Updated `mods.toml` to prevent crashes on newer Forge versions.
