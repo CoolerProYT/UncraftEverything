@@ -1,1 +1,1 @@
-- Added new common config field `prioritizeVanillaIngredientRecipe` to sort recipe selection order
+- Update `mods.toml` to match forge `61.0.10` changes
