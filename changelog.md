@@ -1,0 +1,1 @@
+- Updated `mods.toml` to prevent crashes on newer Forge versions.
