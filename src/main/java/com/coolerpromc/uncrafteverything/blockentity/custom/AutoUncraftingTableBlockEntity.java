@@ -31,10 +31,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.coolerpromc.uncrafteverything.block.custom.AutoUncraftingTableBlock.ACTIVE;
 
@@ -64,12 +61,12 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                 boolean sendPacket = false;
 
                 if (player != null) {
-                    if (!(history != null && history.tag().equals(currentStack.getTag()))){
+                    if (!(history != null && history.tag().equals(currentStack.copy().getOrCreateTag()))){
                         page = 0;
                         index = 0;
                         sendPacket = true;
                     }
-                    else if (history.tag().equals(currentStack.getTag())){
+                    else if (history.tag().equals(currentStack.copy().getOrCreateTag())){
                         page = history.page();
                         index = history.index();
                         data.set(9, index);
@@ -84,7 +81,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                     UncraftingTableDataPayload.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new UncraftingTableDataPayload(getBlockPos(), new ArrayList<>(currentRecipes.subList(fromIndex, toIndex)), currentRecipes.size(), sendPacket));
                 }
                 else {
-                    if (history != null && history.tag().equals(currentStack.getTag())) {
+                    if (history != null && history.tag().equals(currentStack.copy().getOrCreateTag())) {
                         currentRecipe = history.recipe();
                         byPass = true;
                     }
@@ -363,7 +360,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
         else{
             checkExpStatus();
             if (!this.currentStack.isEmpty()){
-                recipeSelectionHistory.put(ForgeRegistries.ITEMS.getKey(currentStack.getItem()), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getTag()));
+                recipeSelectionHistory.put(ForgeRegistries.ITEMS.getKey(currentStack.getItem()), new RecipeSelectionHistory(recipe, page, index, currentRecipes.size(), currentStack.getOrCreateTag()));
             }
         }
     }

@@ -1,1 +1,3 @@
-- Updated `mods.toml` to prevent crashes on newer Forge versions.
+- Fixed crash when uncrafting item with null CompoundTag in Auto Uncrafting Table
+- Fixed RuntimeException when deserializing RecipeSelectionHistory in Auto Uncrafting Table
+- Fixed Auto Uncrafting Table not checking existing redstone signal when placed

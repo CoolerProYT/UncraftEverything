@@ -10,6 +10,6 @@ public record RecipeSelectionHistory(UncraftingTableRecipe recipe, int page, int
             Codec.INT.fieldOf("page").forGetter(RecipeSelectionHistory::page),
             Codec.INT.fieldOf("index").forGetter(RecipeSelectionHistory::index),
             Codec.INT.fieldOf("totalRecipeCount").forGetter(RecipeSelectionHistory::totalRecipeCount),
-            CompoundTag.CODEC.fieldOf("tag").forGetter(RecipeSelectionHistory::tag)
+            CompoundTag.CODEC.optionalFieldOf("tag", new CompoundTag()).forGetter(RecipeSelectionHistory::tag)
     ).apply(instance, RecipeSelectionHistory::new));
 }
