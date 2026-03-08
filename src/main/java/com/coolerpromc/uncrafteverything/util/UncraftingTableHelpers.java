@@ -79,7 +79,9 @@ public class UncraftingTableHelpers {
         return true;
     }
 
-    public static <T extends AbstractUncraftingTableBE> List<RecipeEntry<?>> findRecipe(ServerWorld serverLevel, ItemStack inputStack, T blockEntity){
+    public static <T extends AbstractUncraftingTableBE> List<RecipeEntry<?>> findRecipe(ServerWorld serverLevel, ItemStack input, T blockEntity){
+        ItemStack inputStack = input.copy();
+        inputStack.remove(DataComponentTypes.CUSTOM_NAME);
         return serverLevel.getRecipeManager().values().stream().filter(RecipeEntry -> {
             if (!RecipeEntry.id().getValue().getNamespace().equals("minecraft") && Registries.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes()){
                 return false;
