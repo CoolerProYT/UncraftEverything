@@ -1,1 +1,1 @@
-- Fixed JEI favourite item overlap with recipe selection gui
+- Make renamed item (Anvil rename) able to be uncrafted
