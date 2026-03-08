@@ -1,1 +1,1 @@
-- Update `mods.toml` to match forge `61.0.10` changes
+- Make renamed item (Anvil rename) able to be uncrafted
