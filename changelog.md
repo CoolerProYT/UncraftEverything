@@ -1,1 +1,1 @@
-- Port to 26.1-snapshot-7
+- Make renamed item (Anvil rename) able to be uncrafted
