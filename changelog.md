@@ -1,1 +1,1 @@
-- Make renamed item (Anvil rename) able to be uncrafted
+- Fixed using outdated JEI API

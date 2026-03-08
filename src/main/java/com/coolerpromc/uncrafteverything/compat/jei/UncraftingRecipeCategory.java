@@ -5,11 +5,14 @@ import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -28,8 +31,18 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
     }
 
     @Override
-    public @NotNull IDrawable getBackground() {
-        return guiHelper.createDrawable(Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 20, 15, 137, 56);
+    public int getWidth() {
+        return 137;
+    }
+
+    @Override
+    public int getHeight() {
+        return 56;
+    }
+
+    @Override
+    public void draw(JEIUncraftingTableRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 0, 0, 20, 15, this.getWidth(), this.getHeight(), 256, 256);
     }
 
     @Override
