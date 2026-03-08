@@ -25,14 +25,12 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -86,7 +84,9 @@ public class UncraftingTableHelpers {
         return true;
     }
 
-    public static <T extends AbstractUncraftingTableBE> List<RecipeHolder<?>> findRecipe(ServerLevel serverLevel, ItemStack inputStack, T blockEntity){
+    public static <T extends AbstractUncraftingTableBE> List<RecipeHolder<?>> findRecipe(ServerLevel serverLevel, ItemStack input, T blockEntity){
+        ItemStack inputStack = input.copy();
+        inputStack.remove(DataComponents.CUSTOM_NAME);
         return serverLevel.getRecipeManager().getRecipes().stream().filter(recipeHolder -> {
             if (!recipeHolder.id().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
                 return false;
