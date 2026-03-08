@@ -84,7 +84,10 @@ public class UncraftingTableHelpers {
         return true;
     }
 
-    public static <T extends AbstractUncraftingTableBE> List<Recipe<?>> findRecipe(ServerLevel serverLevel, ItemStack inputStack, T blockEntity, @Nullable ServerPlayer player){
+    public static <T extends AbstractUncraftingTableBE> List<Recipe<?>> findRecipe(ServerLevel serverLevel, ItemStack input, T blockEntity, @Nullable ServerPlayer player){
+        ItemStack inputStack = input.copy();
+        inputStack.resetHoverName();
+        inputStack.removeTagKey("RepairCost");
         return serverLevel.getRecipeManager().getRecipes().stream().filter(recipe -> {
             if (!recipe.getId().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
                 return false;

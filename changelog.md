@@ -1,3 +1,1 @@
-- Fixed crash when uncrafting item with null CompoundTag in Auto Uncrafting Table
-- Fixed RuntimeException when deserializing RecipeSelectionHistory in Auto Uncrafting Table
-- Fixed Auto Uncrafting Table not checking existing redstone signal when placed
+- Make renamed item (Anvil rename) able to be uncrafted
