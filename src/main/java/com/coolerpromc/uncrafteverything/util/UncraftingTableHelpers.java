@@ -1,9 +1,11 @@
 package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.impl.recipe.ingredient.builtin.ComponentsIngredient;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.*;
@@ -83,6 +85,8 @@ public class UncraftingTableHelpers {
     public static <T extends AbstractUncraftingTableBE> List<RecipeEntry<?>> findRecipe(ServerWorld serverLevel, ItemStack input, T blockEntity){
         ItemStack inputStack = input.copy();
         inputStack.remove(DataComponentTypes.CUSTOM_NAME);
+        if (FabricLoader.getInstance().isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
+
         return serverLevel.getRecipeManager().values().stream().filter(RecipeEntry -> {
             if (!RecipeEntry.id().getValue().getNamespace().equals("minecraft") && Registries.ITEM.getId(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes()){
                 return false;
