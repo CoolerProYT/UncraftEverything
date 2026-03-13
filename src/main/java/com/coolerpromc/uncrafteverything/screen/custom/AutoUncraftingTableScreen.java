@@ -10,7 +10,7 @@ import com.coolerpromc.uncrafteverything.screen.widget.AmountWidget;
 import com.coolerpromc.uncrafteverything.screen.widget.RecipeSelectionButton;
 import com.coolerpromc.uncrafteverything.screen.widget.TypeWidget;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -68,13 +68,14 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     }
 
     @Override
-    protected void renderBg(GuiGraphics pGuiGraphics, float partialTick, int mouseX, int mouseY) {
-        pGuiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight, 256, 256);
-        this.renderExpStored(pGuiGraphics, mouseX, mouseY);
-        super.renderBg(pGuiGraphics, partialTick, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, a);
+
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+        this.renderExpStored(guiGraphics, mouseX, mouseY);
     }
 
-    private void renderExpStored(GuiGraphics guiGraphics, int mouseX, int mouseY){
+    private void renderExpStored(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY){
         int k = this.menu.blockEntity.getXpNeededForNextLevel();
         if (k > 0) {
             int l = this.menu.getExpProgress();
@@ -88,11 +89,11 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
             Component component = Component.translatable("gui.experience.level", this.menu.getExpLevels());
             int i = (this.width - font.width(component)) / 2;
             int j = this.topPos + 92;
-            guiGraphics.drawString(font, component, i + 1, j, -16777216, false);
-            guiGraphics.drawString(font, component, i - 1, j, -16777216, false);
-            guiGraphics.drawString(font, component, i, j + 1, -16777216, false);
-            guiGraphics.drawString(font, component, i, j - 1, -16777216, false);
-            guiGraphics.drawString(font, component, i, j, -8323296, false);
+            guiGraphics.text(font, component, i + 1, j, -16777216, false);
+            guiGraphics.text(font, component, i - 1, j, -16777216, false);
+            guiGraphics.text(font, component, i, j + 1, -16777216, false);
+            guiGraphics.text(font, component, i, j - 1, -16777216, false);
+            guiGraphics.text(font, component, i, j, -8323296, false);
         }
 
         if (mouseX >= (this.leftPos + 25) && mouseX <= (this.leftPos + 150) && mouseY >= this.topPos + 93 && mouseY <= this.topPos + 98){
@@ -108,21 +109,21 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     }
 
     @Override
-    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void extractRenderState(@NotNull GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         this.clearWidgets();
         this.init();
         this.page = this.getMenu().getPage();
         this.selectedRecipe = this.getMenu().getIndex();
         this.renderRecipeSelection(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        super.renderContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.extractContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.renderInputSlotOverlay(pGuiGraphics);
-        super.renderCarriedItem(pGuiGraphics, pMouseX, pMouseY);
-        super.renderSnapbackItem(pGuiGraphics);
-        this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
+        super.extractCarriedItem(pGuiGraphics, pMouseX, pMouseY);
+        super.extractSnapbackItem(pGuiGraphics);
+        this.extractTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
     @Override
-    protected void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderExpRequired(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
     }
 
     @Override
@@ -162,8 +163,8 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
     }
 
     @Override
-    protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
-        super.renderTooltip(guiGraphics, x, y);
+    protected void extractTooltip(@NotNull GuiGraphicsExtractor guiGraphics, int x, int y) {
+        super.extractTooltip(guiGraphics, x, y);
         if (removeExp.isHovered()){
             List<Component> tooltips = new ArrayList<>();
             tooltips.add(Component.translatable("screen.uncrafteverything.tooltip.remove_exp"));

@@ -10,7 +10,7 @@ import com.coolerpromc.uncrafteverything.util.Status;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -69,10 +69,12 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         }
     }
 
-    protected abstract void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY);
+    protected abstract void renderExpRequired(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY);
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, a);
+
         int buttonSize = 8;
         int x = this.leftPos + this.imageWidth - 5 - buttonSize;
         int y = this.topPos + 5;
@@ -86,12 +88,12 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(0.5f);
         guiGraphics.pose().translate((x + buttonSize / 2f) * 2, ((y + buttonSize / 2f) - this.font.lineHeight / (2f * 2f)) * 2f);
-        guiGraphics.drawCenteredString(this.font, Component.literal("?"), 0, 0, 0xFFFFFFFF);
+        guiGraphics.centeredText(this.font, Component.literal("?"), 0, 0, 0xFFFFFFFF);
         guiGraphics.pose().popMatrix();
     }
 
     @Override
-    protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
+    protected void extractTooltip(@NotNull GuiGraphicsExtractor guiGraphics, int x, int y) {
         Status status = Status.byIndex(this.menu.getStatus());
         if (isInfoHovered){
             List<Component> tooltips = new ArrayList<>();
@@ -114,11 +116,11 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             guiGraphics.setTooltipForNextFrame(this.font, tooltip, itemStack.getTooltipImage(), itemStack, x, y, itemStack.get(DataComponents.TOOLTIP_STYLE));
         }
         else{
-            super.renderTooltip(guiGraphics, x, y);
+            super.extractTooltip(guiGraphics, x, y);
         }
     }
 
-    protected void renderInputSlotOverlay(GuiGraphics guiGraphics){
+    protected void renderInputSlotOverlay(GuiGraphicsExtractor guiGraphics){
         Status status = Status.byIndex(this.menu.getStatus());
 
         if (status != Status.BLANK){
@@ -126,7 +128,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         }
     }
 
-    protected void renderRecipeSelection(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
+    protected void renderRecipeSelection(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
         int maxPageCount = (int) Math.ceil((double) recipeSize / MAX_PAGE_SIZE);
         int pageToDisplay = recipes.isEmpty() ? 0 : page + 1;
 
@@ -146,7 +148,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         }
     }
 
-    protected void renderNavigationButton(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick, int maxPageCount){
+    protected void renderNavigationButton(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick, int maxPageCount){
         Button prevButton = Button.builder(Component.translatable("screen.uncrafteverything.prev_button"), button -> {
             if (this.page > 0) {
                 this.page--;
@@ -156,7 +158,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             }
             ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
         }).pos(this.leftPos - 152 + 5, this.topPos + imageHeight - 23).size(16, 16).build();
-        this.addRenderableWidget(prevButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.addRenderableWidget(prevButton).extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         Button nextButton = Button.builder(Component.translatable("screen.uncrafteverything.next_button"), button -> {
             if (this.page < maxPageCount - 1) {
@@ -167,7 +169,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             }
             ClientPacketDistributor.sendToServer(new UncraftingPageChangePayload(page, this.menu.blockEntity.getBlockPos()));
         }).pos(this.leftPos - 21, this.topPos + imageHeight - 23).size(16, 16).build();
-        this.addRenderableWidget(nextButton).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.addRenderableWidget(nextButton).extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
     protected void chooseRecipe(RecipeSelectionButton button, int index){
@@ -175,7 +177,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         ClientPacketDistributor.sendToServer(new UncraftingRecipeSelectionPayload(this.menu.blockEntity.getBlockPos(), this.recipes.get(selectedRecipe)));
     }
 
-    protected void renderRecipeButton(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
+    protected void renderRecipeButton(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick){
         int visibleCount = 0;
         for (int j = 0; j < recipes.size() && visibleCount < MAX_PAGE_SIZE; j++) {
             UncraftingTableRecipe recipe = recipes.get(j);
@@ -189,7 +191,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             if (selectedRecipe == j) {
                 button.setFocused(true);
             }
-            this.addWidget(button).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            this.addWidget(button).extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
             int i = 0;
             Map<Item, Integer> inputs = new HashMap<>();
@@ -212,8 +214,8 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
                 if (inputComponents.containsKey(entry.getKey())){
                     itemStack.applyComponents(inputComponents.get(entry.getKey()));
                 }
-                pGuiGraphics.renderFakeItem(itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
-                pGuiGraphics.renderItemDecorations(this.font, itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
+                pGuiGraphics.fakeItem(itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
+                pGuiGraphics.itemDecorations(this.font, itemStack, this.leftPos - recipeWidth + (i * 16) + 1, this.topPos + (displayIndex * 18) + 31);
                 if (pMouseX >= this.leftPos - recipeWidth + (i * 16) + 1 && pMouseX <= this.leftPos - recipeWidth + (i * 16) + 17 && pMouseY >= this.topPos + (displayIndex * 18) + 31 && pMouseY <= this.topPos + (displayIndex * 18) + 31 + 16) {
                     pGuiGraphics.setTooltipForNextFrame(this.font, itemStack, pMouseX, pMouseY);
                 }
@@ -259,7 +261,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollDelta);
     }
 
-    public void drawCenteredWordWrapWithoutShadow(GuiGraphics context, Font textRenderer, Component text, int centerX, int y, int color) {
+    public void drawCenteredWordWrapWithoutShadow(GuiGraphicsExtractor context, Font textRenderer, Component text, int centerX, int y, int color) {
         List<FormattedCharSequence> lines = textRenderer.split(text, 140);
 
         int lineHeight = textRenderer.lineHeight + 2;
@@ -270,7 +272,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
             int lineX = centerX - lineWidth / 2;
             int lineY = y + (i * lineHeight);
 
-            context.drawString(textRenderer, line, lineX, lineY, color, false);
+            context.text(textRenderer, line, lineX, lineY, color, false);
         }
     }
 

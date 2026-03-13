@@ -27,6 +27,14 @@ repositories {
         }
     }
     maven { url "https://maven.architectury.dev/" }
+    maven {
+        name = "Maven for PR #2993" // https://github.com/neoforged/NeoForge/pull/2993
+        url = uri("https://prmaven.neoforged.net/NeoForge/pr2993")
+        content {
+            includeModule("net.neoforged", "neoforge")
+            includeModule("net.neoforged", "testframework")
+        }
+    }
 }
 
 base {
@@ -128,10 +136,10 @@ publishing {
     repositories {
         mavenLocal()
         maven {
-            url = findProperty("repsy_url")
+            url = findProperty("maven_url")
             credentials {
-                username = findProperty("repsy_username")
-                password = findProperty("repsy_password")
+                username = findProperty("maven_username")
+                password = findProperty("maven_password")
             }
         }
     }

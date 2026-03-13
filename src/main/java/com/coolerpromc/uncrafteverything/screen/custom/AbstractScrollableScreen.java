@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -21,7 +21,7 @@ public abstract class AbstractScrollableScreen extends Screen {
         this.contentHeight = contentHeight;
     }
 
-    protected void renderScrollbar(GuiGraphics guiGraphics, int footerHeight) {
+    protected void renderScrollbar(GuiGraphicsExtractor guiGraphics, int footerHeight) {
         int i = this.scrollBarX();
         int j = this.scrollerHeight();
         int k = this.scrollBarY();

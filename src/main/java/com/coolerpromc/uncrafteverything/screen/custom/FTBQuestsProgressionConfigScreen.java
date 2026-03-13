@@ -3,7 +3,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
 import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEProgressionPayload;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -137,40 +137,39 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderMenuBackground(guiGraphics);
-        renderBlurredBackground(guiGraphics);
-        renderSeparator(guiGraphics);
-        renderScrollbar(guiGraphics, 90);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+        renderSeparator(graphics);
+        renderScrollbar(graphics, 90);
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawCenteredString(font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
+    public void extractRenderState(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.centeredText(font, title, width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
         guiGraphics.enableScissor(0, ENTRIES_START_Y - 5, width, this.height - 65);
 
         Component key = Component.translatable("screen.uncrafteverything.per_item_xp_config.key");
-        guiGraphics.drawString(font, key, (width / 2 - 170) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        guiGraphics.text(font, key, (width / 2 - 170) + (150 - font.width(key)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
         Component value = Component.translatable("screen.uncrafteverything.ftb_quest_progression_config.value");
-        guiGraphics.drawString(font, value, (width / 2 - 170 + 160) + (150 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        guiGraphics.text(font, value, (width / 2 - 170 + 160) + (150 - font.width(value)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
         Component del = Component.translatable("screen.uncrafteverything.per_item_xp_config.del");
-        guiGraphics.drawString(font, del, (width / 2 - 170 + 320) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
+        guiGraphics.text(font, del, (width / 2 - 170 + 320) + (20 - font.width(del)) / 2, (int) (ENTRIES_START_Y - scrollAmount), 0xFFFFFFFF, false);
 
         for (EditBox editBox : scrollableEditBoxes) {
-            editBox.render(guiGraphics, mouseX, mouseY, delta);
+            editBox.extractRenderState(guiGraphics, mouseX, mouseY, delta);
         }
         for (Button button : scrollableButtons) {
-            button.render(guiGraphics, mouseX, mouseY, delta);
+            button.extractRenderState(guiGraphics, mouseX, mouseY, delta);
         }
 
         guiGraphics.disableScissor();
 
         this.renderables.forEach(renderable -> {
             if (renderable instanceof Button && !scrollableButtons.contains(renderable)) {
-                renderable.render(guiGraphics, mouseX, mouseY, delta);
+                renderable.extractRenderState(guiGraphics, mouseX, mouseY, delta);
             }
         });
     }
@@ -204,7 +203,7 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         return super.mouseClicked(buttonEvent, doubled);
     }
 
-    protected void renderSeparator(GuiGraphics guiGraphics){
+    protected void renderSeparator(GuiGraphicsExtractor guiGraphics){
         Identifier header = this.getMinecraft().level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
         Identifier footer = this.getMinecraft().level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
