@@ -11,14 +11,13 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("removal")
 public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeCategory<JEIUncraftingTableRecipe> {
     @Override
     public @NotNull IRecipeType<JEIUncraftingTableRecipe> getRecipeType() {
@@ -40,10 +39,10 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
         return 56;
     }
 
-    @Override
-    public void draw(JEIUncraftingTableRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    /*@Override
+    public void draw(JEIUncraftingTableRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 0, 0, 20, 15, 137, 56, 256, 256);
-    }
+    }*/
 
     @Override
     public @NotNull IDrawable getIcon() {

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -98,15 +98,15 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     }
 
     @Override
-    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderMenuBackground(guiGraphics);
-        renderBlurredBackground(guiGraphics);
-        renderSeparator(guiGraphics);
-        renderScrollbar(guiGraphics, 70);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+
+        renderSeparator(graphics);
+        renderScrollbar(graphics, 70);
     }
 
     @Override
-    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void extractRenderState(@NotNull GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         int scissorTop = 25;
         int scissorBottom = this.height - 45;
         pGuiGraphics.enableScissor(0, scissorTop, this.width, scissorBottom);
@@ -116,45 +116,45 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         int baseY = 30;
 
         Component moveToInventory = Component.translatable("screen.uncrafteverything.config.move_to_inventory");
-        pGuiGraphics.drawWordWrap(this.font, moveToInventory, x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, moveToInventory, x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component noRecipeFound = Component.translatable("screen.uncrafteverything.config.no_recipe_found");
-        pGuiGraphics.drawWordWrap(this.font, noRecipeFound, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, noRecipeFound, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component noSuitableOutputSlot = Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot");
-        pGuiGraphics.drawWordWrap(this.font, noSuitableOutputSlot, x, (int) (baseY + 50 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, noSuitableOutputSlot, x, (int) (baseY + 50 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component notEnoughExpSlot = Component.translatable("screen.uncrafteverything.config.not_enough_exp");
-        pGuiGraphics.drawWordWrap(this.font, notEnoughExpSlot, x, (int) (baseY + 75 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEnoughExpSlot, x, (int) (baseY + 75 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component notEnoughInputItemSlot = Component.translatable("screen.uncrafteverything.config.not_enough_input_item");
-        pGuiGraphics.drawWordWrap(this.font, notEnoughInputItemSlot, x, (int) (baseY + 100 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEnoughInputItemSlot, x, (int) (baseY + 100 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component notEmptyShulkerSlot = Component.translatable("screen.uncrafteverything.config.not_empty_shulker");
-        pGuiGraphics.drawWordWrap(this.font, notEmptyShulkerSlot, x, (int) (baseY + 125 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEmptyShulkerSlot, x, (int) (baseY + 125 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component restrictedByConfigSlot = Component.translatable("screen.uncrafteverything.config.restricted_by_config");
-        pGuiGraphics.drawWordWrap(this.font, restrictedByConfigSlot, x, (int) (baseY + 150 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, restrictedByConfigSlot, x, (int) (baseY + 150 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component damagedItemSlot = Component.translatable("screen.uncrafteverything.config.damaged_item");
-        pGuiGraphics.drawWordWrap(this.font, damagedItemSlot, x, (int) (baseY + 175 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, damagedItemSlot, x, (int) (baseY + 175 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component enchantedItemSlot = Component.translatable("screen.uncrafteverything.config.enchanted_item");
-        pGuiGraphics.drawWordWrap(this.font, enchantedItemSlot, x, (int) (baseY + 200 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, enchantedItemSlot, x, (int) (baseY + 200 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component lockedItemSlot = Component.translatable("screen.uncrafteverything.config.locked_item");
-        pGuiGraphics.drawWordWrap(this.font, lockedItemSlot, x, (int) (baseY + 225 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, lockedItemSlot, x, (int) (baseY + 225 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component progressionNotDefinedSlot = Component.translatable("screen.uncrafteverything.config.progression_not_defined");
-        pGuiGraphics.drawWordWrap(this.font, progressionNotDefinedSlot, x, (int) (baseY + 250 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, progressionNotDefinedSlot, x, (int) (baseY + 250 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         pGuiGraphics.disableScissor();
 
-        pGuiGraphics.drawCenteredString(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_client_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
-        cancelButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        saveButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        pGuiGraphics.centeredText(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_client_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
+        cancelButton.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        saveButton.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         renderButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
@@ -283,14 +283,14 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
         onClose();
     }
 
-    protected void renderSeparator(GuiGraphics guiGraphics){
+    protected void renderSeparator(GuiGraphicsExtractor guiGraphics){
         Identifier header = this.minecraft.level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
         Identifier footer = this.minecraft.level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, footer, 0, this.height - 45, 0.0F, 0.0F, this.width, 2, 32, 2);
     }
 
-    private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
+    private void renderButtonTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY){
         if (moveToInventoryButton.isHovered()){
             List<Component> tooltip = List.of(
                     title("tooltip.uncrafteverything.config.move_to_inventory"),

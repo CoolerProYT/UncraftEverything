@@ -7,7 +7,7 @@ import com.coolerpromc.uncrafteverything.networking.ResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.UEConfigPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
@@ -158,75 +158,76 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         this.addRenderableWidget(saveButton);
     }
 
-    public void renderBackground(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderMenuBackground(guiGraphics);
-        renderBlurredBackground(guiGraphics);
-        renderSeparator(guiGraphics);
-        renderScrollbar(guiGraphics, 70);
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+
+        renderSeparator(graphics);
+        renderScrollbar(graphics, 70);
     }
 
     @Override
-    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void extractRenderState(@NotNull GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         // Enable scissor test to clip content outside the scrollable area
         int scissorTop = 25;
         int scissorBottom = this.height - 45;
         pGuiGraphics.enableScissor(0, scissorTop, this.width, scissorBottom);
 
-        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         // Render labels with scroll offset
         int x = 10;
         int textWidth = this.width / 2 - 10;
         int baseY = 30;
 
-        pGuiGraphics.drawString(this.font, Component.translatable("screen.uncrafteverything.config.restriction_type_label"), x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), 0xFFFFFFFF);
+        pGuiGraphics.text(this.font, Component.translatable("screen.uncrafteverything.config.restriction_type_label"), x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), 0xFFFFFFFF);
 
         Component format = Component.translatable("screen.uncrafteverything.config.restricted_item_label");
-        pGuiGraphics.drawWordWrap(this.font, format, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 20), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, format, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 20), textWidth, 0xFFFFFFFF);
 
         // Format help text
         pGuiGraphics.pose().pushMatrix();
         pGuiGraphics.pose().scale(0.65f, 0.65f);
         pGuiGraphics.pose().translate(x * 1.55f, (float) (((baseY + 25f - scrollAmount) * 1.6f) + this.font.wordWrapHeight(format, textWidth) * 2f - (this.font.lineHeight * 0.65f) + 40f));
-        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.format_label"), 0, 0, (int) (textWidth * 1.5), 0xFFAAAAAA);
+        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.format_label"), 0, 0, (int) (textWidth * 1.5), 0xFFAAAAAA);
         pGuiGraphics.pose().popMatrix();
 
         Component allowEnchantedItem = Component.translatable("screen.uncrafteverything.config.allow_enchanted_label");
-        pGuiGraphics.drawWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.exp_type_label"), x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.exp_type_label"), x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component expRequired = Component.translatable("screen.uncrafteverything.config.exp_required_label");
-        pGuiGraphics.drawWordWrap(this.font, expRequired, x, (int) (baseY + 170 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, expRequired, x, (int) (baseY + 170 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.drawWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component allowDamagedItem = Component.translatable("screen.uncrafteverything.config.allow_damaged_label");
-        pGuiGraphics.drawWordWrap(this.font, allowDamagedItem, x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowDamagedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, allowDamagedItem, x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowDamagedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component preventModded = Component.translatable("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label");
-        pGuiGraphics.drawWordWrap(this.font, preventModded, x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, preventModded, x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component restrictedMod = Component.translatable("screen.uncrafteverything.config.prevent_modid");
-        pGuiGraphics.drawWordWrap(this.font, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component enableProgression = Component.translatable("screen.uncrafteverything.config.enable_progression");
-        pGuiGraphics.drawWordWrap(this.font, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(enableProgression, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(enableProgression, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component onlyAllowDefined = Component.translatable("screen.uncrafteverything.config.only_allow_defined_progression");
-        pGuiGraphics.drawWordWrap(this.font, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(onlyAllowDefined, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(onlyAllowDefined, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component allowEnchantedBook = Component.translatable("screen.uncrafteverything.config.output_enchanted_book");
-        pGuiGraphics.drawWordWrap(this.font, allowEnchantedBook, x, (int) (baseY + 417 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedBook, x, (int) (baseY + 417 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component prioritizeVanillaIngredientRecipe = Component.translatable("screen.uncrafteverything.config.prioritize");
-        pGuiGraphics.drawWordWrap(this.font, prioritizeVanillaIngredientRecipe, x, (int) (baseY + 443 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(prioritizeVanillaIngredientRecipe, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, prioritizeVanillaIngredientRecipe, x, (int) (baseY + 443 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(prioritizeVanillaIngredientRecipe, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
-        pGuiGraphics.drawCenteredString(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
+        pGuiGraphics.centeredText(this.font, Component.translatable("screen.uncrafteverything.uncraft_everything_config"), this.width / 2, (23 - this.font.lineHeight) / 2, 0xFFFFFFFF);
 
-        saveButton.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        saveButton.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         renderButtonTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
@@ -286,7 +287,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         return super.mouseClicked(click, doubled);
     }
 
-    protected void renderSeparator(GuiGraphics guiGraphics){
+    protected void renderSeparator(GuiGraphicsExtractor guiGraphics){
         Identifier header = this.minecraft.level == null ? Screen.HEADER_SEPARATOR : Screen.INWORLD_HEADER_SEPARATOR;
         Identifier footer = this.minecraft.level == null ? Screen.FOOTER_SEPARATOR : Screen.INWORLD_FOOTER_SEPARATOR;
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, header, 0, 25 - 2, 0.0F, 0.0F, this.width, 2, 32, 2);
@@ -315,7 +316,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         onClose();
     }
     
-    private void renderWrappedTooltip(GuiGraphics guiGraphics, List<Component> tooltip, int mouseX, int mouseY) {
+    private void renderWrappedTooltip(GuiGraphicsExtractor guiGraphics, List<Component> tooltip, int mouseX, int mouseY) {
         int maxWidth = mouseX - 20;
         List<FormattedCharSequence> wrappedTooltip = tooltip.stream()
                 .flatMap(text -> {
@@ -328,7 +329,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         guiGraphics.setTooltipForNextFrame(this.font, wrappedTooltip, mouseX, mouseY);
     }
 
-    private void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
+    private void renderButtonTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY){
         if (restrictionTypeButton.isHovered()){
             List<Component> tooltip = List.of(
                     title("tooltip.uncrafteverything.config.toggle_restriction_type"),

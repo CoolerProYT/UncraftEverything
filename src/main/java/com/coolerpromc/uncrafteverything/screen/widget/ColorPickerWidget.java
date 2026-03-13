@@ -6,7 +6,7 @@ import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.function.BiConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -59,7 +59,7 @@ public class ColorPickerWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         Minecraft minecraft = Minecraft.getInstance();
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
@@ -80,7 +80,7 @@ public class ColorPickerWidget extends AbstractWidget {
             graphics.requestCursor(this.active ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
         }
         graphics.fill(screenWidth / 2 + 10 + 1, this.getY() + 1, screenWidth / 2 + 10 + buttonWidth - 1, this.getY() + BUTTON_HEIGHT - 1, ARGB.color(0xDD, color));
-        graphics.drawCenteredString(minecraft.font, Component.literal(String.format("#%08X", color)), screenWidth / 2 + 10 + buttonWidth / 2, this.getY() + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, i);
+        graphics.centeredText(minecraft.font, Component.literal(String.format("#%08X", color)), screenWidth / 2 + 10 + buttonWidth / 2, this.getY() + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, i);
 
         if (!this.isVisible) return;
 
@@ -101,7 +101,7 @@ public class ColorPickerWidget extends AbstractWidget {
                 ARGB.white(this.alpha)
         );
 
-        graphics.drawCenteredString(minecraft.font, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.font.lineHeight / 2, ARGB.color(0xFF, ChatFormatting.WHITE.getColor()));
+        graphics.centeredText(minecraft.font, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.font.lineHeight / 2, ARGB.color(0xFF, ChatFormatting.WHITE.getColor()));
 
         // --- SV (Saturation/Value) Square ---
         for (int x = 0; x < PICKER_SIZE; x++) {
@@ -140,8 +140,8 @@ public class ColorPickerWidget extends AbstractWidget {
         graphics.fill(selX - 2, selY - 2, selX + 2, selY + 2, previewColor);
 
         // --- Text Info ---
-        graphics.drawString(Minecraft.getInstance().font, "Hue: " + Math.round(hue), pickerX, previewTop - 12, 0xFFFFFF);
-        graphics.drawString(Minecraft.getInstance().font, String.format("#%08X", previewColor), pickerX + 60, previewTop - 12, 0xFFFFFF);
+        graphics.text(Minecraft.getInstance().font, "Hue: " + Math.round(hue), pickerX, previewTop - 12, 0xFFFFFF);
+        graphics.text(Minecraft.getInstance().font, String.format("#%08X", previewColor), pickerX + 60, previewTop - 12, 0xFFFFFF);
 
         // --- Buttons ---
         double scale = Minecraft.getInstance().getWindow().getGuiScale();
@@ -160,10 +160,10 @@ public class ColorPickerWidget extends AbstractWidget {
         }
 
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isSaveHoveredOrFocused), confirmX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
-        graphics.drawCenteredString(Minecraft.getInstance().font, "Confirm", confirmX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
+        graphics.centeredText(Minecraft.getInstance().font, "Confirm", confirmX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
 
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, VANILLA_SPRITES.get(this.active, this.isCancelHoveredOrFocused), cancelX, btnY, scaledButtonWidth, BUTTON_HEIGHT, ARGB.white(this.alpha));
-        graphics.drawCenteredString(Minecraft.getInstance().font, "Cancel", cancelX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
+        graphics.centeredText(Minecraft.getInstance().font, "Cancel", cancelX + (scaledButtonWidth / 2), btnY + BUTTON_HEIGHT / 2 - minecraft.font.lineHeight / 2, 0xFFFFFFFF);
     }
 
     @Override

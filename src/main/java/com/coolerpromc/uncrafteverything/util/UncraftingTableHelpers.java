@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.util.context.ContextMap;
+import net.minecraft.world.item.BedItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -97,6 +98,7 @@ public class UncraftingTableHelpers {
             }
 
             if (RecipeEntry.value() instanceof ShapelessRecipe shapelessRecipe){
+                if (inputStack.getItem() instanceof BedItem) return false;
                 return validateRecipe(shapelessRecipe.result.create(), inputStack, blockEntity);
             }
 
@@ -196,7 +198,7 @@ public class UncraftingTableHelpers {
         for (RecipeHolder<?> r : recipes) {
             if (r.value() instanceof TransmuteRecipe transmuteRecipe){
                 List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
-                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getLeftllShapelessIngredientCombinations(ingredients, inputStack);
+                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getShapelessIngredientCombinations(ingredients, inputStack);
 
                 for (List<Pair<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
                     UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
@@ -217,7 +219,7 @@ public class UncraftingTableHelpers {
 
             if (r.value() instanceof ShapedRecipe shapedRecipe) {
                 // Get all possible combinations of ingredients
-                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getLeftllIngredientCombinations(shapedRecipe.getIngredients(), inputStack);
+                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getIngredientCombinations(shapedRecipe.getIngredients(), inputStack);
 
                 // Create a recipe for each combination
                 for (List<Pair<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
@@ -269,7 +271,7 @@ public class UncraftingTableHelpers {
                         ingredients.add(Ingredient.of(Items.GUNPOWDER));
                     }
                 }
-                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getLeftllShapelessIngredientCombinations(ingredients, inputStack);
+                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getShapelessIngredientCombinations(ingredients, inputStack);
 
                 // Create a recipe for each combination
                 for (List<Pair<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
@@ -321,7 +323,7 @@ public class UncraftingTableHelpers {
                 ingredients.add(smithingTransformRecipe.additionIngredient());
                 ingredients.add(smithingTransformRecipe.templateIngredient());
 
-                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getLeftllIngredientCombinations(ingredients, inputStack);
+                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getIngredientCombinations(ingredients, inputStack);
 
                 // Create a recipe for each combination
                 for (List<Pair<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
@@ -369,7 +371,7 @@ public class UncraftingTableHelpers {
                     }).forEach(itemHolder -> ingredients.add(Optional.of(Ingredient.of(itemHolder.value()))));
                 }
 
-                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getLeftllIngredientCombinations(ingredients, inputStack);
+                List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getIngredientCombinations(ingredients, inputStack);
                 ItemEnchantments itemEnchantments = inputStack.get(DataComponents.ENCHANTMENTS);
 
                 // Create a recipe for each combination
@@ -445,9 +447,6 @@ public class UncraftingTableHelpers {
         if (item.getLeft().getDescriptionId().contains("wool") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_wool")){
             return item.getLeft() == Items.WHITE_WOOL;
         }
-        if (item.getLeft().getDescriptionId().contains("bed") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_bed") && inputStack.getItem().builtInRegistryHolder().key().identifier().getNamespace().contains("minecraft")){
-            return item.getLeft() == Items.WHITE_BED;
-        }
         if (item.getLeft().getDescriptionId().contains("carpet") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_carpet")){
             return item.getLeft() == Items.WHITE_CARPET;
         }
@@ -457,7 +456,7 @@ public class UncraftingTableHelpers {
         return item.getLeft().getCraftingRemainder(item.getLeft().getDefaultInstance()) == null || !item.getLeft().getCraftingRemainder(item.getLeft().getDefaultInstance()).is(item.getLeft().getDefaultInstance().getItem());
     }
 
-    public static List<List<Pair<Item, DataComponentPatch>>> getLeftllIngredientCombinations(List<Optional<Ingredient>> ingredients, ItemStack inputStack) {
+    public static List<List<Pair<Item, DataComponentPatch>>> getIngredientCombinations(List<Optional<Ingredient>> ingredients, ItemStack inputStack) {
         Map<String, UncraftingTableHelpers.Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {
@@ -495,7 +494,7 @@ public class UncraftingTableHelpers {
         return getLists(groupKeyToGroup, ingredients.size());
     }
 
-    public static List<List<Pair<Item, DataComponentPatch>>> getLeftllShapelessIngredientCombinations(List<Ingredient> ingredients, ItemStack inputStack) {
+    public static List<List<Pair<Item, DataComponentPatch>>> getShapelessIngredientCombinations(List<Ingredient> ingredients, ItemStack inputStack) {
         Map<String, UncraftingTableHelpers.Group> groupKeyToGroup = new HashMap<>();
 
         for (int i = 0; i < ingredients.size(); i++) {

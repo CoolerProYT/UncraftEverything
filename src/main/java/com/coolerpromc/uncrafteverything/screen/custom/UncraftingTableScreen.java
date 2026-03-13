@@ -4,7 +4,7 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.UncraftingTableCraftButtonClickPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -38,27 +38,28 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
-        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
-        super.renderBg(context, delta, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         this.clearWidgets();
         this.init();
 
         this.renderExpRequired(context, mouseX, mouseY);
         this.renderRecipeSelection(context, mouseX, mouseY, delta);
-        super.renderContents(context, mouseX, mouseY, delta);
+        super.extractContents(context, mouseX, mouseY, delta);
         this.renderInputSlotOverlay(context);
-        super.renderCarriedItem(context, mouseX, mouseY);
-        super.renderSnapbackItem(context);
-        this.renderTooltip(context, mouseX, mouseY);
+        super.extractCarriedItem(context, mouseX, mouseY);
+        super.extractSnapbackItem(context);
+        this.extractTooltip(context, mouseX, mouseY);
     }
 
     @Override
-    protected void renderExpRequired(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderExpRequired(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         Identifier icon = Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/sprites/exp.png");
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(0.5f, 0.5f);
