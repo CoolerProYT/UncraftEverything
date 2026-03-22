@@ -1,1 +1,3 @@
-- Make renamed item (Anvil rename) able to be uncrafted
+- Added compatibility to `What Durability?`
+- Refactored recipe filtering logic for `Prevent Modded Ingredient From Vanilla Item` config (This is currently in testing stage, new bug might occur or existing bug may be fixed)
+- Added debug log for when skipping recipe caused by config
