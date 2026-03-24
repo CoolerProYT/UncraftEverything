@@ -1,7 +1,6 @@
 plugins {
-	id 'net.fabricmc.fabric-loom' version '1.14-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
 	id 'maven-publish'
-    id "com.modrinth.minotaur" version "2.+"
     id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
@@ -108,7 +107,7 @@ publishing {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("fabric")
     changelog = file("changelog.md").text
     displayName = "uncrafteverything-" + mod_version
@@ -116,7 +115,7 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.add("26.1-snapshot")
+        minecraftVersions.add(minecraft_version)
     }
 
     modrinth {
