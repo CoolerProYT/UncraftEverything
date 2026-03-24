@@ -39,10 +39,10 @@ public record UncraftingRecipeCategory(IGuiHelper guiHelper) implements IRecipeC
         return 56;
     }
 
-    /*@Override
+    @Override
     public void draw(JEIUncraftingTableRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(UncraftEverything.MODID, "textures/gui/uncrafting_table_gui.png"), 0, 0, 20, 15, 137, 56, 256, 256);
-    }*/
+    }
 
     @Override
     public @NotNull IDrawable getIcon() {
