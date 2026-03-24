@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.Holder;
@@ -87,11 +88,9 @@ public class UncraftingTableHelpers {
     public static <T extends AbstractUncraftingTableBE> List<RecipeHolder<?>> findRecipe(ServerLevel serverLevel, ItemStack input, T blockEntity){
         ItemStack inputStack = input.copy();
         inputStack.remove(DataComponents.CUSTOM_NAME);
+        if (ModList.get().isLoaded("whatdurability") && inputStack.has(DataComponents.DAMAGE)) inputStack.set(DataComponents.DAMAGE, 0);
+        if (ModList.get().isLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
-            if (!recipeHolder.id().identifier().getNamespace().equals("minecraft") && BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes()){
-                return false;
-            }
-
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 return validateRecipe(shapedRecipe.result.create(), inputStack, blockEntity);
             }
@@ -205,6 +204,19 @@ public class UncraftingTableHelpers {
         for (RecipeHolder<?> r : recipes) {
             if (r.value() instanceof TransmuteRecipe transmuteRecipe){
                 List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
+                boolean cont = false;
+                for (Ingredient ingredient : ingredients){
+                    for (Holder<Item> item : ingredient.items().toList()){
+                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                            DebugLogger.log("[Prevent Modded Ingredient Enabled]");
+                            DebugLogger.log("Skipping Recipe: " + r.id().identifier());
+                            DebugLogger.log("Skipped item: " + inputStack.typeHolder());
+                            cont = true;
+                            break;
+                        }
+                    }
+                }
+                if (cont) continue;
                 List<List<Tuple<Item, DataComponentPatch>>> allIngredientCombinations = getAllShapelessIngredientCombinations(ingredients, inputStack);
 
                 for (List<Tuple<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
@@ -225,6 +237,22 @@ public class UncraftingTableHelpers {
             }
 
             if (r.value() instanceof ShapedRecipe shapedRecipe) {
+                boolean cont = false;
+                for (Optional<Ingredient> ingredient : shapedRecipe.getIngredients()){
+                    if (ingredient.isPresent()){
+                        Ingredient ing = ingredient.get();
+                        for (Holder<Item> item : ing.items().toList()){
+                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                                DebugLogger.log("[Prevent Modded Ingredient Enabled]");
+                                DebugLogger.log("Skipping Recipe: " + r.id().identifier());
+                                DebugLogger.log("Skipped item: " + inputStack.typeHolder());
+                                cont = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (cont) continue;
                 // Get all possible combinations of ingredients
                 List<List<Tuple<Item, DataComponentPatch>>> allIngredientCombinations = getAllIngredientCombinations(shapedRecipe.getIngredients(), inputStack);
 
@@ -270,6 +298,19 @@ public class UncraftingTableHelpers {
             }
 
             if (r.value() instanceof ShapelessRecipe shapelessRecipe) {
+                boolean cont = false;
+                for (Ingredient ingredient : shapelessRecipe.ingredients){
+                    for (Holder<Item> item : ingredient.items().toList()){
+                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                            DebugLogger.log("[Prevent Modded Ingredient Enabled]");
+                            DebugLogger.log("Skipping Recipe: " + r.id().identifier());
+                            DebugLogger.log("Skipped item: " + inputStack.typeHolder());
+                            cont = true;
+                            break;
+                        }
+                    }
+                }
+                if (cont) continue;
                 List<Ingredient> ingredients = new ArrayList<>(shapelessRecipe.ingredients);
 
                 if (inputStack.has(DataComponents.FIREWORKS)){
@@ -329,6 +370,23 @@ public class UncraftingTableHelpers {
                 ingredients.add(Optional.of(smithingTransformRecipe.baseIngredient()));
                 ingredients.add(smithingTransformRecipe.additionIngredient());
                 ingredients.add(smithingTransformRecipe.templateIngredient());
+
+                boolean cont = false;
+                for (Optional<Ingredient> ingredient : ingredients){
+                    if(ingredient.isPresent()){
+                        Ingredient ing = ingredient.get();
+                        for (Holder<Item> item : ing.items().toList()){
+                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                                DebugLogger.log("[Prevent Modded Ingredient Enabled]");
+                                DebugLogger.log("Skipping Recipe: " + r.id().identifier());
+                                DebugLogger.log("Skipped item: " + inputStack.typeHolder());
+                                cont = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (cont) continue;
 
                 List<List<Tuple<Item, DataComponentPatch>>> allIngredientCombinations = getAllIngredientCombinations(ingredients, inputStack);
 
