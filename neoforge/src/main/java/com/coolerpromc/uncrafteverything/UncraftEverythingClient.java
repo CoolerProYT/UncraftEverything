@@ -27,9 +27,9 @@ public class UncraftEverythingClient {
 
     @SubscribeEvent
     public static void onRegisterClientPayloadHandlers(RegisterClientPayloadHandlersEvent event) {
-        event.register(ClientBoundResponseConfigPayload.TYPE, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
-        event.register(ClientBoundUncraftingRecipeSelectionRequestPayload.TYPE, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
-        event.register(ClientBoundUncraftingTableDataPayload.TYPE, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
+        event.register(ClientBoundResponseConfigPayload.TYPE, (payload, context) -> ClientBoundResponseConfigPayload.ClientHandler.handle(payload, new NeoForgePayloadContext(context)));
+        event.register(ClientBoundUncraftingRecipeSelectionRequestPayload.TYPE, (payload, context) -> ClientBoundUncraftingRecipeSelectionRequestPayload.ClientHandler.handle(payload, new NeoForgePayloadContext(context)));
+        event.register(ClientBoundUncraftingTableDataPayload.TYPE, (payload, context) -> ClientBoundUncraftingTableDataPayload.ClientHandler.handle(payload, new NeoForgePayloadContext(context)));
     }
 
     @SubscribeEvent

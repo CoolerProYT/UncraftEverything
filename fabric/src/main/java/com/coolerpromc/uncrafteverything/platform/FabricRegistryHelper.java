@@ -138,6 +138,21 @@ public class FabricRegistryHelper implements IRegistryHelper {
         Identifier id = Constants.id(name);
         Holder<MenuType<T>> holder = Registry.registerForHolder(BuiltInRegistries.MENU, id, new ExtendedMenuType<>(factory::create, data));
 
-        return null;
+        return new RegistryHandler<>() {
+            @Override
+            public Identifier id() {
+                return id;
+            }
+
+            @Override
+            public Holder<MenuType<T>> holder() {
+                return holder;
+            }
+
+            @Override
+            public MenuType<T> get() {
+                return holder.value();
+            }
+        };
     }
 }

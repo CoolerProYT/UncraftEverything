@@ -41,17 +41,19 @@ public record ClientBoundUncraftingTableDataPayload(BlockPos blockPos, List<Uncr
         return TYPE;
     }
 
-    public void handle(PayloadContext context){
-        context.execute(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            Level world = minecraft.level;
-            Screen screen = minecraft.screen;
+    public static class ClientHandler{
+        public static void handle(ClientBoundUncraftingTableDataPayload payload, PayloadContext context){
+            context.execute(() -> {
+                Minecraft minecraft = Minecraft.getInstance();
+                Level world = minecraft.level;
+                Screen screen = minecraft.screen;
 
-            if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen){
-                if (world.getBlockEntity(this.blockPos()) instanceof AbstractUncraftingTableBE){
-                    uncraftingTableScreen.updateFromBlockEntity(this.recipes(), this.size(), this.shouldSendPacket());
+                if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen){
+                    if (world.getBlockEntity(payload.blockPos()) instanceof AbstractUncraftingTableBE){
+                        uncraftingTableScreen.updateFromBlockEntity(payload.recipes(), payload.size(), payload.shouldSendPacket());
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }

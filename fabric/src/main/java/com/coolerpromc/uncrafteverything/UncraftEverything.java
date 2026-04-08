@@ -16,15 +16,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.crafting.*;
 
 public class UncraftEverything implements ModInitializer {
-    static Storage<ItemVariant> outputHandler = null;
-    static Storage<ItemVariant> inputHandler = null;
 
     @Override
     public void onInitialize() {
@@ -83,16 +78,10 @@ public class UncraftEverything implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((commandDispatcher, _, _) -> ModServerCommands.registerServer(commandDispatcher));
 
         ItemStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> {
-            if (outputHandler == null){
-                outputHandler = ContainerStorage.of(blockEntity.getOutputHandler(), null);
-            }
-            if (inputHandler == null){
-                inputHandler = ContainerStorage.of(blockEntity.getInputHandler(), null);
-            }
             if (direction == Direction.DOWN){
-                return outputHandler;
+                return ContainerStorage.of(blockEntity.getOutputHandler(), null);
             }
-            return inputHandler;
+            return ContainerStorage.of(blockEntity.getInputHandler(), null);
         }, UEBlockEntities.AUTO_UNCRAFTING_TABLE_BE.get());
     }
 }

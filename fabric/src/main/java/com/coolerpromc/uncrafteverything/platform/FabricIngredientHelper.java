@@ -20,6 +20,9 @@ import java.util.*;
 public class FabricIngredientHelper implements IIngredientHelper {
     @Override
     public Ingredient componentIngredient(ComponentIngredient ingredient) {
+        if (ingredient.patch().isEmpty()){
+            return ingredient.ingredient();
+        }
         return new ComponentsIngredient(ingredient.ingredient(), ingredient.patch()).toVanilla();
     }
 

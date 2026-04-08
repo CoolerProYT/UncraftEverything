@@ -22,15 +22,17 @@ public record ClientBoundUncraftingRecipeSelectionRequestPayload() implements Cu
         return TYPE;
     }
 
-    public void handle(PayloadContext context){
-        context.execute(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            Level world = minecraft.level;
-            Screen screen = minecraft.screen;
+    public static class ClientHandler{
+        public static void handle(ClientBoundUncraftingRecipeSelectionRequestPayload payload, PayloadContext context){
+            context.execute(() -> {
+                Minecraft minecraft = Minecraft.getInstance();
+                Level world = minecraft.level;
+                Screen screen = minecraft.screen;
 
-            if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen) {
-                uncraftingTableScreen.getRecipeSelection();
-            }
-        });
+                if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen) {
+                    uncraftingTableScreen.getRecipeSelection();
+                }
+            });
+        }
     }
 }

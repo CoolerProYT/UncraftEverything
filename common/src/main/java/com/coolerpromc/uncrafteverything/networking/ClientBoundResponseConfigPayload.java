@@ -78,7 +78,9 @@ public record ClientBoundResponseConfigPayload(
         return TYPE;
     }
 
-    public void handle(PayloadContext context){
-        context.execute(() -> CommonClientClass.payloadFromServer = this);
+    public static class ClientHandler{
+        public static void handle(ClientBoundResponseConfigPayload payload, PayloadContext context){
+            context.execute(() -> CommonClientClass.payloadFromServer = payload);
+        }
     }
 }

@@ -27,9 +27,9 @@ public class UncraftEverythingClient implements ClientModInitializer {
         FabricUncraftEverythingClientConfig.load();
         FabricUncraftEverythingClientConfig.save();
 
-        ClientPlayNetworking.registerGlobalReceiver(ClientBoundUncraftingTableDataPayload.TYPE, (payload, context) -> payload.handle(new FabricClientPayloadContext(context)));
-        ClientPlayNetworking.registerGlobalReceiver(ClientBoundResponseConfigPayload.TYPE, (payload, context) -> payload.handle(new FabricClientPayloadContext(context)));
-        ClientPlayNetworking.registerGlobalReceiver(ClientBoundUncraftingRecipeSelectionRequestPayload.TYPE, (payload, context) -> payload.handle(new FabricClientPayloadContext(context)));
+        ClientPlayNetworking.registerGlobalReceiver(ClientBoundUncraftingTableDataPayload.TYPE, (payload, context) -> ClientBoundUncraftingTableDataPayload.ClientHandler.handle(payload, new FabricClientPayloadContext(context)));
+        ClientPlayNetworking.registerGlobalReceiver(ClientBoundResponseConfigPayload.TYPE, (payload, context) -> ClientBoundResponseConfigPayload.ClientHandler.handle(payload, new FabricClientPayloadContext(context)));
+        ClientPlayNetworking.registerGlobalReceiver(ClientBoundUncraftingRecipeSelectionRequestPayload.TYPE, (payload, context) -> ClientBoundUncraftingRecipeSelectionRequestPayload.ClientHandler.handle(payload, new FabricClientPayloadContext(context)));
 
         ClientLifecycleEvents.CLIENT_STOPPING.register(_ -> FabricUncraftEverythingClientConfig.shutdown());
         ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, _) -> ModCommands.register(commandDispatcher));
