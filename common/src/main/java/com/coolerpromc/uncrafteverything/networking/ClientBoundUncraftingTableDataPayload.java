@@ -46,7 +46,7 @@ public record ClientBoundUncraftingTableDataPayload(BlockPos blockPos, List<Uncr
             context.execute(() -> {
                 Minecraft minecraft = Minecraft.getInstance();
                 Level world = minecraft.level;
-                Screen screen = minecraft.screen;
+                Screen screen = minecraft.gui.screen();
 
                 if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen){
                     if (world.getBlockEntity(payload.blockPos()) instanceof AbstractUncraftingTableBE){

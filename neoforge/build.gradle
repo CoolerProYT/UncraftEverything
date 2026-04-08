@@ -41,8 +41,8 @@ neoForge {
 }
 
 dependencies {
-    compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
-    runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    compileOnly("mezz.jei:jei-26.1.1-neoforge-api:${jei_version}")
+//    runtimeOnly("mezz.jei:jei-26.1.1-neoforge:${jei_version}")
 }
 
 sourceSets.main.resources { srcDir rootProject.project(':common').file('src/generated/resources/').getAbsolutePath() }
@@ -68,7 +68,7 @@ sourceSets.configureEach {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = STABLE
+    type = BETA
     modLoaders.add("neoforge")
     changelog = rootProject.file("changelog.md").text
     displayName = mod_id + "-" + project.version + "+" + minecraft_version + "-neoforge"
@@ -76,12 +76,12 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.addAll("26.1", minecraft_version)
+        minecraftVersions.add("26.2-snapshot")
     }
 
     modrinth {
         projectId = '9cz66Qto'
         accessToken = findProperty("MODRINTH_TOKEN")
-        minecraftVersions.addAll("26.1", minecraft_version)
+        minecraftVersions.add(minecraft_version)
     }
 }

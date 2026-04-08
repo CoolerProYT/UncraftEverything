@@ -39,7 +39,7 @@ public class ModCommands {
     private static <T extends SharedSuggestionProvider> int common(CommandContext<T> context){
         Minecraft.getInstance().schedule(() -> {
             Services.NETWORK.sendToServer(new ServerBoundRequestConfigPayload());
-            Minecraft.getInstance().setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config")));
+            Minecraft.getInstance().gui.setScreen(new UEConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_config")));
         });
         return 1;
     }
@@ -47,14 +47,14 @@ public class ModCommands {
     private static <T extends SharedSuggestionProvider> int exp(CommandContext<T> context){
         Minecraft.getInstance().schedule(() -> {
             Services.NETWORK.sendToServer(new ServerBoundRequestConfigPayload());
-            Minecraft.getInstance().setScreen(new PerItemExpConfigScreen(Component.translatable("screen.uncrafteverything.per_item_xp_config")));
+            Minecraft.getInstance().gui.setScreen(new PerItemExpConfigScreen(Component.translatable("screen.uncrafteverything.per_item_xp_config")));
         });
         return 1;
     }
 
     private static <T extends SharedSuggestionProvider> int client(CommandContext<T> context){
         Minecraft.getInstance().schedule(() -> {
-            Minecraft.getInstance().setScreen(new UEClientConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_client_config")));
+            Minecraft.getInstance().gui.setScreen(new UEClientConfigScreen(Component.translatable("screen.uncrafteverything.uncraft_everything_client_config")));
         });
         return 1;
     }
@@ -62,7 +62,7 @@ public class ModCommands {
     private static <T extends SharedSuggestionProvider> int progression(CommandContext<T> context){
         Minecraft.getInstance().schedule(() -> {
             Services.NETWORK.sendToServer(new ServerBoundRequestConfigPayload());
-            Minecraft.getInstance().setScreen(new FTBQuestsProgressionConfigScreen(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config")));
+            Minecraft.getInstance().gui.setScreen(new FTBQuestsProgressionConfigScreen(Component.translatable("screen.uncrafteverything.ftb_quest_progression_config")));
         });
         return 1;
     }

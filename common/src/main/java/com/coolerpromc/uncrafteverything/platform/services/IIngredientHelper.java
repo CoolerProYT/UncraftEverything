@@ -24,13 +24,13 @@ public interface IIngredientHelper {
             return item.getLeft() == Items.BUNDLE;
         }
         if (item.getLeft().getDescriptionId().contains("wool") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_wool")){
-            return item.getLeft() == Items.WHITE_WOOL;
+            return item.getLeft() == Items.WOOL.white();
         }
         if (item.getLeft().getDescriptionId().contains("carpet") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_carpet")){
-            return item.getLeft() == Items.WHITE_CARPET;
+            return item.getLeft() == Items.CARPET.white();
         }
         if (item.getLeft().getDescriptionId().contains("harness") && inputStack.getItem().builtInRegistryHolder().key().identifier().getPath().contains("_harness")){
-            return inputStack.getItem() == Items.WHITE_HARNESS ? item.getLeft() == Items.GRAY_HARNESS : item.getLeft() == Items.WHITE_HARNESS;
+            return inputStack.getItem() == Items.HARNESS.white() ? item.getLeft() == Items.HARNESS.gray() : item.getLeft() == Items.HARNESS.white();
         }
         return item.getLeft().getCraftingRemainder() == null || !item.getLeft().getCraftingRemainder().is(item.getLeft().getDefaultInstance().getItem());
     }

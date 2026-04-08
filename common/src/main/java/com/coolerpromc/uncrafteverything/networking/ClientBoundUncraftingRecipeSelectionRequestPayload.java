@@ -27,7 +27,7 @@ public record ClientBoundUncraftingRecipeSelectionRequestPayload() implements Cu
             context.execute(() -> {
                 Minecraft minecraft = Minecraft.getInstance();
                 Level world = minecraft.level;
-                Screen screen = minecraft.screen;
+                Screen screen = minecraft.gui.screen();
 
                 if (world != null && screen instanceof AbstractUncraftingScreen<? extends AbstractUncraftingTableBE, ? extends AbstractUncraftingMenu<? extends AbstractUncraftingTableBE>> uncraftingTableScreen) {
                     uncraftingTableScreen.getRecipeSelection();
