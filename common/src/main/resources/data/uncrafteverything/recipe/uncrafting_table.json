@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "minecraft:crafting_table",
+    "D": "minecraft:diamond",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "   ",
+    "P#P",
+    "PDP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "uncrafteverything:uncrafting_table"
+  },
+  "show_notification": false
+}
