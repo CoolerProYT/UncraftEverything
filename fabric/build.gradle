@@ -59,7 +59,7 @@ sourceSets.main.resources{ srcDir rootProject.project(':common').file('src/gener
 
 publishMods {
     file.set(jar.archiveFile)
-    type = STABLE
+    type = BETA
     modLoaders.add("fabric")
     changelog = rootProject.file("changelog.md").text
     displayName = mod_id + "-" + project.version + "+" + minecraft_version + "-fabric"
@@ -67,12 +67,18 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.addAll("26.1", minecraft_version)
+        minecraftVersionRange {
+            start = "26.1"
+            end = "26.1.2"
+        }
     }
 
     modrinth {
         projectId = '9cz66Qto'
         accessToken = findProperty("MODRINTH_TOKEN")
-        minecraftVersions.addAll("26.1", minecraft_version)
+        minecraftVersionRange {
+            start = "26.1"
+            end = "26.1.2"
+        }
     }
 }
