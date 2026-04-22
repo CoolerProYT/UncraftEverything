@@ -77,9 +77,7 @@ public abstract class AbstractUncraftingScreen<B extends AbstractUncraftingTable
     protected abstract void renderExpRequired(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY);
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        super.extractBackground(graphics, mouseX, mouseY, a);
-
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         int buttonSize = 8;
         int x = this.leftPos + this.imageWidth - 5 - buttonSize;
         int y = this.topPos + 5;

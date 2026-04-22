@@ -46,6 +46,8 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
+
         this.clearWidgets();
         this.init();
 

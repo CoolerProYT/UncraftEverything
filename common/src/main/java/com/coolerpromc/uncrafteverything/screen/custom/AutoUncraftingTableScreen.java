@@ -112,6 +112,8 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
 
     @Override
     public void extractRenderState(@NotNull GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        super.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
         this.clearWidgets();
         this.init();
         this.page = this.getMenu().getPage();

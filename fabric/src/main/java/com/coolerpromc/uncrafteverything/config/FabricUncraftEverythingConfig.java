@@ -36,7 +36,7 @@ public class FabricUncraftEverythingConfig {
                 configFile.getEnumOrElse("Experience.experienceType", UncraftEverythingConfig.ExperienceType.LEVEL),
                 Math.max(0, configFile.getOrElse("Experience.experiences", 1)),
                 configFile.getEnumOrElse("Restrictions.restrictionType", UncraftEverythingConfig.RestrictionType.BLACKLIST),
-                configFile.getOrElse("Restrictions.restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table")),
+                configFile.getOrElse("Restrictions.restrictions", List.of()),
                 configFile.getOrElse("AllowEnchantedItems.allowEnchantedItems", true),
                 configFile.getOrElse("AllowUnSmithing.allowUnSmithing", true),
                 configFile.getOrElse("AllowDamaged.allowDamaged", true),

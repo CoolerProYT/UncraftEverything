@@ -43,7 +43,7 @@ public class NeoForgeUncraftEverythingConfig {
         builder.push("Restrictions");
         restrictionType = builder.comment("The type of restriction to be used.").defineEnum("restrictionType", UncraftEverythingConfig.RestrictionType.BLACKLIST, UncraftEverythingConfig.RestrictionType.values());
         restrictions = builder.comment("A list of items that can/cannot be uncrafted depending on type of restriction.", "Invalid input will cause config reset at runtime.", "Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name", "Press F3 + h in game and hover item to check their modid:name")
-                .defineList("restrictions", List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table"), () -> "", o -> o instanceof String && Identifier.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
+                .defineList("restrictions", List.of(), () -> "", o -> o instanceof String && Identifier.tryParse((String) o) != null || o.toString().contains("*") || tryParseTagKey(o.toString().substring(1)).isPresent());
         builder.pop();
 
         builder.push("AllowEnchantedItems");
