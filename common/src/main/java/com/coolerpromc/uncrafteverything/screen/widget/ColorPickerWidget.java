@@ -3,7 +3,6 @@ package com.coolerpromc.uncrafteverything.screen.widget;
 import com.coolerpromc.uncrafteverything.Constants;
 import com.coolerpromc.uncrafteverything.screen.custom.UEClientConfigScreen;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -12,6 +11,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
@@ -102,7 +102,7 @@ public class ColorPickerWidget extends AbstractWidget {
                 ARGB.white(this.alpha)
         );
 
-        graphics.centeredText(minecraft.font, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.font.lineHeight / 2, ARGB.color(0xFF, ChatFormatting.WHITE.getColor()));
+        graphics.centeredText(minecraft.font, this.getMessage() , screenWidth / 2, screenHeight / 2 - 100 + 2 + minecraft.font.lineHeight / 2, ARGB.color(0xFF, TextColor.WHITE.getValue()));
 
         // --- SV (Saturation/Value) Square ---
         for (int x = 0; x < PICKER_SIZE; x++) {

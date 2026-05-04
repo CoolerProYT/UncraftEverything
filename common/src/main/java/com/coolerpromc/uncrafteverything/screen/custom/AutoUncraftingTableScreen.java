@@ -120,7 +120,6 @@ public class AutoUncraftingTableScreen extends AbstractUncraftingScreen<AutoUncr
         super.extractContents(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.renderInputSlotOverlay(pGuiGraphics);
         super.extractCarriedItem(pGuiGraphics, pMouseX, pMouseY);
-        super.extractSnapbackItem(pGuiGraphics);
         this.extractTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 

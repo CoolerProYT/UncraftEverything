@@ -54,7 +54,6 @@ public class UncraftingTableScreen extends AbstractUncraftingScreen<UncraftingTa
         super.extractContents(context, mouseX, mouseY, delta);
         this.renderInputSlotOverlay(context);
         super.extractCarriedItem(context, mouseX, mouseY);
-        super.extractSnapbackItem(context);
         this.extractTooltip(context, mouseX, mouseY);
     }
 
