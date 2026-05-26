@@ -90,11 +90,27 @@ public class UncraftingTableHelpers {
         if (Services.PLATFORM.isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
+                if (UncraftEverythingConfig.restrictAmbiguouslyCraftedItems()){
+                    for (Optional<Ingredient> ing : shapedRecipe.getIngredients()){
+                        if (ing.isPresent() && Services.INGREDIENT.getItemsFromIngredient(ing.get(), inputStack).size() > 1){
+                            blockEntity.status = Status.RESTRICTED_BY_CONFIG;
+                            return false;
+                        }
+                    }
+                }
                 return validateRecipe(shapedRecipe.result.create(), inputStack, blockEntity);
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
                 if (inputStack.getItem() instanceof BedItem) return false;
+                if (UncraftEverythingConfig.restrictAmbiguouslyCraftedItems()){
+                    for (Ingredient ing : shapelessRecipe.ingredients){
+                        if (Services.INGREDIENT.getItemsFromIngredient(ing, inputStack).size() > 1){
+                            blockEntity.status = Status.RESTRICTED_BY_CONFIG;
+                            return false;
+                        }
+                    }
+                }
                 return validateRecipe(shapelessRecipe.result.create(), inputStack, blockEntity);
             }
 

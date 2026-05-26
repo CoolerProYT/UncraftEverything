@@ -103,6 +103,9 @@
   "tooltip.uncrafteverything.config.toggle_only_allow_defined_progression_no": "Everything will be able to uncraft except the item that are defined with a quest that is not completed",
   "screen.uncrafteverything.config.output_enchanted_book_yes": "Output Enchanted Book: YES",
   "screen.uncrafteverything.config.output_enchanted_book_no": "Output Enchanted Book: NO",
+  "screen.uncrafteverything.config.restrict_ambiguously_yes": "Restrict Ambiguously Crafted Items: Yes",
+  "screen.uncrafteverything.config.restrict_ambiguously_no": "Restrict Ambiguously Crafted Items: No",
+  "screen.uncrafteverything.config.restrict_mbiguously_label": "Restrict Ambiguously Crafted Items",
   "tooltip.uncrafteverything.config.toggle_output_enchanted_book": "Toggle Output Enchanted Book",
   "tooltip.uncrafteverything.config.toggle_output_enchanted_book_description": "Toggle if uncrafting enchanted item should output enchanted book",
   "tooltip.uncrafteverything.config.toggle_output_enchanted_book_yes": "Enchanted book will be outputted when uncrafting enchanted item",
@@ -148,5 +151,8 @@
   "tooltip.uncrafteverything.config.toggle_prioritize": "Toggle Prioritize Vanilla Ingredient",
   "tooltip.uncrafteverything.config.toggle_prioritize_description": "Toggle if recipe that has more vanilla ingredient should be listed in recipe selection first",
   "tooltip.uncrafteverything.config.toggle_prioritize_yes": "Recipe selection list will show recipe with more vanilla ingredient first",
-  "tooltip.uncrafteverything.config.toggle_prioritize_no": "Recipe selection list will show default order without any sorting"
+  "tooltip.uncrafteverything.config.toggle_prioritize_no": "Recipe selection list will show default order without any sorting",
+  "tooltip.uncrafteverything.config.toggle_restrict_ambiguously": "Restrict recipe that use ItemTags ingredient from uncrafting.",
+  "tooltip.uncrafteverything.config.restrict_ambiguously_yes": "Recipe that use ItemTags ingredient will not be able to uncraft",
+  "tooltip.uncrafteverything.config.restrict_ambiguously_no": "Every item is uncraftable except for restricted by other config value"
 }

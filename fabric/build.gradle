@@ -59,7 +59,7 @@ sourceSets.main.resources{ srcDir rootProject.project(':common').file('src/gener
 
 publishMods {
     file.set(jar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("fabric")
     changelog = rootProject.file("changelog.md").text
     displayName = mod_id + "-" + project.version + "+" + minecraft_version + "-fabric"

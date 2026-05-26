@@ -45,7 +45,8 @@ public class FabricUncraftEverythingConfig {
                 configFile.getOrElse("RecipeSelectionOrder.prioritizeVanillaIngredientRecipe", true),
                 configFile.getOrElse("FTBQuestProgression.enableProgression", false),
                 configFile.getOrElse("FTBQuestProgression.onlyAllowDefinedProgression", false),
-                configFile.getOrElse("OutputEnchantedBook.outputEnchantedBook", false)
+                configFile.getOrElse("OutputEnchantedBook.outputEnchantedBook", false),
+                configFile.getOrElse("Restrictions.restrictAmbiguouslyCraftedItems", false)
         );
     }
 
@@ -66,6 +67,9 @@ public class FabricUncraftEverythingConfig {
                         Invalid input will cause config reset at runtime.
                         Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name
                         Press F3 + h in game and hover item to check their modid:name""");
+
+        configFile.set("Restrictions.restrictAmbiguouslyCraftedItems", UncraftEverythingConfig.restrictAmbiguouslyCraftedItems);
+        configFile.setComment("Restrictions.restrictAmbiguouslyCraftedItems", "Restrict recipe that use ItemTags ingredient from uncrafting.");
 
         configFile.set("AllowEnchantedItems.allowEnchantedItems", UncraftEverythingConfig.allowEnchantedItems);
         configFile.setComment("AllowEnchantedItems.allowEnchantedItems", "Allow uncrafting of enchanted items. [true/false]");

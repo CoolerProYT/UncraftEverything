@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.networking;
 
-import com.coolerpromc.uncrafteverything.CommonClientClass;
+import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.Constants;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
@@ -28,7 +28,8 @@ public record ClientBoundResponseConfigPayload(
         boolean enableProgression,
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook,
-        boolean prioritizeVanillaIngredientRecipe
+        boolean prioritizeVanillaIngredientRecipe,
+        boolean restrictAmbiguouslyCraftedItems
 ) implements CustomPacketPayload {
 
     public static final Type<ClientBoundResponseConfigPayload> TYPE = new Type<>(Constants.id("response_config"));
@@ -51,6 +52,7 @@ public record ClientBoundResponseConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
         ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
+        ByteBufCodecs.BOOL.encode(buf, payload.restrictAmbiguouslyCraftedItems);
     }
 
     private static ClientBoundResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -69,8 +71,9 @@ public record ClientBoundResponseConfigPayload(
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
         boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
+        boolean restrictAmbiguouslyCraftedItems = ByteBufCodecs.BOOL.decode(buf);
 
-        return new ClientBoundResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
+        return new ClientBoundResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems);
     }
 
     @Override
@@ -80,7 +83,7 @@ public record ClientBoundResponseConfigPayload(
 
     public static class ClientHandler{
         public static void handle(ClientBoundResponseConfigPayload payload, PayloadContext context){
-            context.execute(() -> CommonClientClass.payloadFromServer = payload);
+            context.execute(() -> UncraftEverythingClient.payloadFromServer = payload);
         }
     }
 }

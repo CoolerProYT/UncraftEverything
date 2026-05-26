@@ -34,6 +34,7 @@ public class UncraftEverythingConfig {
     public static boolean onlyAllowDefinedProgression = false;
     public static boolean outputEnchantedBook = false;
     public static boolean prioritizeVanillaIngredientRecipe = true;
+    public static boolean restrictAmbiguouslyCraftedItems = false;
 
     public static void updateCache(
             ExperienceType experienceType, int experience,
@@ -41,7 +42,7 @@ public class UncraftEverythingConfig {
             boolean allowEnchantedItems, boolean allowUnSmithing, boolean allowDamaged,
             boolean preventModdedIngredientsFromVanillaItems, List<String> restrictedModIngredients,
             boolean prioritizeVanillaIngredientRecipe, boolean enableProgression,
-            boolean onlyAllowDefinedProgression, boolean outputEnchantedBook
+            boolean onlyAllowDefinedProgression, boolean outputEnchantedBook, boolean restrictAmbiguouslyCraftedItems
     ) {
         UncraftEverythingConfig.experienceType = experienceType;
         UncraftEverythingConfig.experience = experience;
@@ -63,6 +64,7 @@ public class UncraftEverythingConfig {
         UncraftEverythingConfig.enableProgression = enableProgression;
         UncraftEverythingConfig.onlyAllowDefinedProgression = onlyAllowDefinedProgression;
         UncraftEverythingConfig.outputEnchantedBook = outputEnchantedBook;
+        UncraftEverythingConfig.restrictAmbiguouslyCraftedItems = restrictAmbiguouslyCraftedItems;
     }
 
     public static int getExperience() {
@@ -95,6 +97,10 @@ public class UncraftEverythingConfig {
 
     public static boolean outputEnchantedBook(){
         return outputEnchantedBook;
+    }
+
+    public static boolean restrictAmbiguouslyCraftedItems(){
+        return restrictAmbiguouslyCraftedItems;
     }
 
     public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){

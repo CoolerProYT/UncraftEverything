@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
-import com.coolerpromc.uncrafteverything.CommonClientClass;
+import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ClientBoundResponseConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundRequestConfigPayload;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UEConfigScreen extends AbstractScrollableScreen {
-    private final ClientBoundResponseConfigPayload config = CommonClientClass.payloadFromServer;
+    private final ClientBoundResponseConfigPayload config = UncraftEverythingClient.payloadFromServer;
 
     private UncraftEverythingConfig.ExperienceType experienceType = config.experienceType();
     private int experience = config.experience();
@@ -40,10 +40,12 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private boolean onlyAllowDefinedProgression = config.onlyAllowDefinedProgression();
     private boolean outputEnchantedBook = config.outputEnchantedBook();
     private boolean prioritizeVanillaIngredientRecipe = config.prioritizeVanillaIngredientRecipe();
+    private boolean restrictAmbiguouslyCraftedItems = config.restrictAmbiguouslyCraftedItems();
 
     private Button restrictionTypeButton;
     private Button toggleEnchantedBtn;
     private Button toggleEnchantmentTypeBtn;
+    private Button toggleRestrictAmbiguouslyCraftedItems;
     private Button toggleAllowUnsmithing;
     private Button toggleAllowDamaged;
     private Button toggleEnableProgression;
@@ -57,7 +59,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
     private Button saveButton;
 
     public UEConfigScreen(Component title) {
-        super(title, 438);
+        super(title, 463);
     }
 
     @Override
@@ -76,11 +78,18 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         restrictionsInput.setValue(joined);
         this.addRenderableWidget(restrictionsInput);
 
+        // Toggle for restrictAmbiguouslyCraftedItems
+        toggleRestrictAmbiguouslyCraftedItems = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.restrict_ambiguously_", restrictAmbiguouslyCraftedItems)), btn -> {
+            restrictAmbiguouslyCraftedItems = !restrictAmbiguouslyCraftedItems;
+            btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.restrict_ambiguously_", restrictAmbiguouslyCraftedItems)));
+        }).bounds(x, (int) (baseY + 120 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(toggleRestrictAmbiguouslyCraftedItems);
+
         // Toggle for allowEnchantedItems
        toggleEnchantedBtn = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_enchanted_", allowEnchantedItems)), btn -> {
             allowEnchantedItems = !allowEnchantedItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_enchanted_", allowEnchantedItems)));
-       }).bounds(x, (int) (baseY + 120 - scrollAmount), widgetWidth, 20).build();
+       }).bounds(x, (int) (baseY + 145 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnchantedBtn);
 
         // Toggle for experienceType
@@ -92,11 +101,11 @@ public class UEConfigScreen extends AbstractScrollableScreen {
                     experienceType = next;
                     btn.setMessage(Component.translatable("screen.uncrafteverything.config.exp_type_" + next.toString().toLowerCase()));
                 }
-        ).bounds(x, (int) (baseY + 145 - scrollAmount), widgetWidth, 20).build();
+        ).bounds(x, (int) (baseY + 170 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnchantmentTypeBtn);
 
         // Experience input box
-        experienceInput = new EditBox(this.font, x, (int) (baseY + 170 - scrollAmount), widgetWidth, 20,
+        experienceInput = new EditBox(this.font, x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20,
                 Component.translatable("screen.uncrafteverything.blank"));
         experienceInput.setValue(Integer.toString(experience));
         this.addRenderableWidget(experienceInput);
@@ -105,52 +114,52 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         toggleAllowUnsmithing = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_unsmithing_", allowUnsmithing)), btn -> {
             allowUnsmithing = !allowUnsmithing;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_unsmithing_", allowUnsmithing)));
-        }).bounds(x, (int) (baseY + 195 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowUnsmithing);
 
         toggleAllowDamaged = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.allow_damaged_", allowDamagedItems)), btn -> {
             allowDamagedItems = !allowDamagedItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.allow_damaged_", allowDamagedItems)));
-        }).bounds(x, (int) (baseY + 220 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleAllowDamaged);
 
         // Toggle for preventModdedIngredientsFromVanillaItems
         togglePreventModdedIngredientsFromVanillaItems = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_", preventModdedIngredientsFromVanillaItems)), btn -> {
             preventModdedIngredientsFromVanillaItems = !preventModdedIngredientsFromVanillaItems;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_", preventModdedIngredientsFromVanillaItems)));
-        }).bounds(x, (int) (baseY + 245 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 270 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(togglePreventModdedIngredientsFromVanillaItems);
 
         // Restricted Mod input box
         String joinedMod = String.join("\n", restrictedModIngredients);
-        restrictedModInput = MultiLineEditBox.builder().setX(x).setY((int) (baseY + 270 - scrollAmount)).build(font, widgetWidth, 90, Component.translatable("screen.uncrafteverything.blank"));
+        restrictedModInput = MultiLineEditBox.builder().setX(x).setY((int) (baseY + 295 - scrollAmount)).build(font, widgetWidth, 90, Component.translatable("screen.uncrafteverything.blank"));
         restrictedModInput.setValue(joinedMod);
         this.addRenderableWidget(restrictedModInput);
 
         toggleEnableProgression = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)), btn -> {
             enableProgression = !enableProgression;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.enable_progression_", enableProgression)));
-        }).bounds(x, (int) (baseY + 365 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 390 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleEnableProgression);
 
         toggleOnlyAllowDefinedProgression = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)), btn -> {
             onlyAllowDefinedProgression = !onlyAllowDefinedProgression;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.only_allow_defined_progression_", onlyAllowDefinedProgression)));
-        }).bounds(x, (int) (baseY + 390 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 415 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleOnlyAllowDefinedProgression);
 
         // Toggle for toggleOutputEnchantedBook
         toggleOutputEnchantedBook = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.output_enchanted_book_", outputEnchantedBook)), btn -> {
             outputEnchantedBook = !outputEnchantedBook;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.output_enchanted_book_", outputEnchantedBook)));
-        }).bounds(x, (int) (baseY + 415 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 440 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(toggleOutputEnchantedBook);
 
         // Toggle for allowPrioritizeVanillaIngredientRecipe
         togglePrioritizeVanillaIngredientRecipe = Button.builder(Component.translatable(getLabel("screen.uncrafteverything.config.prioritize_", prioritizeVanillaIngredientRecipe)), btn -> {
             prioritizeVanillaIngredientRecipe = !prioritizeVanillaIngredientRecipe;
             btn.setMessage(Component.translatable(getLabel("screen.uncrafteverything.config.prioritize_", prioritizeVanillaIngredientRecipe)));
-        }).bounds(x, (int) (baseY + 440 - scrollAmount), widgetWidth, 20).build();
+        }).bounds(x, (int) (baseY + 465 - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(togglePrioritizeVanillaIngredientRecipe);
 
         // Save button (always at bottom)
@@ -192,36 +201,39 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.format_label"), 0, 0, (int) (textWidth * 1.5), 0xFFAAAAAA);
         pGuiGraphics.pose().popMatrix();
 
-        Component allowEnchantedItem = Component.translatable("screen.uncrafteverything.config.allow_enchanted_label");
-        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        Component restrictAmbiguouslyCraftedItems = Component.translatable("screen.uncrafteverything.config.restrict_mbiguously_label");
+        pGuiGraphics.textWithWordWrap(this.font, restrictAmbiguouslyCraftedItems, x, (int) (baseY + 120 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictAmbiguouslyCraftedItems, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.exp_type_label"), x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        Component allowEnchantedItem = Component.translatable("screen.uncrafteverything.config.allow_enchanted_label");
+        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedItem, x, (int) (baseY + 145 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+
+        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.exp_type_label"), x, (int) (baseY + 170 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component expRequired = Component.translatable("screen.uncrafteverything.config.exp_required_label");
-        pGuiGraphics.textWithWordWrap(this.font, expRequired, x, (int) (baseY + 170 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, expRequired, x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(expRequired, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
-        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 195 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, Component.translatable("screen.uncrafteverything.config.allow_unsmithing_label"), x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         Component allowDamagedItem = Component.translatable("screen.uncrafteverything.config.allow_damaged_label");
-        pGuiGraphics.textWithWordWrap(this.font, allowDamagedItem, x, (int) (baseY + 220 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowDamagedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, allowDamagedItem, x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowDamagedItem, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component preventModded = Component.translatable("screen.uncrafteverything.config.prevent_modded_ingredients_from_vanilla_items_label");
-        pGuiGraphics.textWithWordWrap(this.font, preventModded, x, (int) (baseY + 245 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, preventModded, x, (int) (baseY + 270 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(preventModded, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component restrictedMod = Component.translatable("screen.uncrafteverything.config.prevent_modid");
-        pGuiGraphics.textWithWordWrap(this.font, restrictedMod, x, (int) (baseY + 304 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, restrictedMod, x, (int) (baseY + 329 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(restrictedMod, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component enableProgression = Component.translatable("screen.uncrafteverything.config.enable_progression");
-        pGuiGraphics.textWithWordWrap(this.font, enableProgression, x, (int) (baseY + 367 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(enableProgression, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, enableProgression, x, (int) (baseY + 392 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(enableProgression, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component onlyAllowDefined = Component.translatable("screen.uncrafteverything.config.only_allow_defined_progression");
-        pGuiGraphics.textWithWordWrap(this.font, onlyAllowDefined, x, (int) (baseY + 392 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(onlyAllowDefined, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, onlyAllowDefined, x, (int) (baseY + 417 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(onlyAllowDefined, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component allowEnchantedBook = Component.translatable("screen.uncrafteverything.config.output_enchanted_book");
-        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedBook, x, (int) (baseY + 417 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, allowEnchantedBook, x, (int) (baseY + 443 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(allowEnchantedBook, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         Component prioritizeVanillaIngredientRecipe = Component.translatable("screen.uncrafteverything.config.prioritize");
-        pGuiGraphics.textWithWordWrap(this.font, prioritizeVanillaIngredientRecipe, x, (int) (baseY + 443 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(prioritizeVanillaIngredientRecipe, textWidth) / 4d), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, prioritizeVanillaIngredientRecipe, x, (int) (baseY + 468 - scrollAmount + (this.font.lineHeight / 2d) + 1 - this.font.wordWrapHeight(prioritizeVanillaIngredientRecipe, textWidth) / 4d), textWidth, 0xFFFFFFFF);
 
         pGuiGraphics.disableScissor();
 
@@ -310,7 +322,7 @@ public class UEConfigScreen extends AbstractScrollableScreen {
         experience = Integer.parseInt(experienceInput.getValue());
         restrictedModIngredients = Arrays.stream(restrictedModInput.getValue().split("\n")).map(String::trim).filter(s -> !s.isEmpty()).toList();
 
-        ServerBoundUEConfigPayload configPayload = new ServerBoundUEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
+        ServerBoundUEConfigPayload configPayload = new ServerBoundUEConfigPayload(restrictionType, restrictions, allowEnchantedItems, experienceType, experience, allowUnsmithing, allowDamagedItems, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems);
         Services.NETWORK.sendToServer(configPayload);
         Services.NETWORK.sendToServer(new ServerBoundRequestConfigPayload());
         onClose();
@@ -344,6 +356,16 @@ public class UEConfigScreen extends AbstractScrollableScreen {
             List<Component> tooltip = List.of(
                     title("tooltip.uncrafteverything.config.edit_restricted_items"),
                     description("tooltip.uncrafteverything.config.edit_restricted_items_description")
+            );
+            renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
+        }
+
+        if (toggleRestrictAmbiguouslyCraftedItems.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("tooltip.uncrafteverything.config.toggle_restrict_ambiguously"),
+                    valueInfo("tooltip.uncrafteverything.config.yes", "tooltip.uncrafteverything.config.restrict_ambiguously_yes"),
+                    Component.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.no", "tooltip.uncrafteverything.config.restrict_ambiguously_no")
             );
             renderWrappedTooltip(guiGraphics, tooltip, mouseX, mouseY);
         }

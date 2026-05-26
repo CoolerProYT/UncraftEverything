@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.blockentity.custom;
 
-import com.coolerpromc.uncrafteverything.CommonClass;
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ClientBoundUncraftingTableDataPayload;
@@ -237,7 +237,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                     slots.setItem(outputSlots[slot], slotStack);
                 }
 
-                if (CommonClass.AUTO_MOVE){
+                if (UncraftEverything.AUTO_MOVE){
                     player.getInventory().placeItemBackInInventory(slots.getItem(outputSlots[slot]));
                     slots.setItem(outputSlots[slot], ItemStack.EMPTY);
                 }

@@ -32,7 +32,8 @@ public interface PayloadContext {
                 UncraftEverythingConfig.enableProgression,
                 UncraftEverythingConfig.onlyAllowDefinedProgression,
                 UncraftEverythingConfig.outputEnchantedBook,
-                UncraftEverythingConfig.prioritizeVanillaIngredientRecipe
+                UncraftEverythingConfig.prioritizeVanillaIngredientRecipe,
+                UncraftEverythingConfig.restrictAmbiguouslyCraftedItems
         );
         Services.NETWORK.sendToPlayer(player, configPayload);
     }

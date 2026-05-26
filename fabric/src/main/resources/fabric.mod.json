@@ -16,10 +16,10 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "com.coolerpromc.uncrafteverything.UncraftEverything"
+          "com.coolerpromc.uncrafteverything.FabricUncraftEverything"
         ],
         "client": [
-            "com.coolerpromc.uncrafteverything.UncraftEverythingClient"
+            "com.coolerpromc.uncrafteverything.FabricUncraftEverythingClient"
         ],
         "jei_mod_plugin": [
             "com.coolerpromc.uncrafteverything.compat.jei.UEJEIPlugin"
