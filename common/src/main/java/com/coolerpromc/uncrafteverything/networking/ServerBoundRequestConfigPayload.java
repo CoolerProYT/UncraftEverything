@@ -39,7 +39,8 @@ public record ServerBoundRequestConfigPayload() implements CustomPacketPayload {
                         UncraftEverythingConfig.enableProgression,
                         UncraftEverythingConfig.onlyAllowDefinedProgression,
                         UncraftEverythingConfig.outputEnchantedBook,
-                        UncraftEverythingConfig.prioritizeVanillaIngredientRecipe
+                        UncraftEverythingConfig.prioritizeVanillaIngredientRecipe,
+                        UncraftEverythingConfig.restrictAmbiguouslyCraftedItems
                 ));
             }
         });

@@ -10,6 +10,7 @@ import com.coolerpromc.uncrafteverything.platform.util.FabricServerPayloadContex
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -19,11 +20,11 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.crafting.*;
 
-public class UncraftEverything implements ModInitializer {
+public class FabricUncraftEverything implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommonClass.init();
+        UncraftEverything.init();
 
         FabricUncraftEverythingConfig.load();
         FabricUncraftEverythingConfig.save();
@@ -83,5 +84,7 @@ public class UncraftEverything implements ModInitializer {
             }
             return ContainerStorage.of(blockEntity.getInputHandler(), null);
         }, UEBlockEntities.AUTO_UNCRAFTING_TABLE_BE.get());
+
+        ServerPlayerEvents.JOIN.register(UncraftEverything::onPlayerLogin);
     }
 }

@@ -68,7 +68,7 @@ sourceSets.configureEach {
 
 publishMods {
     file.set(jar.archiveFile)
-    type = BETA
+    type = STABLE
     modLoaders.add("neoforge")
     changelog = rootProject.file("changelog.md").text
     displayName = mod_id + "-" + project.version + "+" + minecraft_version + "-neoforge"

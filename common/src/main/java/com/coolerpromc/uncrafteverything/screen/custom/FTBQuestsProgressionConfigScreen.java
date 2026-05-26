@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
-import com.coolerpromc.uncrafteverything.CommonClientClass;
+import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundRequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundUEProgressionPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
@@ -44,7 +44,7 @@ public class FTBQuestsProgressionConfigScreen extends AbstractScrollableScreen {
         scrollableButtons.clear();
 
         if (!hasLoadedFromConfig) {
-            for (Map.Entry<String, String> entry : CommonClientClass.payloadFromServer.ftbQuestProgression().entrySet()) {
+            for (Map.Entry<String, String> entry : UncraftEverythingClient.payloadFromServer.ftbQuestProgression().entrySet()) {
                 entries.add(new Entry(entry.getKey(), entry.getValue()));
             }
             hasLoadedFromConfig = true;

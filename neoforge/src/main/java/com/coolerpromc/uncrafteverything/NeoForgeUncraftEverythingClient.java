@@ -20,8 +20,8 @@ import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlers
 
 @Mod(value = Constants.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = Constants.MODID, value = Dist.CLIENT)
-public class UncraftEverythingClient {
-    public UncraftEverythingClient(IEventBus modBus) {
+public class NeoForgeUncraftEverythingClient {
+    public NeoForgeUncraftEverythingClient(IEventBus modBus) {
 
     }
 
@@ -35,9 +35,9 @@ public class UncraftEverythingClient {
     @SubscribeEvent
     public static void onRecipesReceived(RecipesReceivedEvent event) {
         RecipeMap recipes = event.getRecipeMap();
-        CommonClientClass.recipesFromServer.clear();
-        CommonClientClass.recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
-        CommonClientClass.recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
+        UncraftEverythingClient.recipesFromServer.clear();
+        UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
+        UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
     }
 
     @SubscribeEvent

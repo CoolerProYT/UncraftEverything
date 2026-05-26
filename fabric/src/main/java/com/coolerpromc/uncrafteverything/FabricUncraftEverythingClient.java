@@ -18,7 +18,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
 
-public class UncraftEverythingClient implements ClientModInitializer {
+public class FabricUncraftEverythingClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MenuScreens.register(UEMenuTypes.UNCRAFTING_TABLE_MENU.get(), UncraftingTableScreen::new);
@@ -36,9 +36,9 @@ public class UncraftEverythingClient implements ClientModInitializer {
 
         ClientRecipeSynchronizedEvent.EVENT.register((minecraft, synchronizedRecipes) -> {
             RecipeMap recipes = RecipeMap.create(synchronizedRecipes.recipes().stream().toList());
-            CommonClientClass.recipesFromServer.clear();
-            CommonClientClass.recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
-            CommonClientClass.recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
+            UncraftEverythingClient.recipesFromServer.clear();
+            UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
+            UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
         });
     }
 }

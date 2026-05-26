@@ -24,7 +24,8 @@ public record ServerBoundUEConfigPayload(
         boolean enableProgression,
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook,
-        boolean prioritizeVanillaIngredientRecipe
+        boolean prioritizeVanillaIngredientRecipe,
+        boolean restrictAmbiguouslyCraftedItems
 ) implements CustomPacketPayload {
 
     public static final Type<ServerBoundUEConfigPayload> TYPE = new Type<>(Constants.id("ue_config"));
@@ -45,6 +46,7 @@ public record ServerBoundUEConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.onlyAllowDefinedProgression);
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
         ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
+        ByteBufCodecs.BOOL.encode(buf, payload.restrictAmbiguouslyCraftedItems);
     }
 
     private static ServerBoundUEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -61,8 +63,9 @@ public record ServerBoundUEConfigPayload(
         boolean onlyAllowDefinedProgression = ByteBufCodecs.BOOL.decode(buf);
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
         boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
+        boolean restrictAmbiguouslyCraftedItems = ByteBufCodecs.BOOL.decode(buf);
 
-        return new ServerBoundUEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
+        return new ServerBoundUEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems);
     }
 
     @Override
@@ -86,6 +89,7 @@ public record ServerBoundUEConfigPayload(
                 UncraftEverythingConfig.onlyAllowDefinedProgression = this.onlyAllowDefinedProgression();
                 UncraftEverythingConfig.outputEnchantedBook = this.outputEnchantedBook();
                 UncraftEverythingConfig.prioritizeVanillaIngredientRecipe = this.prioritizeVanillaIngredientRecipe();
+                UncraftEverythingConfig.restrictAmbiguouslyCraftedItems = this.restrictAmbiguouslyCraftedItems();
             }
         });
     }

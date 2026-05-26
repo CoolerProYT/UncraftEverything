@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.screen.custom;
 
-import com.coolerpromc.uncrafteverything.CommonClientClass;
+import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundRequestConfigPayload;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundUEExpPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
@@ -45,7 +45,7 @@ public class PerItemExpConfigScreen extends AbstractScrollableScreen {
         scrollableButtons.clear();
 
         if (!hasLoadedFromConfig) {
-            for (Map.Entry<String, Integer> entry : CommonClientClass.payloadFromServer.perItemExp().entrySet()) {
+            for (Map.Entry<String, Integer> entry : UncraftEverythingClient.payloadFromServer.perItemExp().entrySet()) {
                 entries.add(new Entry(entry.getKey(), entry.getValue()));
             }
             hasLoadedFromConfig = true;

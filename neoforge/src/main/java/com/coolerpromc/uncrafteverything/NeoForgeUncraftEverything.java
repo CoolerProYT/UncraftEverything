@@ -19,17 +19,18 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @Mod(Constants.MODID)
 @EventBusSubscriber(modid = Constants.MODID)
-public class UncraftEverything
+public class NeoForgeUncraftEverything
 {
-    public UncraftEverything(IEventBus modEventBus, ModContainer modContainer)
+    public NeoForgeUncraftEverything(IEventBus modEventBus, ModContainer modContainer)
     {
-        CommonClass.init();
+        UncraftEverything.init();
         NeoForgeRegistryHelper.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, NeoForgeUncraftEverythingConfig.CONFIG_SPEC);
@@ -56,6 +57,11 @@ public class UncraftEverything
     public static void onServerStopping(ServerStoppingEvent event) {
         PerItemExpCostConfig.stopWatcher();
         FTBQuestProgressionConfig.stopWatcher();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        UncraftEverything.onPlayerLogin(event.getEntity());
     }
 
     @SubscribeEvent

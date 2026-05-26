@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.networking;
 
-import com.coolerpromc.uncrafteverything.CommonClass;
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.Constants;
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,7 +24,7 @@ public record ServerBoundClientConfigSyncPayload(boolean autoMoveToInventory) im
 
     public void handle(PayloadContext context){
         context.execute(() -> {
-            CommonClass.AUTO_MOVE = this.autoMoveToInventory();
+            UncraftEverything.AUTO_MOVE = this.autoMoveToInventory();
         });
     }
 }

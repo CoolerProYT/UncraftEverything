@@ -1,6 +1,6 @@
 package com.coolerpromc.uncrafteverything.util;
 
-import com.coolerpromc.uncrafteverything.CommonClientClass;
+import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundRequestConfigPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
@@ -83,7 +83,7 @@ public class RecipeViewerHelpers {
         }
 
         // Add Enchanted Books
-        if (CommonClientClass.payloadFromServer.allowEnchantedItem()){
+        if (UncraftEverythingClient.payloadFromServer.allowEnchantedItem()){
             registryAccess.lookup(Registries.ENCHANTMENT)
                     .stream()
                     .flatMap(Registry::listElements)
@@ -116,7 +116,7 @@ public class RecipeViewerHelpers {
         }
 
         // Add all items that can be uncrafted
-        CommonClientClass.recipesFromServer.forEach(recipeHolder -> {
+        UncraftEverythingClient.recipesFromServer.forEach(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (!(isItemBlacklisted(shapedRecipe.result.create()) || isItemWhitelisted(shapedRecipe.result.create()))){
                     entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result.create(), shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
@@ -129,7 +129,7 @@ public class RecipeViewerHelpers {
                 }
             }
 
-            if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe && CommonClientClass.payloadFromServer.allowUnsmithing()){
+            if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
                 NonNullList<Ingredient> ingredients = NonNullList.create();
 
                 ingredients.add(smithingTransformRecipe.baseIngredient());
@@ -138,7 +138,7 @@ public class RecipeViewerHelpers {
                 entries.add(new JEIUncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.item(), 1, smithingTransformRecipe.result.components()), ingredients));
             }
 
-            if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe && CommonClientClass.payloadFromServer.allowUnsmithing()){
+            if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
                 List<Ingredient> output = new ArrayList<>();
                 output.add(0, smithingTrimRecipe.baseIngredient());
                 output.add(1, smithingTrimRecipe.additionIngredient().get());
@@ -162,18 +162,18 @@ public class RecipeViewerHelpers {
     }
 
     public static boolean isItemBlacklisted(ItemStack itemStack) {
-        if (CommonClientClass.payloadFromServer.restrictionType() != UncraftEverythingConfig.RestrictionType.BLACKLIST){
+        if (UncraftEverythingClient.payloadFromServer.restrictionType() != UncraftEverythingConfig.RestrictionType.BLACKLIST){
             return false;
         }
 
         Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
-        if (CommonClientClass.payloadFromServer.restrictedItems().contains(itemLocationString)) {
+        if (UncraftEverythingClient.payloadFromServer.restrictedItems().contains(itemLocationString)) {
             return true;
         }
 
-        for (String entry : CommonClientClass.payloadFromServer.restrictedItems()) {
+        for (String entry : UncraftEverythingClient.payloadFromServer.restrictedItems()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.tryParseTagKey(tagName);
@@ -194,18 +194,18 @@ public class RecipeViewerHelpers {
     }
 
     public static boolean isItemWhitelisted(ItemStack itemStack) {
-        if (CommonClientClass.payloadFromServer.restrictionType() != UncraftEverythingConfig.RestrictionType.WHITELIST){
+        if (UncraftEverythingClient.payloadFromServer.restrictionType() != UncraftEverythingConfig.RestrictionType.WHITELIST){
             return false;
         }
 
         Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
-        if (CommonClientClass.payloadFromServer.restrictedItems().contains(itemLocationString)) {
+        if (UncraftEverythingClient.payloadFromServer.restrictedItems().contains(itemLocationString)) {
             return false;
         }
 
-        for (String entry : CommonClientClass.payloadFromServer.restrictedItems()) {
+        for (String entry : UncraftEverythingClient.payloadFromServer.restrictedItems()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.tryParseTagKey(tagName);
