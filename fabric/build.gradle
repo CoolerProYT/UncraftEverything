@@ -13,6 +13,12 @@ dependencies {
 
     compileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+
+    implementation "dev.ftb.mods:ftb-library-fabric:26.1.2.6"
+    implementation "dev.ftb.mods:ftb-teams-fabric:26.1.2.4"
+    implementation "dev.ftb.mods:ftb-quests-fabric:26.1.2.1-SNAPSHOT"
+
+    implementation include("com.coolerpromc.coolerconfig:coolerconfig-fabric-${minecraft_version}:${cooler_config_version}")
 }
 
 loom {
@@ -67,18 +73,14 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersionRange {
-            start = "26.1"
-            end = "26.1.2"
-        }
+        minecraftVersions.add(minecraft_version)
+        optional("ftb-quests-fabric")
+
     }
 
     modrinth {
         projectId = '9cz66Qto'
         accessToken = findProperty("MODRINTH_TOKEN")
-        minecraftVersionRange {
-            start = "26.1"
-            end = "26.1.2"
-        }
+        minecraftVersions.add(minecraft_version)
     }
 }

@@ -19,10 +19,11 @@ dependencies {
     annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
 
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    /*compileOnly "dev.ftb.mods:ftb-library:2111.1.1"
-    compileOnly "dev.ftb.mods:ftb-teams:2111.1.1"
-    compileOnly "dev.ftb.mods:ftb-quests:2111.1.2"
-    compileOnly "dev.architectury:architectury:19.0.1"*/
+    compileOnly "dev.ftb.mods:ftb-library:26.1.2.6"
+    compileOnly "dev.ftb.mods:ftb-teams:26.1.2.4"
+    compileOnly "dev.ftb.mods:ftb-quests:26.1.2.1-SNAPSHOT"
+
+    compileOnly "com.coolerpromc.coolerconfig:coolerconfig-common-${minecraft_version}:${cooler_config_version}"
 }
 
 configurations {

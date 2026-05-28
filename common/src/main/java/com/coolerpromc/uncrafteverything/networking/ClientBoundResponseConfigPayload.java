@@ -29,7 +29,9 @@ public record ClientBoundResponseConfigPayload(
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook,
         boolean prioritizeVanillaIngredientRecipe,
-        boolean restrictAmbiguouslyCraftedItems
+        boolean restrictAmbiguouslyCraftedItems,
+        boolean allowDamagedNonRepairable,
+        double minimumDurability
 ) implements CustomPacketPayload {
 
     public static final Type<ClientBoundResponseConfigPayload> TYPE = new Type<>(Constants.id("response_config"));
@@ -53,6 +55,8 @@ public record ClientBoundResponseConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
         ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
         ByteBufCodecs.BOOL.encode(buf, payload.restrictAmbiguouslyCraftedItems);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowDamagedNonRepairable);
+        ByteBufCodecs.DOUBLE.encode(buf, payload.minimumDurability);
     }
 
     private static ClientBoundResponseConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -72,8 +76,10 @@ public record ClientBoundResponseConfigPayload(
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
         boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
         boolean restrictAmbiguouslyCraftedItems = ByteBufCodecs.BOOL.decode(buf);
+        boolean allowDamagedNonRepairable = ByteBufCodecs.BOOL.decode(buf);
+        double minimumDurability = ByteBufCodecs.DOUBLE.decode(buf);
 
-        return new ClientBoundResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems);
+        return new ClientBoundResponseConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, perItemExp, restrictedModIngredients, ftbQuestProgression, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems, allowDamagedNonRepairable, minimumDurability);
     }
 
     @Override

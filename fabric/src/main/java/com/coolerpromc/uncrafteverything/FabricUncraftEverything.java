@@ -2,9 +2,6 @@ package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.command.ModServerCommands;
-import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
-import com.coolerpromc.uncrafteverything.config.FabricUncraftEverythingConfig;
-import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.platform.util.FabricServerPayloadContext;
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
@@ -18,16 +15,15 @@ import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
 import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.Direction;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.crafting.*;
 
 public class FabricUncraftEverything implements ModInitializer {
+    public static MinecraftServer MINECRAFT_SERVER;
 
     @Override
     public void onInitialize() {
         UncraftEverything.init();
-
-        FabricUncraftEverythingConfig.load();
-        FabricUncraftEverythingConfig.save();
 
         PayloadTypeRegistry.serverboundPlay().register(ServerBoundUncraftingTableCraftButtonClickPayload.TYPE, ServerBoundUncraftingTableCraftButtonClickPayload.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientBoundUncraftingTableDataPayload.TYPE, ClientBoundUncraftingTableDataPayload.STREAM_CODEC);
@@ -48,7 +44,7 @@ public class FabricUncraftEverything implements ModInitializer {
 
         ServerPlayNetworking.registerGlobalReceiver(ServerBoundUncraftingTableCraftButtonClickPayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
         ServerPlayNetworking.registerGlobalReceiver(ServerBoundUncraftingRecipeSelectionPayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
-        ServerPlayNetworking.registerGlobalReceiver(ServerBoundUEConfigPayload.TYPE, (payload, context) -> {payload.handle(new FabricServerPayloadContext(context));FabricUncraftEverythingConfig.save();});
+        ServerPlayNetworking.registerGlobalReceiver(ServerBoundUEConfigPayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
         ServerPlayNetworking.registerGlobalReceiver(ServerBoundRequestConfigPayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
         ServerPlayNetworking.registerGlobalReceiver(ServerBoundUEExpPayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
         ServerPlayNetworking.registerGlobalReceiver(ServerBoundUncraftingPageChangePayload.TYPE, (payload, context) -> payload.handle(new FabricServerPayloadContext(context)));
@@ -70,12 +66,8 @@ public class FabricUncraftEverything implements ModInitializer {
         RecipeSynchronization.synchronizeRecipeSerializer(SmithingTransformRecipe.SERIALIZER);
         RecipeSynchronization.synchronizeRecipeSerializer(SmithingTrimRecipe.SERIALIZER);
 
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> MINECRAFT_SERVER = server);
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, _) -> PayloadContext.syncConfig(serverPlayer));
-        ServerLifecycleEvents.SERVER_STOPPING.register(_ -> {
-            FabricUncraftEverythingConfig.shutdown();
-            PerItemExpCostConfig.stopWatcher();
-            FTBQuestProgressionConfig.stopWatcher();
-        });
         CommandRegistrationCallback.EVENT.register((commandDispatcher, _, _) -> ModServerCommands.registerServer(commandDispatcher));
 
         ItemStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> {

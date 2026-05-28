@@ -56,7 +56,7 @@ public class UncraftingTableBlock extends BaseEntityBlock {
             }
         }
         else{
-            Services.NETWORK.sendToServer(new ServerBoundClientConfigSyncPayload(UncraftEverythingClientConfig.autoMoveToInventory));
+            Services.NETWORK.sendToServer(new ServerBoundClientConfigSyncPayload(UncraftEverythingClientConfig.CONFIG.autoMoveToInventory()));
         }
 
         return InteractionResult.SUCCESS;

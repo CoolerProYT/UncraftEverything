@@ -1,10 +1,6 @@
 package com.coolerpromc.uncrafteverything;
 
 import com.coolerpromc.uncrafteverything.command.ModCommands;
-import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
-import com.coolerpromc.uncrafteverything.config.NeoForgeUncraftEverythingClientConfig;
-import com.coolerpromc.uncrafteverything.config.NeoForgeUncraftEverythingConfig;
-import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
 import com.coolerpromc.uncrafteverything.networking.*;
 import com.coolerpromc.uncrafteverything.platform.NeoForgeRegistryHelper;
 import com.coolerpromc.uncrafteverything.platform.util.NeoForgePayloadContext;
@@ -16,11 +12,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -32,12 +26,6 @@ public class NeoForgeUncraftEverything
     {
         UncraftEverything.init();
         NeoForgeRegistryHelper.register(modEventBus);
-
-        modContainer.registerConfig(ModConfig.Type.COMMON, NeoForgeUncraftEverythingConfig.CONFIG_SPEC);
-        modContainer.registerConfig(ModConfig.Type.CLIENT, NeoForgeUncraftEverythingClientConfig.CONFIG_SPEC);
-
-        modEventBus.addListener(NeoForgeUncraftEverythingConfig::onLoading);
-        modEventBus.addListener(NeoForgeUncraftEverythingConfig::onReloading);
     }
 
     @SubscribeEvent
@@ -54,12 +42,6 @@ public class NeoForgeUncraftEverything
     }
 
     @SubscribeEvent
-    public static void onServerStopping(ServerStoppingEvent event) {
-        PerItemExpCostConfig.stopWatcher();
-        FTBQuestProgressionConfig.stopWatcher();
-    }
-
-    @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         UncraftEverything.onPlayerLogin(event.getEntity());
     }
@@ -71,7 +53,7 @@ public class NeoForgeUncraftEverything
         registrar.playToServer(ServerBoundUncraftingTableCraftButtonClickPayload.TYPE, ServerBoundUncraftingTableCraftButtonClickPayload.STREAM_CODEC, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
         registrar.playToClient(ClientBoundUncraftingTableDataPayload.TYPE, ClientBoundUncraftingTableDataPayload.STREAM_CODEC);
         registrar.playToServer(ServerBoundUncraftingRecipeSelectionPayload.TYPE, ServerBoundUncraftingRecipeSelectionPayload.STREAM_CODEC, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
-        registrar.playToServer(ServerBoundUEConfigPayload.TYPE, ServerBoundUEConfigPayload.STREAM_CODEC, (payload, context) -> {payload.handle(new NeoForgePayloadContext(context));NeoForgeUncraftEverythingConfig.save();});
+        registrar.playToServer(ServerBoundUEConfigPayload.TYPE, ServerBoundUEConfigPayload.STREAM_CODEC, (payload, context) -> {payload.handle(new NeoForgePayloadContext(context));});
         registrar.playToServer(ServerBoundRequestConfigPayload.TYPE, ServerBoundRequestConfigPayload.STREAM_CODEC, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));
         registrar.playToClient(ClientBoundResponseConfigPayload.TYPE, ClientBoundResponseConfigPayload.STREAM_CODEC);
         registrar.playToServer(ServerBoundUEExpPayload.TYPE, ServerBoundUEExpPayload.STREAM_CODEC, (payload, context) -> payload.handle(new NeoForgePayloadContext(context)));

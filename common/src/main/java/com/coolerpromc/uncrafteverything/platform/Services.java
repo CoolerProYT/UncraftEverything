@@ -10,7 +10,6 @@ public class Services {
     public static final IRegistryHelper REGISTRY = load(IRegistryHelper.class);
     public static final INetworkHelper NETWORK = load(INetworkHelper.class);
     public static final IMenuHelper MENU = load(IMenuHelper.class);
-    public static final IConfigHelper CONFIG = load(IConfigHelper.class);
     public static final IIngredientHelper INGREDIENT = load(IIngredientHelper.class);
 
     public static <T> T load(Class<T> clazz) {

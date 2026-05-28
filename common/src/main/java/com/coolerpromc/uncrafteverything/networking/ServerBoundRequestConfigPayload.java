@@ -25,22 +25,24 @@ public record ServerBoundRequestConfigPayload() implements CustomPacketPayload {
         context.execute(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 Services.NETWORK.sendToPlayer(player, new ClientBoundResponseConfigPayload(
-                        UncraftEverythingConfig.restrictionType,
-                        UncraftEverythingConfig.restrictions,
-                        UncraftEverythingConfig.allowEnchantedItems,
-                        UncraftEverythingConfig.experienceType,
-                        UncraftEverythingConfig.experience,
-                        UncraftEverythingConfig.allowUnSmithing,
-                        UncraftEverythingConfig.allowDamaged,
-                        UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
-                        PerItemExpCostConfig.getPerItemExp(),
-                        UncraftEverythingConfig.restrictedModIngredients,
-                        FTBQuestProgressionConfig.getProgressionMap(),
-                        UncraftEverythingConfig.enableProgression,
-                        UncraftEverythingConfig.onlyAllowDefinedProgression,
-                        UncraftEverythingConfig.outputEnchantedBook,
-                        UncraftEverythingConfig.prioritizeVanillaIngredientRecipe,
-                        UncraftEverythingConfig.restrictAmbiguouslyCraftedItems
+                        UncraftEverythingConfig.CONFIG.restrictionType(),
+                        UncraftEverythingConfig.CONFIG.restrictions(),
+                        UncraftEverythingConfig.CONFIG.allowEnchantedItems(),
+                        UncraftEverythingConfig.CONFIG.experienceType(),
+                        UncraftEverythingConfig.CONFIG.experience(),
+                        UncraftEverythingConfig.CONFIG.allowUnSmithing(),
+                        UncraftEverythingConfig.CONFIG.allowDamaged(),
+                        UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems(),
+                        PerItemExpCostConfig.CONFIG.getPerItemExp(),
+                        UncraftEverythingConfig.CONFIG.restrictedModIngredients(),
+                        FTBQuestProgressionConfig.CONFIG.getProgressionMap(),
+                        UncraftEverythingConfig.CONFIG.enableProgression(),
+                        UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression(),
+                        UncraftEverythingConfig.CONFIG.outputEnchantedBook(),
+                        UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe(),
+                        UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems(),
+                        UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable(),
+                        UncraftEverythingConfig.CONFIG.minimumDurability()
                 ));
             }
         });
