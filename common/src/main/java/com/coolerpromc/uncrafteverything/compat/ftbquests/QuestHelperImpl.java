@@ -1,11 +1,11 @@
 package com.coolerpromc.uncrafteverything.compat.ftbquests;
 
-//import dev.ftb.mods.ftbquests.quest.*;
+import dev.ftb.mods.ftbquests.quest.*;
 import net.minecraft.server.level.ServerPlayer;
 
 public class QuestHelperImpl {
     public static boolean hasCompletedQuestOrChapter(ServerPlayer player, String id) {
-        /*try {
+        try {
             TeamData teamData = ServerQuestFile.getInstance().getTeamData(player).orElse(null);
             if (teamData == null) return false;
 
@@ -16,7 +16,6 @@ public class QuestHelperImpl {
             return teamData.isCompleted(quest != null ? quest : chapter);
         } catch (Exception e) {
             return false;
-        }*/
-        return false;
+        }
     }
 }

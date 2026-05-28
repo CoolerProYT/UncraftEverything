@@ -35,8 +35,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig.tryParseTagKey;
-
 public abstract class AbstractUncraftingTableBE extends BlockEntity implements WorldlyContainer {
     protected List<UncraftingTableRecipe> currentRecipes = new ArrayList<>();
     public UncraftingTableRecipe currentRecipe = null;
@@ -87,15 +85,15 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements W
 
         List<RecipeHolder<?>> recipes = UncraftingTableHelpers.findRecipe(serverLevel, inputStack, this);
 
-        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.allowEnchantedItems && inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY)) {
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems() && inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY)) {
             this.status = Status.BLANK;
             this.experience = getExperience(inputHandler);
-            this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+            this.experienceType = UncraftEverythingConfig.CONFIG.experienceType() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         }
 
         Pair<List<UncraftingTableRecipe>, Boolean> outputs = UncraftingTableHelpers.getOutputs(inputStack, recipes, this);
         if (!outputs.getRight()) return;
-        if (UncraftEverythingConfig.prioritizeVanillaIngredientRecipe){
+        if (UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe()){
             this.currentRecipes = new ArrayList<>(outputs.getLeft().stream().sorted(Comparator.comparingInt(this::countVanillaIngredients).reversed()).toList());
         }
         else{
@@ -134,13 +132,13 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements W
     }
 
     protected int getExperience(ImplementedInventory inputHandler) {
-        Map<String, Integer> experienceMap = PerItemExpCostConfig.getPerItemExp();
-        int experience = experienceMap.getOrDefault(inputStackLocation(inputHandler).toString(), UncraftEverythingConfig.getExperience());
+        Map<String, Integer> experienceMap = PerItemExpCostConfig.CONFIG.getPerItemExp();
+        int experience = experienceMap.getOrDefault(inputStackLocation(inputHandler).toString(), UncraftEverythingConfig.CONFIG.experience());
 
         for (Map.Entry<String, Integer> exp : experienceMap.entrySet()){
             if (exp.getKey().startsWith("#")){
                 String tagName = exp.getKey().substring(1);
-                Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
+                Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.CONFIG.tryParseTagKey(tagName);
                 if (tagKey.isPresent() && inputHandler.getItem(0).is(tagKey.get())) {
                     experience = exp.getValue();
                     break;

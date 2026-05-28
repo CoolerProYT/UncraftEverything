@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.networking;
 
 import com.coolerpromc.uncrafteverything.Constants;
+import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -25,7 +26,9 @@ public record ServerBoundUEConfigPayload(
         boolean onlyAllowDefinedProgression,
         boolean outputEnchantedBook,
         boolean prioritizeVanillaIngredientRecipe,
-        boolean restrictAmbiguouslyCraftedItems
+        boolean restrictAmbiguouslyCraftedItems,
+        boolean allowDamagedNonRepairable,
+        double minimumDurability
 ) implements CustomPacketPayload {
 
     public static final Type<ServerBoundUEConfigPayload> TYPE = new Type<>(Constants.id("ue_config"));
@@ -47,6 +50,8 @@ public record ServerBoundUEConfigPayload(
         ByteBufCodecs.BOOL.encode(buf, payload.outputEnchantedBook);
         ByteBufCodecs.BOOL.encode(buf, payload.prioritizeVanillaIngredientRecipe);
         ByteBufCodecs.BOOL.encode(buf, payload.restrictAmbiguouslyCraftedItems);
+        ByteBufCodecs.BOOL.encode(buf, payload.allowDamagedNonRepairable);
+        ByteBufCodecs.DOUBLE.encode(buf, payload.minimumDurability);
     }
 
     private static ServerBoundUEConfigPayload decode(RegistryFriendlyByteBuf buf){
@@ -64,8 +69,10 @@ public record ServerBoundUEConfigPayload(
         boolean outputEnchantedBook = ByteBufCodecs.BOOL.decode(buf);
         boolean prioritizeVanillaIngredientRecipe = ByteBufCodecs.BOOL.decode(buf);
         boolean restrictAmbiguouslyCraftedItems = ByteBufCodecs.BOOL.decode(buf);
+        boolean allowDamagedNonRepairable = ByteBufCodecs.BOOL.decode(buf);
+        double minimumDurability = ByteBufCodecs.DOUBLE.decode(buf);
 
-        return new ServerBoundUEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems);
+        return new ServerBoundUEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe, restrictAmbiguouslyCraftedItems, allowDamagedNonRepairable, minimumDurability);
     }
 
     @Override
@@ -76,20 +83,23 @@ public record ServerBoundUEConfigPayload(
     public void handle(PayloadContext context){
         context.execute(() -> {
             if (context.player() instanceof ServerPlayer) {
-                UncraftEverythingConfig.restrictionType = this.restrictionType();
-                UncraftEverythingConfig.restrictions = this.restrictedItems();
-                UncraftEverythingConfig.allowEnchantedItems = this.allowEnchantedItem();
-                UncraftEverythingConfig.experienceType = this.experienceType();
-                UncraftEverythingConfig.experience = this.experience();
-                UncraftEverythingConfig.allowUnSmithing = this.allowUnsmithing();
-                UncraftEverythingConfig.allowDamaged = this.allowDamaged();
-                UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = this.preventModdedIngredientsFromVanillaItems();
-                UncraftEverythingConfig.restrictedModIngredients = this.restrictedModIngredients();
-                UncraftEverythingConfig.enableProgression = this.enableProgression();
-                UncraftEverythingConfig.onlyAllowDefinedProgression = this.onlyAllowDefinedProgression();
-                UncraftEverythingConfig.outputEnchantedBook = this.outputEnchantedBook();
-                UncraftEverythingConfig.prioritizeVanillaIngredientRecipe = this.prioritizeVanillaIngredientRecipe();
-                UncraftEverythingConfig.restrictAmbiguouslyCraftedItems = this.restrictAmbiguouslyCraftedItems();
+                UncraftEverythingConfig.CONFIG.restrictionType.set(this.restrictionType());
+                UncraftEverythingConfig.CONFIG.restrictions.set(this.restrictedItems());
+                UncraftEverythingConfig.CONFIG.allowEnchantedItems.set(this.allowEnchantedItem());
+                UncraftEverythingConfig.CONFIG.experienceType.set(this.experienceType());
+                UncraftEverythingConfig.CONFIG.experience.set(this.experience());
+                UncraftEverythingConfig.CONFIG.allowUnSmithing.set(this.allowUnsmithing());
+                UncraftEverythingConfig.CONFIG.allowDamaged.set(this.allowDamaged());
+                UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems.set(this.preventModdedIngredientsFromVanillaItems());
+                UncraftEverythingConfig.CONFIG.restrictedModIngredients.set(this.restrictedModIngredients());
+                UncraftEverythingConfig.CONFIG.enableProgression.set(this.enableProgression());
+                UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression.set(this.onlyAllowDefinedProgression());
+                UncraftEverythingConfig.CONFIG.outputEnchantedBook.set(this.outputEnchantedBook());
+                UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe.set(this.prioritizeVanillaIngredientRecipe());
+                UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems.set(this.restrictAmbiguouslyCraftedItems());
+                UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable.set(this.allowDamagedNonRepairable());
+                UncraftEverythingConfig.CONFIG.minimumDurability.set(this.minimumDurability());
+                UncraftEverythingConfig.CONFIG.save();
             }
         });
     }

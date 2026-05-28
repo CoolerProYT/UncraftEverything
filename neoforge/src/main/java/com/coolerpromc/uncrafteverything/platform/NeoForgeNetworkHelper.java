@@ -13,6 +13,11 @@ public class NeoForgeNetworkHelper implements INetworkHelper {
     }
 
     @Override
+    public <T extends CustomPacketPayload> void sendToAllPlayer(T packet) {
+        PacketDistributor.sendToAllPlayers(packet);
+    }
+
+    @Override
     public <T extends CustomPacketPayload> void sendToServer(T packet) {
         ClientPacketDistributor.sendToServer(packet);
     }

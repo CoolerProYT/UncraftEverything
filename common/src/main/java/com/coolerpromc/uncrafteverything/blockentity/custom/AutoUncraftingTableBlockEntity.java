@@ -134,7 +134,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
 
     public AutoUncraftingTableBlockEntity(BlockPos pos, BlockState blockState) {
         super(UEBlockEntities.AUTO_UNCRAFTING_TABLE_BE.get(), pos, blockState);
-        this.experienceType = UncraftEverythingConfig.experienceType == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
+        this.experienceType = UncraftEverythingConfig.CONFIG.experienceType() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
         this.data = new ContainerData() {
             @Override
             public int get(int i) {
@@ -361,7 +361,7 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
                 this.status = Status.BLANK;
             }
             else {
-                if (UncraftEverythingConfig.isItemLocked(player, this.inputHandler.getItem(0)).getLeft()){
+                if (UncraftEverythingConfig.CONFIG.isItemLocked(player, this.inputHandler.getItem(0)).getLeft()){
                     this.status = Status.LOCKED_ITEM;
                 }
                 else{
@@ -388,10 +388,10 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
 
     @Override
     public boolean hasEnoughExperience(){
-        if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+        if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.POINT)){
             return totalExperience >= getExperience(this.inputHandler);
         }
-        else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+        else if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             return experienceLevel >= getExperience(this.inputHandler);
         }
         return true;
@@ -423,10 +423,10 @@ public class AutoUncraftingTableBlockEntity extends AbstractUncraftingTableBE im
             }
         }
 
-        if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+        if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.POINT)){
             removeExperiencePoints(-getExperience(this.inputHandler));
         }
-        else if (UncraftEverythingConfig.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+        else if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             removeExperienceLevels(-getExperience(this.inputHandler));
         }
 

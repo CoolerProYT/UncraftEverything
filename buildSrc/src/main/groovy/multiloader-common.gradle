@@ -33,7 +33,15 @@ repositories {
         name = "ftbMavenReleases"
         url = "https://maven.ftb.dev/releases"
     }
+    maven {
+        name "ftbMavenSnapshots"
+        url "https://maven.ftb.dev/snapshots"
+    }
     maven { url "https://maven.architectury.dev/" }
+    maven {
+        name = 'CoolerProMC'
+        url = 'https://maven.coolerpromc.com/releases'
+    }
 }
 
 sourcesJar {
@@ -77,7 +85,9 @@ processResources {
             'neoforge_loader_version_range': neoforge_loader_version_range,
             'credits'                      : credits,
             'java_version'                 : java_version,
-            'jei_version'                  : jei_version
+            'jei_version'                  : jei_version,
+            'cooler_config_version'        : cooler_config_version,
+            'dependencies_mc_version'      : dependencies_mc_version
     ]
 
     var jsonExpandProps = expandProps.collectEntries {

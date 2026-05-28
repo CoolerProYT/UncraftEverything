@@ -41,8 +41,14 @@ neoForge {
 }
 
 dependencies {
-    compileOnly("mezz.jei:jei-26.1.1-neoforge-api:${jei_version}")
-//    runtimeOnly("mezz.jei:jei-26.1.1-neoforge:${jei_version}")
+    compileOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge-api:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge:${jei_version}")
+
+    compileOnly "dev.ftb.mods:ftb-library-neoforge:26.1.2.6"
+    compileOnly "dev.ftb.mods:ftb-teams-neoforge:26.1.2.4"
+    compileOnly "dev.ftb.mods:ftb-quests-neoforge:26.1.2.1-SNAPSHOT"
+
+    jarJar implementation("com.coolerpromc.coolerconfig:coolerconfig-neoforge-${dependencies_mc_version}:${cooler_config_version}")
 }
 
 sourceSets.main.resources { srcDir rootProject.project(':common').file('src/generated/resources/').getAbsolutePath() }
@@ -76,7 +82,7 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.add("26.2-snapshot")
+        minecraftVersions.add(minecraft_version)
     }
 
     modrinth {

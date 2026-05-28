@@ -30,9 +30,8 @@ public record ServerBoundUEExpPayload(Map<String, Integer> perItemExp) implement
     public void handle(PayloadContext context){
         context.execute(() -> {
             if (context.player() instanceof ServerPlayer) {
-                PerItemExpCostConfig.getPerItemExp().clear();
-                PerItemExpCostConfig.getPerItemExp().putAll(this.perItemExp());
-                PerItemExpCostConfig.save();
+                PerItemExpCostConfig.CONFIG.perItemExp.set(this.perItemExp());
+                PerItemExpCostConfig.CONFIG.save();
             }
         });
     }

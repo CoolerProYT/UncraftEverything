@@ -30,9 +30,8 @@ public record ServerBoundUEProgressionPayload(Map<String, String> progressionMap
     public void handle(PayloadContext context){
         context.execute(() -> {
             if (context.player() instanceof ServerPlayer){
-                FTBQuestProgressionConfig.getProgressionMap().clear();
-                FTBQuestProgressionConfig.getProgressionMap().putAll(this.progressionMap());
-                FTBQuestProgressionConfig.save();
+                FTBQuestProgressionConfig.CONFIG.progressionMap.set(this.progressionMap());
+                FTBQuestProgressionConfig.CONFIG.save();
             }
         });
     }

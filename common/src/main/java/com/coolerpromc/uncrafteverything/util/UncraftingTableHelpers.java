@@ -37,27 +37,27 @@ import java.util.stream.Collectors;
 public class UncraftingTableHelpers {
     public static <T extends AbstractUncraftingTableBE> boolean validateInput(ItemStack inputStack, @Nullable ServerPlayer player, T blockEntity){
         if (inputStack.isEmpty()
-                || UncraftEverythingConfig.isItemLocked(player, inputStack).getLeft()
-                || (inputStack.getDamageValue() > 0 && !UncraftEverythingConfig.allowDamaged())
-                || UncraftEverythingConfig.isItemBlacklisted(inputStack)
-                || UncraftEverythingConfig.isItemWhitelisted(inputStack)
-                || (!UncraftEverythingConfig.isEnchantedItemsAllowed(inputStack) && !inputStack.has(DataComponents.TRIM))
+                || UncraftEverythingConfig.CONFIG.isItemLocked(player, inputStack).getLeft()
+                || (inputStack.getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged())
+                || UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputStack)
+                || UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputStack)
+                || (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputStack) && !inputStack.has(DataComponents.TRIM))
                 || (inputStack.getItem() == Items.SHULKER_BOX && inputStack.get(DataComponents.CONTAINER) != ItemContainerContents.EMPTY)
                 || (inputStack.getItem() == Items.ENCHANTED_BOOK)
         ) {
-            if (inputStack.getDamageValue() > 0 && !UncraftEverythingConfig.allowDamaged()){
+            if (inputStack.getDamageValue() > 0 && !UncraftEverythingConfig.CONFIG.allowDamaged()){
                 blockEntity.status = Status.DAMAGED_ITEM;
             }
 
-            if (UncraftEverythingConfig.isItemBlacklisted(inputStack)){
+            if (UncraftEverythingConfig.CONFIG.isItemBlacklisted(inputStack)){
                 blockEntity.status = Status.RESTRICTED_BY_CONFIG;
             }
 
-            if (UncraftEverythingConfig.isItemWhitelisted(inputStack)){
+            if (UncraftEverythingConfig.CONFIG.isItemWhitelisted(inputStack)){
                 blockEntity.status = Status.RESTRICTED_BY_CONFIG;
             }
 
-            if (!UncraftEverythingConfig.isEnchantedItemsAllowed(inputStack) && !inputStack.has(DataComponents.TRIM)){
+            if (!UncraftEverythingConfig.CONFIG.isEnchantedItemsAllowed(inputStack) && !inputStack.has(DataComponents.TRIM)){
                 blockEntity.status = Status.ENCHANTED_ITEM;
             }
 
@@ -73,7 +73,7 @@ public class UncraftingTableHelpers {
                 blockEntity.status = Status.BLANK;
             }
 
-            Pair<Boolean, Status> isItemLocked = UncraftEverythingConfig.isItemLocked(player, inputStack);
+            Pair<Boolean, Status> isItemLocked = UncraftEverythingConfig.CONFIG.isItemLocked(player, inputStack);
             if (isItemLocked.getLeft() && !inputStack.isEmpty()){
                 blockEntity.status = isItemLocked.getRight();
             }
@@ -90,7 +90,7 @@ public class UncraftingTableHelpers {
         if (Services.PLATFORM.isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                if (UncraftEverythingConfig.restrictAmbiguouslyCraftedItems()){
+                if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
                     for (Optional<Ingredient> ing : shapedRecipe.getIngredients()){
                         if (ing.isPresent() && Services.INGREDIENT.getItemsFromIngredient(ing.get(), inputStack).size() > 1){
                             blockEntity.status = Status.RESTRICTED_BY_CONFIG;
@@ -103,7 +103,7 @@ public class UncraftingTableHelpers {
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
                 if (inputStack.getItem() instanceof BedItem) return false;
-                if (UncraftEverythingConfig.restrictAmbiguouslyCraftedItems()){
+                if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
                     for (Ingredient ing : shapelessRecipe.ingredients){
                         if (Services.INGREDIENT.getItemsFromIngredient(ing, inputStack).size() > 1){
                             blockEntity.status = Status.RESTRICTED_BY_CONFIG;
@@ -122,14 +122,14 @@ public class UncraftingTableHelpers {
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
-                if (!UncraftEverythingConfig.allowUnSmithing() || (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.outputEnchantedBook())){
+                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing() || (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook())){
                     return false;
                 }
                 return validateSmithingRecipe(smithingTransformRecipe, inputStack);
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe){
-                if (!UncraftEverythingConfig.allowUnSmithing()){
+                if (!UncraftEverythingConfig.CONFIG.allowUnSmithing()){
                     return false;
                 }
                 ArmorTrim armorTrim = inputStack.get(DataComponents.TRIM);
@@ -153,31 +153,30 @@ public class UncraftingTableHelpers {
         if (result.getItem() == inputStack.getItem() && inputStack.getCount() < result.getCount()){
             blockEntity.status = Status.NOT_ENOUGH_INPUT_ITEM;
         }
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.outputEnchantedBook()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             return false;
         }
         if (inputStack.isDamaged()){
             return result.getItem() == inputStack.getItem() && inputStack.getCount() >= result.getCount();
         }
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.allowEnchantedItems && result.getItem() == inputStack.getItem()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.allowEnchantedItems() && result.getItem() == inputStack.getItem()){
             return true;
         }
         return ItemStack.isSameItemSameComponents(result, inputStack) && inputStack.getCount() >= result.getCount();
     }
 
     public static boolean validateSmithingRecipe(SmithingTransformRecipe smithingTransformRecipe, ItemStack inputStack){
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.outputEnchantedBook()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             return false;
         }
         if (inputStack.isDamaged()){
             return inputStack.is(smithingTransformRecipe.result.item().value()) && inputStack.getCount() >= smithingTransformRecipe.result.count();
         }
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.allowEnchantedItems && smithingTransformRecipe.result.item().value() == inputStack.getItem()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.allowEnchantedItems() && smithingTransformRecipe.result.item().value() == inputStack.getItem()){
             return true;
         }
         return ItemStack.isSameItemSameComponents(inputStack, new ItemStack(smithingTransformRecipe.result.item(), smithingTransformRecipe.result.count(), smithingTransformRecipe.result.components()));
     }
-
 
     public static <T extends AbstractUncraftingTableBE> Pair<List<UncraftingTableRecipe>, Boolean> getOutputs(ItemStack inputStack, List<RecipeHolder<?>> recipes, T blockEntity){
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
@@ -193,7 +192,7 @@ public class UncraftingTableHelpers {
             outputs.add(outputStack);
         }
 
-        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && recipes.isEmpty() && UncraftEverythingConfig.outputEnchantedBook()){
+        if (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && recipes.isEmpty() && UncraftEverythingConfig.CONFIG.outputEnchantedBook()){
             UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(inputStack.getItem().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
             ItemEnchantments enchantments = inputStack.get(DataComponents.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
@@ -213,7 +212,7 @@ public class UncraftingTableHelpers {
                 boolean cont = false;
                 for (Ingredient ingredient : ingredients){
                     for (Holder<Item> item : ingredient.items().toList()){
-                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
                             DebugLogger.log("[Prevent Modded Ingredient Enabled]");
                             DebugLogger.log("Skipping Recipe: " + r.id().identifier());
                             DebugLogger.log("Skipped item: " + inputStack.typeHolder());
@@ -248,7 +247,7 @@ public class UncraftingTableHelpers {
                     if (ingredient.isPresent()){
                         Ingredient ing = ingredient.get();
                         for (Holder<Item> item : ing.items().toList()){
-                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
                                 DebugLogger.log("[Prevent Modded Ingredient Enabled]");
                                 DebugLogger.log("Skipping Recipe: " + r.id().identifier());
                                 DebugLogger.log("Skipped item: " + inputStack.typeHolder());
@@ -294,9 +293,15 @@ public class UncraftingTableHelpers {
                             }
                         }
                         else{
-                            blockEntity.status = Status.DAMAGED_ITEM;
-                            outputs.clear();
-                            return Pair.of(outputs, false);
+                            int maxDamage = inputStack.getMaxDamage();
+                            int durability = maxDamage - inputStack.getDamageValue();
+                            double percentage = (double) durability / maxDamage;
+
+                            if (!UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable() || (UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable() && !(percentage >= UncraftEverythingConfig.CONFIG.minimumDurability()))){
+                                blockEntity.status = Status.DAMAGED_ITEM;
+                                outputs.clear();
+                                return Pair.of(outputs, false);
+                            }
                         }
                     }
                     outputs.add(outputStack);
@@ -307,7 +312,7 @@ public class UncraftingTableHelpers {
                 boolean cont = false;
                 for (Ingredient ingredient : shapelessRecipe.ingredients){
                     for (Holder<Item> item : ingredient.items().toList()){
-                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                        if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
                             DebugLogger.log("[Prevent Modded Ingredient Enabled]");
                             DebugLogger.log("Skipping Recipe: " + r.id().identifier());
                             DebugLogger.log("Skipped item: " + inputStack.typeHolder());
@@ -361,9 +366,15 @@ public class UncraftingTableHelpers {
                             }
                         }
                         else{
-                            blockEntity.status = Status.DAMAGED_ITEM;
-                            outputs.clear();
-                            return Pair.of(outputs, false);
+                            int maxDamage = inputStack.getMaxDamage();
+                            int durability = maxDamage - inputStack.getDamageValue();
+                            double percentage = (double) durability / maxDamage;
+
+                            if (!UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable() || (UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable() && !(percentage >= UncraftEverythingConfig.CONFIG.minimumDurability()))){
+                                blockEntity.status = Status.DAMAGED_ITEM;
+                                outputs.clear();
+                                return Pair.of(outputs, false);
+                            }
                         }
                     }
                     outputs.add(outputStack);
@@ -382,7 +393,7 @@ public class UncraftingTableHelpers {
                     if(ingredient.isPresent()){
                         Ingredient ing = ingredient.get();
                         for (Holder<Item> item : ing.items().toList()){
-                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.preventModdedIngredientRecipes() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
+                            if (BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft") && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems() && !item.unwrapKey().get().identifier().getNamespace().equals("minecraft")){
                                 DebugLogger.log("[Prevent Modded Ingredient Enabled]");
                                 DebugLogger.log("Skipping Recipe: " + r.id().identifier());
                                 DebugLogger.log("Skipped item: " + inputStack.typeHolder());
@@ -493,12 +504,12 @@ public class UncraftingTableHelpers {
             items = items.stream().filter(item -> {
                 boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
 
-                if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems()) {
                     return BuiltInRegistries.ITEM.getKey(item.getLeft()).getNamespace().equals("minecraft");
                 }
                 else if(finalItems1.size() > 1){
                     Identifier ingredientRL = BuiltInRegistries.ITEM.getKey(item.getLeft());
-                    return !UncraftEverythingConfig.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
+                    return !UncraftEverythingConfig.CONFIG.restrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
             }).toList();
@@ -529,12 +540,12 @@ public class UncraftingTableHelpers {
             items = items.stream().filter(item -> {
                 boolean isVanillaInput = BuiltInRegistries.ITEM.getKey(inputStack.getItem()).getNamespace().equals("minecraft");
 
-                if (isVanillaInput && UncraftEverythingConfig.preventModdedIngredientRecipes()) {
+                if (isVanillaInput && UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems()) {
                     return BuiltInRegistries.ITEM.getKey(item.getLeft()).getNamespace().equals("minecraft");
                 }
                 else if(finalItems1.size() > 1){
                     Identifier ingredientRL = BuiltInRegistries.ITEM.getKey(item.getLeft());
-                    return !UncraftEverythingConfig.getRestrictedModIngredients().contains(ingredientRL.getNamespace());
+                    return !UncraftEverythingConfig.CONFIG.restrictedModIngredients().contains(ingredientRL.getNamespace());
                 }
                 return true;
             }).toList();

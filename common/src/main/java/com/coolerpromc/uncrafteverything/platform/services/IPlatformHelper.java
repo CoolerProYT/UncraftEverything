@@ -7,6 +7,7 @@ public interface IPlatformHelper {
     boolean isModLoaded(String modId);
     boolean isDevelopmentEnvironment();
     Path configPath();
+    boolean isClient();
 
     default String getEnvironmentName() {
         return isDevelopmentEnvironment() ? "development" : "production";

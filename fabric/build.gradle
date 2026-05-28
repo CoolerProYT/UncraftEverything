@@ -11,8 +11,14 @@ dependencies {
     implementation include("com.electronwill.night-config:core:3.8.1")
     implementation include("com.electronwill.night-config:toml:3.8.1")
 
-    compileOnly "mezz.jei:jei-26.1.1-fabric-api:${jei_version}"
-//    runtimeOnly "mezz.jei:jei-26.1.1-fabric:${jei_version}"
+    compileOnly "mezz.jei:jei-${dependencies_mc_version}-fabric-api:${jei_version}"
+//    runtimeOnly "mezz.jei:jei-${dependencies_mc_version}-fabric:${jei_version}"
+
+    compileOnly "dev.ftb.mods:ftb-library-fabric:26.1.2.6"
+    compileOnly "dev.ftb.mods:ftb-teams-fabric:26.1.2.4"
+    compileOnly "dev.ftb.mods:ftb-quests-fabric:26.1.2.1-SNAPSHOT"
+
+    implementation include("com.coolerpromc.coolerconfig:coolerconfig-fabric-${dependencies_mc_version}:${cooler_config_version}")
 }
 
 loom {
@@ -67,7 +73,7 @@ publishMods {
     curseforge {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.add("26.1-snapshot")
+        minecraftVersions.add(minecraft_version)
     }
 
     modrinth {

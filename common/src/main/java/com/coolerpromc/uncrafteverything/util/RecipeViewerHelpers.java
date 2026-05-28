@@ -166,7 +166,7 @@ public class RecipeViewerHelpers {
             return false;
         }
 
-        Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
+        Identifier itemLocation = UncraftEverythingConfig.CONFIG.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (UncraftEverythingClient.payloadFromServer.restrictedItems().contains(itemLocationString)) {
@@ -176,7 +176,7 @@ public class RecipeViewerHelpers {
         for (String entry : UncraftEverythingClient.payloadFromServer.restrictedItems()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.tryParseTagKey(tagName);
+                Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.CONFIG.tryParseTagKey(tagName);
                 if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
                     return true;
                 }
@@ -198,7 +198,7 @@ public class RecipeViewerHelpers {
             return false;
         }
 
-        Identifier itemLocation = UncraftEverythingConfig.inputStackLocation(itemStack);
+        Identifier itemLocation = UncraftEverythingConfig.CONFIG.inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
         if (UncraftEverythingClient.payloadFromServer.restrictedItems().contains(itemLocationString)) {
@@ -208,7 +208,7 @@ public class RecipeViewerHelpers {
         for (String entry : UncraftEverythingClient.payloadFromServer.restrictedItems()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
-                Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.tryParseTagKey(tagName);
+                Optional<TagKey<Item>> tagKey = UncraftEverythingConfig.CONFIG.tryParseTagKey(tagName);
                 if (tagKey.isPresent() && itemStack.is(tagKey.get())) {
                     return false;
                 }

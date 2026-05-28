@@ -20,17 +20,17 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UEClientConfigScreen extends AbstractScrollableScreen {
-    public boolean autoMoveToInventory = UncraftEverythingClientConfig.autoMoveToInventory;
-    public int noRecipeFoundColor = UncraftEverythingClientConfig.noRecipeFoundColor;
-    public int noSuitableOutputSlotColor = UncraftEverythingClientConfig.noSuitableOutputSlotColor;
-    public int notEnoughExpColor = UncraftEverythingClientConfig.notEnoughExpColor;
-    public int notEnoughInputItemColor = UncraftEverythingClientConfig.notEnoughInputItemColor;
-    public int notEmptyShulkerColor = UncraftEverythingClientConfig.notEmptyShulkerColor;
-    public int restrictedByConfigColor = UncraftEverythingClientConfig.restrictedByConfigColor;
-    public int damagedItemColor = UncraftEverythingClientConfig.damagedItemColor;
-    public int enchantedItemColor = UncraftEverythingClientConfig.enchantedItemColor;
-    public int lockedItemColor = UncraftEverythingClientConfig.lockedItemColor;
-    public int progressionNotDefinedColor = UncraftEverythingClientConfig.progressionNotDefinedColor;
+    public boolean autoMoveToInventory = UncraftEverythingClientConfig.CONFIG.autoMoveToInventory();
+    public int noRecipeFoundColor = UncraftEverythingClientConfig.CONFIG.noRecipeFoundColor();
+    public int noSuitableOutputSlotColor = UncraftEverythingClientConfig.CONFIG.noSuitableOutputSlotColor();
+    public int notEnoughExpColor = UncraftEverythingClientConfig.CONFIG.notEnoughExpColor();
+    public int notEnoughInputItemColor = UncraftEverythingClientConfig.CONFIG.notEnoughInputItemColor();
+    public int notEmptyShulkerColor = UncraftEverythingClientConfig.CONFIG.notEmptyShulkerColor();
+    public int restrictedByConfigColor = UncraftEverythingClientConfig.CONFIG.restrictedByConfigColor();
+    public int damagedItemColor = UncraftEverythingClientConfig.CONFIG.damagedItemColor();
+    public int enchantedItemColor = UncraftEverythingClientConfig.CONFIG.enchantedItemColor();
+    public int lockedItemColor = UncraftEverythingClientConfig.CONFIG.lockedItemColor();
+    public int progressionNotDefinedColor = UncraftEverythingClientConfig.CONFIG.progressionNotDefinedColor();
 
     private final int baseY = 30;
     private final Map<ColorPickerWidget, Pair<Integer, Integer>> widgets = new HashMap<>();
@@ -41,27 +41,37 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
 
     public UEClientConfigScreen(Component title) {
         super(title, 250);
-        ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, (int) (baseY + 25 - scrollAmount), 0, noRecipeFoundColor, Component.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
-        ColorPickerWidget noSuitableOutputSlotButton = new ColorPickerWidget(0, (int) (baseY + 50 - scrollAmount), 0, noSuitableOutputSlotColor, Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot"), this, this::setNoSuitableOutputSlotColor);
-        ColorPickerWidget notEnoughExpButton = new ColorPickerWidget(0, (int) (baseY + 75 - scrollAmount), 0, notEnoughExpColor, Component.translatable("screen.uncrafteverything.config.not_enough_exp"), this, this::setNotEnoughExpColor);
-        ColorPickerWidget notEnoughInputItemButton = new ColorPickerWidget(0, (int) (baseY + 100 - scrollAmount), 0, notEnoughInputItemColor, Component.translatable("screen.uncrafteverything.config.not_enough_input_item"), this, this::setNotEnoughInputItemColor);
-        ColorPickerWidget notEmptyShulkerButton = new ColorPickerWidget(0, (int) (baseY + 125 - scrollAmount), 0, notEmptyShulkerColor, Component.translatable("screen.uncrafteverything.config.not_empty_shulker"), this, this::setNotEmptyShulkerColor);
-        ColorPickerWidget restrictedByConfigButton = new ColorPickerWidget(0, (int) (baseY + 150 - scrollAmount), 0, restrictedByConfigColor, Component.translatable("screen.uncrafteverything.config.restricted_by_config"), this, this::setRestrictedByConfigColor);
-        ColorPickerWidget damagedItemButton = new ColorPickerWidget(0, (int) (baseY + 175 - scrollAmount), 0, damagedItemColor, Component.translatable("screen.uncrafteverything.config.damaged_item"), this, this::setDamagedItemColor);
-        ColorPickerWidget enchantedItemButton = new ColorPickerWidget(0, (int) (baseY + 200 - scrollAmount), 0, enchantedItemColor, Component.translatable("screen.uncrafteverything.config.enchanted_item"), this, this::setEnchantedItemColor);
-        ColorPickerWidget lockedItemButton = new ColorPickerWidget(0, (int) (baseY + 225 - scrollAmount), 0, lockedItemColor, Component.translatable("screen.uncrafteverything.config.locked_item"), this, this::setLockedItemColor);
-        ColorPickerWidget progressionNotDefinedButton = new ColorPickerWidget(0, (int) (baseY + 250 - scrollAmount), 0, progressionNotDefinedColor, Component.translatable("screen.uncrafteverything.config.progression_not_defined"), this, this::setProgressionNotDefinedColor);
+        int y = 25;
 
-        widgets.put(noRecipeFoundButton, new Pair<>(noRecipeFoundColor, 25));
-        widgets.put(noSuitableOutputSlotButton, new Pair<>(noSuitableOutputSlotColor, 50));
-        widgets.put(notEnoughExpButton, new Pair<>(notEnoughExpColor, 75));
-        widgets.put(notEnoughInputItemButton, new Pair<>(notEnoughInputItemColor, 100));
-        widgets.put(notEmptyShulkerButton, new Pair<>(notEmptyShulkerColor, 125));
-        widgets.put(restrictedByConfigButton, new Pair<>(restrictedByConfigColor, 150));
-        widgets.put(damagedItemButton, new Pair<>(damagedItemColor, 175));
-        widgets.put(enchantedItemButton, new Pair<>(enchantedItemColor, 200));
-        widgets.put(lockedItemButton, new Pair<>(lockedItemColor, 225));
-        widgets.put(progressionNotDefinedButton, new Pair<>(progressionNotDefinedColor, 250));
+        ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, 0, 0, noRecipeFoundColor, Component.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
+        widgets.put(noRecipeFoundButton, new Pair<>(noRecipeFoundColor, y)); y += 25;
+
+        ColorPickerWidget noSuitableOutputSlotButton = new ColorPickerWidget(0, 0, 0, noSuitableOutputSlotColor, Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot"), this, this::setNoSuitableOutputSlotColor);
+        widgets.put(noSuitableOutputSlotButton, new Pair<>(noSuitableOutputSlotColor, y)); y += 25;
+
+        ColorPickerWidget notEnoughExpButton = new ColorPickerWidget(0, 0, 0, notEnoughExpColor, Component.translatable("screen.uncrafteverything.config.not_enough_exp"), this, this::setNotEnoughExpColor);
+        widgets.put(notEnoughExpButton, new Pair<>(notEnoughExpColor, y)); y += 25;
+
+        ColorPickerWidget notEnoughInputItemButton = new ColorPickerWidget(0, 0, 0, notEnoughInputItemColor, Component.translatable("screen.uncrafteverything.config.not_enough_input_item"), this, this::setNotEnoughInputItemColor);
+        widgets.put(notEnoughInputItemButton, new Pair<>(notEnoughInputItemColor, y)); y += 25;
+
+        ColorPickerWidget notEmptyShulkerButton = new ColorPickerWidget(0, 0, 0, notEmptyShulkerColor, Component.translatable("screen.uncrafteverything.config.not_empty_shulker"), this, this::setNotEmptyShulkerColor);
+        widgets.put(notEmptyShulkerButton, new Pair<>(notEmptyShulkerColor, y)); y += 25;
+
+        ColorPickerWidget restrictedByConfigButton = new ColorPickerWidget(0, 0, 0, restrictedByConfigColor, Component.translatable("screen.uncrafteverything.config.restricted_by_config"), this, this::setRestrictedByConfigColor);
+        widgets.put(restrictedByConfigButton, new Pair<>(restrictedByConfigColor, y)); y += 25;
+
+        ColorPickerWidget damagedItemButton = new ColorPickerWidget(0, 0, 0, damagedItemColor, Component.translatable("screen.uncrafteverything.config.damaged_item"), this, this::setDamagedItemColor);
+        widgets.put(damagedItemButton, new Pair<>(damagedItemColor, y)); y += 25;
+
+        ColorPickerWidget enchantedItemButton = new ColorPickerWidget(0, 0, 0, enchantedItemColor, Component.translatable("screen.uncrafteverything.config.enchanted_item"), this, this::setEnchantedItemColor);
+        widgets.put(enchantedItemButton, new Pair<>(enchantedItemColor, y)); y += 25;
+
+        ColorPickerWidget lockedItemButton = new ColorPickerWidget(0, 0, 0, lockedItemColor, Component.translatable("screen.uncrafteverything.config.locked_item"), this, this::setLockedItemColor);
+        widgets.put(lockedItemButton, new Pair<>(lockedItemColor, y)); y += 25;
+
+        ColorPickerWidget progressionNotDefinedButton = new ColorPickerWidget(0, 0, 0, progressionNotDefinedColor, Component.translatable("screen.uncrafteverything.config.progression_not_defined"), this, this::setProgressionNotDefinedColor);
+        widgets.put(progressionNotDefinedButton, new Pair<>(progressionNotDefinedColor, y));
     }
 
     @Override
@@ -117,40 +127,40 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
 
         int x = 10;
         int textWidth = this.width / 2 - 10;
-        int baseY = 30;
+        int labelY = moveToInventoryButton.getY();
 
         Component moveToInventory = Component.translatable("screen.uncrafteverything.config.move_to_inventory");
-        pGuiGraphics.textWithWordWrap(this.font, moveToInventory, x, (int) (baseY - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, moveToInventory, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component noRecipeFound = Component.translatable("screen.uncrafteverything.config.no_recipe_found");
-        pGuiGraphics.textWithWordWrap(this.font, noRecipeFound, x, (int) (baseY + 25 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, noRecipeFound, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component noSuitableOutputSlot = Component.translatable("screen.uncrafteverything.config.no_suitable_output_slot");
-        pGuiGraphics.textWithWordWrap(this.font, noSuitableOutputSlot, x, (int) (baseY + 50 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, noSuitableOutputSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component notEnoughExpSlot = Component.translatable("screen.uncrafteverything.config.not_enough_exp");
-        pGuiGraphics.textWithWordWrap(this.font, notEnoughExpSlot, x, (int) (baseY + 75 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEnoughExpSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component notEnoughInputItemSlot = Component.translatable("screen.uncrafteverything.config.not_enough_input_item");
-        pGuiGraphics.textWithWordWrap(this.font, notEnoughInputItemSlot, x, (int) (baseY + 100 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEnoughInputItemSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component notEmptyShulkerSlot = Component.translatable("screen.uncrafteverything.config.not_empty_shulker");
-        pGuiGraphics.textWithWordWrap(this.font, notEmptyShulkerSlot, x, (int) (baseY + 125 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, notEmptyShulkerSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component restrictedByConfigSlot = Component.translatable("screen.uncrafteverything.config.restricted_by_config");
-        pGuiGraphics.textWithWordWrap(this.font, restrictedByConfigSlot, x, (int) (baseY + 150 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, restrictedByConfigSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component damagedItemSlot = Component.translatable("screen.uncrafteverything.config.damaged_item");
-        pGuiGraphics.textWithWordWrap(this.font, damagedItemSlot, x, (int) (baseY + 175 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, damagedItemSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component enchantedItemSlot = Component.translatable("screen.uncrafteverything.config.enchanted_item");
-        pGuiGraphics.textWithWordWrap(this.font, enchantedItemSlot, x, (int) (baseY + 200 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, enchantedItemSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component lockedItemSlot = Component.translatable("screen.uncrafteverything.config.locked_item");
-        pGuiGraphics.textWithWordWrap(this.font, lockedItemSlot, x, (int) (baseY + 225 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, lockedItemSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component progressionNotDefinedSlot = Component.translatable("screen.uncrafteverything.config.progression_not_defined");
-        pGuiGraphics.textWithWordWrap(this.font, progressionNotDefinedSlot, x, (int) (baseY + 250 - scrollAmount + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
+        pGuiGraphics.textWithWordWrap(this.font, progressionNotDefinedSlot, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF);
 
         super.extractRenderState(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
@@ -268,18 +278,18 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     }
 
     private void pressSaveButton(Button button){
-        UncraftEverythingClientConfig.autoMoveToInventory = this.autoMoveToInventory;
-        UncraftEverythingClientConfig.noRecipeFoundColor = this.noRecipeFoundColor;
-        UncraftEverythingClientConfig.noSuitableOutputSlotColor = this.noSuitableOutputSlotColor;
-        UncraftEverythingClientConfig.notEnoughExpColor = this.notEnoughExpColor;
-        UncraftEverythingClientConfig.notEnoughInputItemColor = this.notEnoughInputItemColor;
-        UncraftEverythingClientConfig.notEmptyShulkerColor = this.notEmptyShulkerColor;
-        UncraftEverythingClientConfig.restrictedByConfigColor = this.restrictedByConfigColor;
-        UncraftEverythingClientConfig.damagedItemColor = this.damagedItemColor;
-        UncraftEverythingClientConfig.enchantedItemColor = this.enchantedItemColor;
-        UncraftEverythingClientConfig.lockedItemColor = this.lockedItemColor;
-        UncraftEverythingClientConfig.progressionNotDefinedColor = this.progressionNotDefinedColor;
-        Services.CONFIG.updateClientConfig();
+        UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.set(this.autoMoveToInventory);
+        UncraftEverythingClientConfig.CONFIG.noRecipeFoundColor.set(this.noRecipeFoundColor);
+        UncraftEverythingClientConfig.CONFIG.noSuitableOutputSlotColor.set(this.noSuitableOutputSlotColor);
+        UncraftEverythingClientConfig.CONFIG.notEnoughExpColor.set(this.notEnoughExpColor);
+        UncraftEverythingClientConfig.CONFIG.notEnoughInputItemColor.set(this.notEnoughInputItemColor);
+        UncraftEverythingClientConfig.CONFIG.notEmptyShulkerColor.set(this.notEmptyShulkerColor);
+        UncraftEverythingClientConfig.CONFIG.restrictedByConfigColor.set(this.restrictedByConfigColor);
+        UncraftEverythingClientConfig.CONFIG.damagedItemColor.set(this.damagedItemColor);
+        UncraftEverythingClientConfig.CONFIG.enchantedItemColor.set(this.enchantedItemColor);
+        UncraftEverythingClientConfig.CONFIG.lockedItemColor.set(this.lockedItemColor);
+        UncraftEverythingClientConfig.CONFIG.progressionNotDefinedColor.set(this.progressionNotDefinedColor);
+        UncraftEverythingClientConfig.CONFIG.save();
         onClose();
     }
 
@@ -320,51 +330,51 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
 
     private void setNoRecipeFoundColor(int noRecipeFoundColor, ColorPickerWidget button) {
         this.noRecipeFoundColor = noRecipeFoundColor;
-        this.widgets.put(button, new Pair<>(noRecipeFoundColor, 25));
+        this.widgets.put(button, new Pair<>(noRecipeFoundColor, this.widgets.get(button).getSecond()));
     }
 
     private void setNoSuitableOutputSlotColor(int noSuitableOutputSlotColor, ColorPickerWidget button) {
         this.noSuitableOutputSlotColor = noSuitableOutputSlotColor;
-        this.widgets.put(button, new Pair<>(noSuitableOutputSlotColor, 50));
+        this.widgets.put(button, new Pair<>(noSuitableOutputSlotColor, this.widgets.get(button).getSecond()));
     }
 
     public void setNotEnoughExpColor(int notEnoughExpColor, ColorPickerWidget button) {
         this.notEnoughExpColor = notEnoughExpColor;
-        this.widgets.put(button, new Pair<>(notEnoughExpColor, 75));
+        this.widgets.put(button, new Pair<>(notEnoughExpColor, this.widgets.get(button).getSecond()));
     }
 
     public void setNotEnoughInputItemColor(int notEnoughInputItemColor, ColorPickerWidget button) {
         this.notEnoughInputItemColor = notEnoughInputItemColor;
-        this.widgets.put(button, new Pair<>(notEnoughInputItemColor, 100));
+        this.widgets.put(button, new Pair<>(notEnoughInputItemColor, this.widgets.get(button).getSecond()));
     }
 
     public void setNotEmptyShulkerColor(int notEmptyShulkerColor, ColorPickerWidget button) {
         this.notEmptyShulkerColor = notEmptyShulkerColor;
-        this.widgets.put(button, new Pair<>(notEmptyShulkerColor, 125));
+        this.widgets.put(button, new Pair<>(notEmptyShulkerColor, this.widgets.get(button).getSecond()));
     }
 
     public void setRestrictedByConfigColor(int restrictedByConfigColor, ColorPickerWidget button) {
         this.restrictedByConfigColor = restrictedByConfigColor;
-        this.widgets.put(button, new Pair<>(restrictedByConfigColor, 150));
+        this.widgets.put(button, new Pair<>(restrictedByConfigColor, this.widgets.get(button).getSecond()));
     }
 
     public void setDamagedItemColor(int damagedItemColor, ColorPickerWidget button) {
         this.damagedItemColor = damagedItemColor;
-        this.widgets.put(button, new Pair<>(damagedItemColor, 175));
+        this.widgets.put(button, new Pair<>(damagedItemColor, this.widgets.get(button).getSecond()));
     }
 
     public void setEnchantedItemColor(int enchantedItemColor, ColorPickerWidget button) {
         this.enchantedItemColor = enchantedItemColor;
-        this.widgets.put(button, new Pair<>(enchantedItemColor, 200));
+        this.widgets.put(button, new Pair<>(enchantedItemColor, this.widgets.get(button).getSecond()));
     }
 
     public void setLockedItemColor(int lockedItemColor, ColorPickerWidget button) {
         this.lockedItemColor = lockedItemColor;
-        this.widgets.put(button, new Pair<>(lockedItemColor, 225));
+        this.widgets.put(button, new Pair<>(lockedItemColor, this.widgets.get(button).getSecond()));
     }
 
     public void setProgressionNotDefinedColor(int progressionNotDefinedColor, ColorPickerWidget button) {
         this.progressionNotDefinedColor = progressionNotDefinedColor;
-        this.widgets.put(button, new Pair<>(progressionNotDefinedColor, 250));
+        this.widgets.put(button, new Pair<>(progressionNotDefinedColor, this.widgets.get(button).getSecond()));
     }
 }

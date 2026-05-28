@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.FTBQuestProgressionConfig;
 import com.coolerpromc.uncrafteverything.config.PerItemExpCostConfig;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.item.UECreativeTab;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
@@ -19,14 +20,14 @@ public class UncraftEverything {
         UECreativeTab.load();
         UEMenuTypes.load();
 
-        PerItemExpCostConfig.load();
-        FTBQuestProgressionConfig.load();
-        PerItemExpCostConfig.startWatcher();
-        FTBQuestProgressionConfig.startWatcher();
+        UncraftEverythingConfig.init();
+        UncraftEverythingClientConfig.init();
+        PerItemExpCostConfig.init();
+        FTBQuestProgressionConfig.init();
     }
 
     public static void onPlayerLogin(Player player){
-        if (UncraftEverythingConfig.restrictAmbiguouslyCraftedItems()){
+        if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
             player.sendSystemMessage(Component.literal("[Uncraft Everything] Restrict Ambiguously Crafted Items config is enabled, recipe that use ItemTags ingredient will not be able uncrafted!"));
         }
     }

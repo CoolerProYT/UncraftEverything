@@ -11,6 +11,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 public interface PayloadContext {
+    ClientBoundResponseConfigPayload SYNC_CONFIG = new ClientBoundResponseConfigPayload(
+            UncraftEverythingConfig.CONFIG.restrictionType(),
+            UncraftEverythingConfig.CONFIG.restrictions(),
+            UncraftEverythingConfig.CONFIG.allowEnchantedItems(),
+            UncraftEverythingConfig.CONFIG.experienceType(),
+            UncraftEverythingConfig.CONFIG.experience(),
+            UncraftEverythingConfig.CONFIG.allowUnSmithing(),
+            UncraftEverythingConfig.CONFIG.allowDamaged(),
+            UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems(),
+            PerItemExpCostConfig.CONFIG.getPerItemExp(),
+            UncraftEverythingConfig.CONFIG.restrictedModIngredients(),
+            FTBQuestProgressionConfig.CONFIG.getProgressionMap(),
+            UncraftEverythingConfig.CONFIG.enableProgression(),
+            UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression(),
+            UncraftEverythingConfig.CONFIG.outputEnchantedBook(),
+            UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe(),
+            UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems(),
+            UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable(),
+            UncraftEverythingConfig.CONFIG.minimumDurability()
+    );
+
     Player player();
     Level level();
     void execute(Runnable runnable);
@@ -18,22 +39,24 @@ public interface PayloadContext {
     
     static void syncConfig(ServerPlayer player){
         ClientBoundResponseConfigPayload configPayload = new ClientBoundResponseConfigPayload(
-                UncraftEverythingConfig.restrictionType,
-                UncraftEverythingConfig.restrictions,
-                UncraftEverythingConfig.allowEnchantedItems,
-                UncraftEverythingConfig.experienceType,
-                UncraftEverythingConfig.experience,
-                UncraftEverythingConfig.allowUnSmithing,
-                UncraftEverythingConfig.allowDamaged,
-                UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems,
-                PerItemExpCostConfig.getPerItemExp(),
-                UncraftEverythingConfig.restrictedModIngredients,
-                FTBQuestProgressionConfig.getProgressionMap(),
-                UncraftEverythingConfig.enableProgression,
-                UncraftEverythingConfig.onlyAllowDefinedProgression,
-                UncraftEverythingConfig.outputEnchantedBook,
-                UncraftEverythingConfig.prioritizeVanillaIngredientRecipe,
-                UncraftEverythingConfig.restrictAmbiguouslyCraftedItems
+                UncraftEverythingConfig.CONFIG.restrictionType(),
+                UncraftEverythingConfig.CONFIG.restrictions(),
+                UncraftEverythingConfig.CONFIG.allowEnchantedItems(),
+                UncraftEverythingConfig.CONFIG.experienceType(),
+                UncraftEverythingConfig.CONFIG.experience(),
+                UncraftEverythingConfig.CONFIG.allowUnSmithing(),
+                UncraftEverythingConfig.CONFIG.allowDamaged(),
+                UncraftEverythingConfig.CONFIG.preventModdedIngredientsFromVanillaItems(),
+                PerItemExpCostConfig.CONFIG.getPerItemExp(),
+                UncraftEverythingConfig.CONFIG.restrictedModIngredients(),
+                FTBQuestProgressionConfig.CONFIG.getProgressionMap(),
+                UncraftEverythingConfig.CONFIG.enableProgression(),
+                UncraftEverythingConfig.CONFIG.onlyAllowDefinedProgression(),
+                UncraftEverythingConfig.CONFIG.outputEnchantedBook(),
+                UncraftEverythingConfig.CONFIG.prioritizeVanillaIngredientRecipe(),
+                UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems(),
+                UncraftEverythingConfig.CONFIG.allowDamagedNonRepairable(),
+                UncraftEverythingConfig.CONFIG.minimumDurability()
         );
         Services.NETWORK.sendToPlayer(player, configPayload);
     }

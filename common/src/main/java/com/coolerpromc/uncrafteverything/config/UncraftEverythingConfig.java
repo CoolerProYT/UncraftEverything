@@ -1,6 +1,10 @@
 package com.coolerpromc.uncrafteverything.config;
 
+import com.coolerpromc.coolerconfig.config.*;
+import com.coolerpromc.uncrafteverything.Constants;
 import com.coolerpromc.uncrafteverything.compat.ftbquests.QuestHelper;
+import com.coolerpromc.uncrafteverything.platform.Services;
+import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
 import com.coolerpromc.uncrafteverything.util.Status;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponents;
@@ -21,98 +25,138 @@ import java.util.List;
 import java.util.Optional;
 
 public class UncraftEverythingConfig {
-    public static ExperienceType experienceType = ExperienceType.LEVEL;
-    public static int experience = 1;
-    public static RestrictionType restrictionType = RestrictionType.BLACKLIST;
-    public static List<String> restrictions = List.of("uncrafteverything:uncrafting_table", "minecraft:crafting_table");
-    public static boolean allowEnchantedItems = true;
-    public static boolean allowUnSmithing = true;
-    public static boolean allowDamaged = true;
-    public static boolean preventModdedIngredientsFromVanillaItems = true;
-    public static List<String> restrictedModIngredients = List.of("productivetrees", "chipped");
-    public static boolean enableProgression = false;
-    public static boolean onlyAllowDefinedProgression = false;
-    public static boolean outputEnchantedBook = false;
-    public static boolean prioritizeVanillaIngredientRecipe = true;
-    public static boolean restrictAmbiguouslyCraftedItems = false;
+    public static final UncraftEverythingConfig CONFIG = new UncraftEverythingConfig();
+    private final ConfigSpec CONFIG_SPEC;
 
-    public static void updateCache(
-            ExperienceType experienceType, int experience,
-            RestrictionType restrictionType, List<String> restrictions,
-            boolean allowEnchantedItems, boolean allowUnSmithing, boolean allowDamaged,
-            boolean preventModdedIngredientsFromVanillaItems, List<String> restrictedModIngredients,
-            boolean prioritizeVanillaIngredientRecipe, boolean enableProgression,
-            boolean onlyAllowDefinedProgression, boolean outputEnchantedBook, boolean restrictAmbiguouslyCraftedItems
-    ) {
-        UncraftEverythingConfig.experienceType = experienceType;
-        UncraftEverythingConfig.experience = experience;
-        UncraftEverythingConfig.restrictionType = restrictionType;
-        UncraftEverythingConfig.restrictions = restrictions.stream()
-                .filter(entry -> {
-                    try {
-                        return Identifier.tryParse(entry) != null || entry.contains("*") || tryParseTagKey(entry.substring(1)).isPresent();
-                    } catch (Exception e) {
-                        return false;
-                    }
-                }).toList();
-        UncraftEverythingConfig.allowEnchantedItems = allowEnchantedItems;
-        UncraftEverythingConfig.allowUnSmithing = allowUnSmithing;
-        UncraftEverythingConfig.allowDamaged = allowDamaged;
-        UncraftEverythingConfig.preventModdedIngredientsFromVanillaItems = preventModdedIngredientsFromVanillaItems;
-        UncraftEverythingConfig.restrictedModIngredients = restrictedModIngredients;
-        UncraftEverythingConfig.prioritizeVanillaIngredientRecipe = prioritizeVanillaIngredientRecipe;
-        UncraftEverythingConfig.enableProgression = enableProgression;
-        UncraftEverythingConfig.onlyAllowDefinedProgression = onlyAllowDefinedProgression;
-        UncraftEverythingConfig.outputEnchantedBook = outputEnchantedBook;
-        UncraftEverythingConfig.restrictAmbiguouslyCraftedItems = restrictAmbiguouslyCraftedItems;
+    public final ConfigValue<ExperienceType> experienceType;
+    public final ConfigValue<Integer> experience;
+    public final ConfigValue<RestrictionType> restrictionType;
+    public final ConfigValue<List<String>> restrictions;
+    public final ConfigValue<Boolean> allowEnchantedItems;
+    public final ConfigValue<Boolean> allowUnSmithing;
+    public final ConfigValue<Boolean> allowDamaged;
+    public final ConfigValue<Boolean> preventModdedIngredientsFromVanillaItems;
+    public final ConfigValue<List<String>> restrictedModIngredients;
+    public final ConfigValue<Boolean> enableProgression;
+    public final ConfigValue<Boolean> onlyAllowDefinedProgression;
+    public final ConfigValue<Boolean> outputEnchantedBook;
+    public final ConfigValue<Boolean> prioritizeVanillaIngredientRecipe;
+    public final ConfigValue<Boolean> restrictAmbiguouslyCraftedItems;
+    public final ConfigValue<Boolean> allowDamagedNonRepairable;
+    public final ConfigValue<Double> minimumDurability;
+
+    public static void init(){
     }
 
-    public static int getExperience() {
-        return experience;
+    private UncraftEverythingConfig(){
+        ConfigBuilder builder = ConfigSpec.builder(Constants.MODID, ConfigFormat.TOML).side(ConfigSide.COMMON).comment("UncraftEverything Configuration");
+
+        experienceType = builder.defineEnum("Experience.experienceType", UncraftEverythingConfig.ExperienceType.LEVEL, "The type of experience to be used.");
+        experience = builder.defineInt("Experience.experiences", 1, 0, Integer.MAX_VALUE, "The default amount of experience point/level required to uncraft an item. More detailed exp can be configured in uncrafteverything-exp.json");
+        restrictionType = builder.defineEnum("Restrictions.restrictionType", UncraftEverythingConfig.RestrictionType.BLACKLIST, "The type of restriction to be used.");
+        restrictions = builder.defineList("Restrictions.restrictions", List.of(),
+                        """
+                                A list of items that can/cannot be uncrafted depending on type of restriction.
+                                Invalid input will cause config reset at runtime.
+                                Format: modid:item_name / modid:* / modid:*_glass / modid:black_* / modid:red_*_glass / modid:red_*_glass* / #modid:item_tag_name
+                                Press F3 + h in game and hover item to check their modid:name""");
+        restrictAmbiguouslyCraftedItems = builder.defineBoolean("Restrictions.restrictAmbiguouslyCraftedItems", false, "Restrict recipe that use ItemTags ingredient from uncrafting.");
+        allowEnchantedItems = builder.defineBoolean("Enchanted.allowEnchantedItems", true, "Allow uncrafting of enchanted items. [true/false]");
+        allowUnSmithing = builder.defineBoolean("UnSmithing.allowUnSmithing", true, "Allow uncrafting of items that obtained from smithing (Trimmed Armor/Netherite Armor). [true/false]");
+        allowDamaged = builder.defineBoolean("Damaged.allowDamaged", true, "Allow uncrafting of damaged items. [true/false]");
+        allowDamagedNonRepairable = builder.defineBoolean("Damaged.allowDamagedNonRepairable", false, "Allow uncrafting of damaged items that have no repair ingredient (e.g. bows, crossbows, shears, fishing rods). Returns full ingredients regardless of durability. Exploitable. [true/false]");
+        minimumDurability = builder.defineDouble("Damaged.minimumDurability", 0.8, 0.0, 1.0, "Minimum durability for non repairable damaged item in percentage. (0.0 - 1.0)");
+        preventModdedIngredientsFromVanillaItems = builder.defineBoolean("ModdedIngredients.preventModdedIngredientsFromVanillaItems", true, "Prevents vanilla items (e.g., iron axe) from being uncrafted using modded recipes." + "\n" + "This helps avoid potential duplication or unintended outputs caused by modded ingredients. [true/false]");
+        restrictedModIngredients = builder.defineList("ModdedIngredients.restrictedModIngredients", List.of("productivetrees", "chipped"), "A list of modid that would be excluded when uncrafting, to prevent too much recipes and causing performance issues." + "\n" + "Format: modid");
+        prioritizeVanillaIngredientRecipe = builder.defineBoolean("RecipeSelectionOrder.prioritizeVanillaIngredientRecipe", true, "Recipe selection should prioritize recipe with more vanilla ingredients. [true/false]");
+        enableProgression = builder.defineBoolean("FTBQuestProgression.enableProgression", false, "Enable progression based uncrafting recipe search (Only available when FTB Quests is added to the mod pack)");
+        onlyAllowDefinedProgression = builder.defineBoolean("FTBQuestProgression.onlyAllowDefinedProgression", false, "When FTB Quests is added and progression enabled, only item defined in progression config able to uncraft, all other item will be disabled.");
+        outputEnchantedBook = builder.defineBoolean("Enchanted.outputEnchantedBook", false, "Output Enchanted Book for enchanted item. [true/false]");
+        CONFIG_SPEC = builder.watchForChanges().build();
+
+        if (!Services.PLATFORM.isClient()){
+            CONFIG_SPEC.addReloadListener(() -> Services.NETWORK.sendToAllPlayer(PayloadContext.SYNC_CONFIG));
+        }
     }
 
-    public static boolean allowUnSmithing() {
-        return allowUnSmithing;
+    public ExperienceType experienceType() {
+        return experienceType.get();
     }
 
-    public static boolean allowDamaged() {
-        return allowDamaged;
+    public int experience() {
+        return experience.get();
     }
 
-    public static boolean isEnchantedItemsAllowed(ItemStack itemStack) {
-        return allowEnchantedItems || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
+    public RestrictionType restrictionType(){
+        return restrictionType.get();
     }
 
-    public static boolean preventModdedIngredientRecipes(){
-        return preventModdedIngredientsFromVanillaItems;
+    public List<String> restrictions(){
+        return restrictions.get();
     }
 
-    public static boolean enableProgression(){
-        return enableProgression;
+    public boolean restrictAmbiguouslyCraftedItems(){
+        return restrictAmbiguouslyCraftedItems.get();
     }
 
-    public static boolean onlyAllowDefinedProgression(){
-        return onlyAllowDefinedProgression;
+    public boolean allowEnchantedItems(){
+        return allowEnchantedItems.get();
     }
 
-    public static boolean outputEnchantedBook(){
-        return outputEnchantedBook;
+    public boolean allowUnSmithing() {
+        return allowUnSmithing.get();
     }
 
-    public static boolean restrictAmbiguouslyCraftedItems(){
-        return restrictAmbiguouslyCraftedItems;
+    public boolean allowDamaged() {
+        return allowDamaged.get();
     }
 
-    public static Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
-        if (UncraftEverythingConfig.enableProgression() && QuestHelper.FTBQUESTS_LOADED){
-            String questId = FTBQuestProgressionConfig.getQuestId(itemStack);
+    public boolean preventModdedIngredientsFromVanillaItems(){
+        return preventModdedIngredientsFromVanillaItems.get();
+    }
+
+    public List<String> restrictedModIngredients() {
+        return restrictedModIngredients.get();
+    }
+
+    public boolean prioritizeVanillaIngredientRecipe(){
+        return prioritizeVanillaIngredientRecipe.get();
+    }
+
+    public boolean enableProgression(){
+        return enableProgression.get();
+    }
+
+    public boolean onlyAllowDefinedProgression(){
+        return onlyAllowDefinedProgression.get();
+    }
+
+    public boolean outputEnchantedBook(){
+        return outputEnchantedBook.get();
+    }
+
+    public boolean allowDamagedNonRepairable(){
+        return allowDamagedNonRepairable.get();
+    }
+
+    public double minimumDurability(){
+        return minimumDurability.get();
+    }
+
+    public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
+        return allowEnchantedItems.get() || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
+    }
+
+    public Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
+        if (enableProgression() && QuestHelper.FTBQUESTS_LOADED){
+            String questId = FTBQuestProgressionConfig.CONFIG.getQuestId(itemStack);
             if (player == null){
                 if (questId != null){
                     return Pair.of(true, Status.LOCKED_ITEM);
                 }
             }
             else{
-                if (UncraftEverythingConfig.onlyAllowDefinedProgression()){
+                if (onlyAllowDefinedProgression()){
                     return Pair.of(questId == null || !QuestHelper.hasCompletedQuestOrChapter(player, questId), questId == null ? Status.PROGRESSION_NOT_DEFINED : Status.LOCKED_ITEM);
                 }
                 else{
@@ -123,19 +167,19 @@ public class UncraftEverythingConfig {
         return Pair.of(false, Status.BLANK);
     }
 
-    public static boolean isItemBlacklisted(ItemStack itemStack) {
-        if (restrictionType != RestrictionType.BLACKLIST){
+    public boolean isItemBlacklisted(ItemStack itemStack) {
+        if (restrictionType() != RestrictionType.BLACKLIST){
             return false;
         }
 
         Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
-        if (restrictions.contains(itemLocationString)) {
+        if (restrictions().contains(itemLocationString)) {
             return true;
         }
 
-        for (String entry : restrictions) {
+        for (String entry : restrictions()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
@@ -155,19 +199,19 @@ public class UncraftEverythingConfig {
         return false;
     }
 
-    public static boolean isItemWhitelisted(ItemStack itemStack) {
-        if (restrictionType != RestrictionType.WHITELIST){
+    public boolean isItemWhitelisted(ItemStack itemStack) {
+        if (restrictionType() != RestrictionType.WHITELIST){
             return false;
         }
 
         Identifier itemLocation = inputStackLocation(itemStack);
         String itemLocationString = itemLocation.toString();
 
-        if (restrictions.contains(itemLocationString)) {
+        if (restrictions().contains(itemLocationString)) {
             return false;
         }
 
-        for (String entry : restrictions) {
+        for (String entry : restrictions()) {
             if (entry.startsWith("#")){
                 String tagName = entry.substring(1);
                 Optional<TagKey<Item>> tagKey = tryParseTagKey(tagName);
@@ -187,21 +231,21 @@ public class UncraftEverythingConfig {
         return true;
     }
 
-    public static List<String> getRestrictedModIngredients() {
-        return restrictedModIngredients;
-    }
-
-    public static Identifier inputStackLocation(ItemStack itemStack) {
+    public Identifier inputStackLocation(ItemStack itemStack) {
         return BuiltInRegistries.ITEM.getKey(itemStack.getItem());
     }
 
-    public static Optional<TagKey<Item>> tryParseTagKey(String input) {
+    public Optional<TagKey<Item>> tryParseTagKey(String input) {
         try {
             Identifier location = Identifier.parse(input);
             return Optional.of(TagKey.create(Registries.ITEM, location));
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    public void save(){
+        CONFIG_SPEC.save();
     }
 
     public enum ExperienceType {
