@@ -24,6 +24,8 @@ dependencies {
     compileOnly "dev.ftb.mods:ftb-quests:26.1.2.1-SNAPSHOT"
 
     compileOnly "com.coolerpromc.coolerconfig:coolerconfig-common-${minecraft_version}:${cooler_config_version}"
+
+    compileOnly "curse.maven:travelers-backpack-541171:8071343"
 }
 
 configurations {
