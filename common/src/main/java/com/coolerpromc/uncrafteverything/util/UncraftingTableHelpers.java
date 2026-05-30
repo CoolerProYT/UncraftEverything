@@ -2,6 +2,7 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
 import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
+import com.coolerpromc.uncrafteverything.compat.mod.TravelersBackpackCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.platform.Services;
 import net.minecraft.core.Holder;
@@ -140,6 +141,10 @@ public class UncraftingTableHelpers {
                         return true;
                     }
                 }
+            }
+
+            if (Services.PLATFORM.isModLoaded("travelersbackpack")){
+                return TravelersBackpackCompat.hasRecipe(recipeHolder, inputStack, blockEntity);
             }
 
             if (blockEntity.status == Status.BLANK && !inputStack.isEmpty()){
@@ -480,6 +485,12 @@ public class UncraftingTableHelpers {
                     }
                     outputs.add(outputStack);
                 }
+            }
+
+            if (Services.PLATFORM.isModLoaded("travelersbackpack")){
+                List<UncraftingTableRecipe> recipe = TravelersBackpackCompat.getOutput(r, inputStack);
+                if (recipe == null) continue;
+                outputs.addAll(recipe);
             }
         }
 

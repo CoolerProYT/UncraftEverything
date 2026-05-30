@@ -11,6 +11,7 @@ public class Services {
     public static final INetworkHelper NETWORK = load(INetworkHelper.class);
     public static final IMenuHelper MENU = load(IMenuHelper.class);
     public static final IIngredientHelper INGREDIENT = load(IIngredientHelper.class);
+    public static final ITravelersBackpackHelper TRAVELERS_BACKPACK = load(ITravelersBackpackHelper.class);
 
     public static <T> T load(Class<T> clazz) {
 

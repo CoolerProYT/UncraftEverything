@@ -1,6 +1,3 @@
-# 26.1.2.3
+# 26.1.2.4
 ### Changes
-- Refactor config system, now use my own config lib (Most config will reset to default value)
-- Added new config field `allowDamagedNonRepairable` and `minimumDurability` to common config
-- Updated Uncraft Everything Config Screen
-- Re-implemented FTB Quest Compat
+- Added compatibility for TravelersBackpack `ShapedBackpackRecipe` and `BackpackUpgradeRecipe`

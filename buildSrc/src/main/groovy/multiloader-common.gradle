@@ -42,6 +42,22 @@ repositories {
         name = 'CoolerProMC'
         url = 'https://maven.coolerpromc.com/releases'
     }
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url "https://cursemaven.com"
+                }
+            }
+            filter {
+                includeGroup "curse.maven"
+            }
+        }
+    }
+    maven {
+        name = "Fuzs Mod Resources"
+        url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+    }
 }
 
 sourcesJar {
