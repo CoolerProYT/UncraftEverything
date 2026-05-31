@@ -203,10 +203,10 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
     }
 
     public boolean hasEnoughExperience(){
-        if (UncraftEverythingConfig.CONFIG.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+        if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.POINT)){
             return player.totalExperience >= getExperience(this.slots) || player.isCreative();
         }
-        else if (UncraftEverythingConfig.CONFIG.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+        else if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             return player.experienceLevel >= getExperience(this.slots) || player.isCreative();
         }
         return true;
@@ -244,10 +244,10 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
             }
         }
 
-        if (UncraftEverythingConfig.CONFIG.experienceType.equals(UncraftEverythingConfig.ExperienceType.POINT)){
+        if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.POINT)){
             player.giveExperiencePoints(-getExperience(this.slots));
         }
-        else if (UncraftEverythingConfig.CONFIG.experienceType.equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
+        else if (UncraftEverythingConfig.CONFIG.experienceType().equals(UncraftEverythingConfig.ExperienceType.LEVEL)){
             player.giveExperiencePoints(-calculateBaseXpFromLevel(getExperience(this.slots)));
         }
 

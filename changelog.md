@@ -1,3 +1,3 @@
-# 26.1.2.4
+# 26.1.2.5
 ### Changes
-- Added compatibility for TravelersBackpack `ShapedBackpackRecipe` and `BackpackUpgradeRecipe`
+- Fixed Uncrafting Table not checking and deducting exp from player correctly
