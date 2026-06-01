@@ -66,7 +66,7 @@ public class FabricUncraftEverything implements ModInitializer {
         RecipeSynchronization.synchronizeRecipeSerializer(SmithingTransformRecipe.SERIALIZER);
         RecipeSynchronization.synchronizeRecipeSerializer(SmithingTrimRecipe.SERIALIZER);
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> MINECRAFT_SERVER = server);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> MINECRAFT_SERVER = server);
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, _) -> PayloadContext.syncConfig(serverPlayer));
         CommandRegistrationCallback.EVENT.register((commandDispatcher, _, _) -> ModServerCommands.registerServer(commandDispatcher));
 
