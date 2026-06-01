@@ -19,8 +19,10 @@ public class FabricNetworkHelper implements INetworkHelper {
 
     @Override
     public <T extends CustomPacketPayload> void sendToAllPlayer(T packet) {
-        MinecraftServer server = Objects.requireNonNull(FabricUncraftEverything.MINECRAFT_SERVER, "Cannot send clientbound payloads on the client");
-        PlayerLookup.all(server).forEach(p -> sendToPlayer(p, packet));
+        MinecraftServer server = FabricUncraftEverything.MINECRAFT_SERVER;
+        if (server != null){
+            PlayerLookup.all(server).forEach(p -> sendToPlayer(p, packet));
+        }
     }
 
     @Override

@@ -1,3 +1,3 @@
-# 26.1.2.5
+# 26.1.2.6
 ### Changes
-- Fixed Uncrafting Table not checking and deducting exp from player correctly
+- Fixed server crash caused by config sync when MinecraftServer is null
