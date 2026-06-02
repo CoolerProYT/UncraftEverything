@@ -86,6 +86,9 @@ publishMods {
         accessToken = findProperty("CF_TOKEN")
         minecraftVersions.add(minecraft_version)
         optional("ftb-quests-forge")
+
+        client = true
+        server = true
     }
 
     modrinth {
