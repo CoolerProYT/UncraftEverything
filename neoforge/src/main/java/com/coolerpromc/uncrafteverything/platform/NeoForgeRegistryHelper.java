@@ -69,10 +69,10 @@ public class NeoForgeRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends Item> RegistryHandler<T> registerItem(String name, Function<Item.Properties, T> func) {
+    public <T extends Item> RegistryHandler<Item, T> registerItem(String name, Function<Item.Properties, T> func) {
         DeferredItem<T> item = ITEMS.registerItem(name, func);
 
-        return new RegistryHandler<T>() {
+        return new RegistryHandler<>() {
             @Override
             public Identifier id() {
                 return item.getId();
@@ -91,7 +91,7 @@ public class NeoForgeRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends BlockEntity> RegistryHandler<BlockEntityType<T>> registerBlockEntity(String name, BlockEntityTypeFactory<T> factory, Supplier<? extends Block>... blocks) {
+    public <T extends BlockEntity> RegistryHandler<BlockEntityType<?>, BlockEntityType<T>> registerBlockEntity(String name, BlockEntityTypeFactory<T> factory, Supplier<? extends Block>... blocks) {
         DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> blockEntity = BLOCK_ENTITIES.register(name, () -> new BlockEntityType<>(factory::create, Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new)));
 
         return new RegistryHandler<>() {
@@ -113,7 +113,7 @@ public class NeoForgeRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public RegistryHandler<CreativeModeTab> registerCreativeTab(String name, Supplier<ItemStack> icon, Component title, Function<CreativeModeTab.ItemDisplayParameters, ItemStack[]> func) {
+    public RegistryHandler<CreativeModeTab, CreativeModeTab> registerCreativeTab(String name, Supplier<ItemStack> icon, Component title, Function<CreativeModeTab.ItemDisplayParameters, ItemStack[]> func) {
         DeferredHolder<CreativeModeTab, CreativeModeTab> tab = CREATIVE_TABS.register(name, () -> CreativeModeTab.builder().icon(icon).title(title).displayItems(((param, output) -> Arrays.stream(func.apply(param)).forEach(output::accept))).build());
 
         return new RegistryHandler<>() {
@@ -135,7 +135,7 @@ public class NeoForgeRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends AbstractContainerMenu, D> RegistryHandler<MenuType<T>> registerMenu(String name, MenuFactory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> data) {
+    public <T extends AbstractContainerMenu, D> RegistryHandler<MenuType<?>, MenuType<T>> registerMenu(String name, MenuFactory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> data) {
         DeferredHolder<MenuType<?>, MenuType<T>> menu = MENUS.register(name, () -> IMenuTypeExtension.create((id, inv, buf) -> factory.create(id, inv, data.decode(buf))));
 
         return new RegistryHandler<>() {

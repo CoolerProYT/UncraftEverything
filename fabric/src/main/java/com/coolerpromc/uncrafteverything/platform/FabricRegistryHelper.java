@@ -64,7 +64,7 @@ public class FabricRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends Item> RegistryHandler<T> registerItem(String name, Function<Item.Properties, T> func) {
+    public <T extends Item> RegistryHandler<Item, T> registerItem(String name, Function<Item.Properties, T> func) {
         ResourceKey<Item> key = IRegistryHelper.itemKey(name);
         Identifier id = key.identifier();
         Holder<T> holder = Registry.registerForHolder(BuiltInRegistries.ITEM, id, func.apply(new Item.Properties().setId(key)));
@@ -88,7 +88,7 @@ public class FabricRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends BlockEntity> RegistryHandler<BlockEntityType<T>> registerBlockEntity(String name, BlockEntityTypeFactory<T> factory, Supplier<? extends Block>... blocks) {
+    public <T extends BlockEntity> RegistryHandler<BlockEntityType<?>, BlockEntityType<T>> registerBlockEntity(String name, BlockEntityTypeFactory<T> factory, Supplier<? extends Block>... blocks) {
         Identifier id = Constants.id(name);
         Holder<BlockEntityType<T>> holder = Registry.registerForHolder(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.create(factory::create, Arrays.stream(blocks).map(Supplier::get).toArray(Block[]::new)).build());
 
@@ -111,7 +111,7 @@ public class FabricRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public RegistryHandler<CreativeModeTab> registerCreativeTab(String name, Supplier<ItemStack> icon, Component title, Function<CreativeModeTab.ItemDisplayParameters, ItemStack[]> func) {
+    public RegistryHandler<CreativeModeTab, CreativeModeTab> registerCreativeTab(String name, Supplier<ItemStack> icon, Component title, Function<CreativeModeTab.ItemDisplayParameters, ItemStack[]> func) {
         Identifier id = Constants.id(name);
         Holder<CreativeModeTab> holder = Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, id, FabricCreativeModeTab.builder().icon(icon).title(title).displayItems((parameters, output) -> Arrays.stream(func.apply(parameters)).forEach(output::accept)).build());
 
@@ -134,7 +134,7 @@ public class FabricRegistryHelper implements IRegistryHelper {
     }
 
     @Override
-    public <T extends AbstractContainerMenu, D> RegistryHandler<MenuType<T>> registerMenu(String name, MenuFactory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> data) {
+    public <T extends AbstractContainerMenu, D> RegistryHandler<MenuType<?>, MenuType<T>> registerMenu(String name, MenuFactory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> data) {
         Identifier id = Constants.id(name);
         Holder<MenuType<T>> holder = Registry.registerForHolder(BuiltInRegistries.MENU, id, new ExtendedMenuType<>(factory::create, data));
 

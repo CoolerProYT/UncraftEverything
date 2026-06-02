@@ -4,6 +4,17 @@ plugins {
     id "me.modmuss50.mod-publish-plugin"
 }
 
+repositories {
+    maven {
+        name = "Maven for PR #3198" // https://github.com/neoforged/NeoForge/pull/3198
+        url = uri("https://prmaven.neoforged.net/NeoForge/pr3198")
+        content {
+            includeModule("net.neoforged", "neoforge")
+            includeModule("net.neoforged", "testframework")
+        }
+    }
+}
+
 neoForge {
     version = neoforge_version
     // Automatically enable neoforge AccessTransformers if the file exists
@@ -42,7 +53,7 @@ neoForge {
 
 dependencies {
     compileOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge-api:${jei_version}")
-    runtimeOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge:${jei_version}")
+//    runtimeOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge:${jei_version}")
 
     compileOnly "dev.ftb.mods:ftb-library-neoforge:26.1.2.6"
     compileOnly "dev.ftb.mods:ftb-teams-neoforge:26.1.2.4"
