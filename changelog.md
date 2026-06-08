@@ -1,3 +1,3 @@
-# 26.1.2.7
+# 26.1.2.8
 ### Changes
-- Fixed no correct tool for uncrafting table
+- Added compatibility to `bonded`

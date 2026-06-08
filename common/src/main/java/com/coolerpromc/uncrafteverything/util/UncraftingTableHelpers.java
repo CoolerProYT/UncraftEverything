@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
+import com.coolerpromc.uncrafteverything.compat.mod.BondedCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.TravelersBackpackCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
@@ -89,6 +90,7 @@ public class UncraftingTableHelpers {
         inputStack.remove(DataComponents.CUSTOM_NAME);
         if (Services.PLATFORM.isModLoaded("whatdurability") && inputStack.has(DataComponents.DAMAGE)) inputStack.set(DataComponents.DAMAGE, 0);
         if (Services.PLATFORM.isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
+        if (Services.PLATFORM.isModLoaded("bonded")) BondedCompat.removeComponents(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
