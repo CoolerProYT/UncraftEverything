@@ -76,6 +76,9 @@ publishMods {
         projectId = "1244428"
         accessToken = findProperty("CF_TOKEN")
         minecraftVersions.add(minecraft_version)
+
+        client = true
+        server = true
     }
 
     modrinth {

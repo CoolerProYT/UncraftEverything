@@ -1,3 +1,3 @@
-# 26.1.2.6
+# 26.1.2.8
 ### Changes
-- Fixed server crash caused by config sync when MinecraftServer is null
+- Added compatibility to `bonded`
