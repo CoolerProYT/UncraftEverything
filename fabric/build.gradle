@@ -18,7 +18,7 @@ dependencies {
     compileOnly "dev.ftb.mods:ftb-teams-fabric:26.1.2.4"
     compileOnly "dev.ftb.mods:ftb-quests-fabric:26.1.2.1-SNAPSHOT"
 
-    implementation include("com.coolerpromc.coolerconfig:coolerconfig-fabric-${dependencies_mc_version}:${cooler_config_version}")
+    implementation include("com.coolerpromc.coolerconfig:coolerconfig-fabric-${minecraft_version}:${cooler_config_version}")
 
     compileOnly "curse.maven:travelers-backpack-fabric-541171:8071343"
 }
