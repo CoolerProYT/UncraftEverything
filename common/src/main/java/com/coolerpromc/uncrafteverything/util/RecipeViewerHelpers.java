@@ -12,10 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.*;
@@ -118,24 +115,81 @@ public class RecipeViewerHelpers {
         // Add all items that can be uncrafted
         UncraftEverythingClient.recipesFromServer.forEach(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
-                if (!(isItemBlacklisted(shapedRecipe.result.create()) || isItemWhitelisted(shapedRecipe.result.create()))){
-                    entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result.create(), shapedRecipe.getIngredients().stream().map(ingredient -> ingredient.orElse(null)).toList()));
+                ItemStack result = shapedRecipe.result.create();
+                if (isItemBlacklisted(result) || isItemWhitelisted(result)) return;
+
+                if (UncraftEverythingClient.payloadFromServer.restrictAmbiguouslyCraftedItems()) {
+                    for (Optional<Ingredient> ing : shapedRecipe.getIngredients()) {
+                        if (ing.isPresent() && ing.get().items().count() > 1) return;
+                    }
                 }
+
+                List<Ingredient> outputIngredients;
+                if (UncraftEverythingClient.payloadFromServer.preventModdedIngredientsFromVanillaItems()
+                        && BuiltInRegistries.ITEM.getKey(result.getItem()).getNamespace().equals("minecraft")) {
+                    List<Ingredient> filtered = new ArrayList<>();
+                    for (Optional<Ingredient> ing : shapedRecipe.getIngredients()) {
+                        if (ing.isEmpty()) { filtered.add(null); continue; }
+                        Ingredient vanillaOnly = vanillaIngredient(ing.get());
+                        if (vanillaOnly == null) return;
+                        filtered.add(vanillaOnly);
+                    }
+                    outputIngredients = filtered;
+                } else {
+                    outputIngredients = shapedRecipe.getIngredients().stream().map(ing -> ing.orElse(null)).toList();
+                }
+
+                entries.add(new JEIUncraftingTableRecipe(result, outputIngredients));
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                if (!(isItemBlacklisted(shapelessRecipe.result.create()) || isItemWhitelisted(shapelessRecipe.result.create()))){
-                    entries.add(new JEIUncraftingTableRecipe(shapelessRecipe.result.create(), shapelessRecipe.ingredients));
+                ItemStack result = shapelessRecipe.result.create();
+                if (isItemBlacklisted(result) || isItemWhitelisted(result)) return;
+
+                if (result.getItem() instanceof BedItem) return;
+
+                if (UncraftEverythingClient.payloadFromServer.restrictAmbiguouslyCraftedItems()) {
+                    for (Ingredient ing : shapelessRecipe.ingredients) {
+                        if (ing.items().count() > 1) return;
+                    }
                 }
+
+                List<Ingredient> outputIngredients;
+                if (UncraftEverythingClient.payloadFromServer.preventModdedIngredientsFromVanillaItems()
+                        && BuiltInRegistries.ITEM.getKey(result.getItem()).getNamespace().equals("minecraft")) {
+                    List<Ingredient> filtered = new ArrayList<>();
+                    for (Ingredient ing : shapelessRecipe.ingredients) {
+                        Ingredient vanillaOnly = vanillaIngredient(ing);
+                        if (vanillaOnly == null) return;
+                        filtered.add(vanillaOnly);
+                    }
+                    outputIngredients = filtered;
+                } else {
+                    outputIngredients = shapelessRecipe.ingredients;
+                }
+
+                entries.add(new JEIUncraftingTableRecipe(result, outputIngredients));
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
+                ItemStack resultStack = new ItemStack(smithingTransformRecipe.result.item(), 1, smithingTransformRecipe.result.components());
                 NonNullList<Ingredient> ingredients = NonNullList.create();
-
                 ingredients.add(smithingTransformRecipe.baseIngredient());
                 smithingTransformRecipe.additionIngredient().ifPresent(ingredients::add);
                 smithingTransformRecipe.templateIngredient().ifPresent(ingredients::add);
-                entries.add(new JEIUncraftingTableRecipe(new ItemStack(smithingTransformRecipe.result.item(), 1, smithingTransformRecipe.result.components()), ingredients));
+
+                if (UncraftEverythingClient.payloadFromServer.preventModdedIngredientsFromVanillaItems()
+                        && BuiltInRegistries.ITEM.getKey(resultStack.getItem()).getNamespace().equals("minecraft")) {
+                    NonNullList<Ingredient> filtered = NonNullList.create();
+                    for (Ingredient ing : ingredients) {
+                        Ingredient vanillaOnly = vanillaIngredient(ing);
+                        if (vanillaOnly == null) return;
+                        filtered.add(vanillaOnly);
+                    }
+                    ingredients = filtered;
+                }
+
+                entries.add(new JEIUncraftingTableRecipe(resultStack, ingredients));
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
@@ -223,5 +277,12 @@ public class RecipeViewerHelpers {
         }
 
         return true;
+    }
+
+    private static Ingredient vanillaIngredient(Ingredient ingredient) {
+        List<Holder<Item>> vanillaHolders = ingredient.items()
+                .filter(h -> h.unwrapKey().map(k -> k.identifier().getNamespace().equals("minecraft")).orElse(true))
+                .toList();
+        return vanillaHolders.isEmpty() ? null : Ingredient.of(HolderSet.direct(vanillaHolders));
     }
 }
