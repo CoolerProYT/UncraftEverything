@@ -53,7 +53,7 @@ neoForge {
 
 dependencies {
     compileOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge-api:${jei_version}")
-//    runtimeOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${dependencies_mc_version}-neoforge:${jei_version}")
 
     compileOnly "dev.ftb.mods:ftb-library-neoforge:26.1.2.6"
     compileOnly "dev.ftb.mods:ftb-teams-neoforge:26.1.2.4"

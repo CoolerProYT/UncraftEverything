@@ -1,3 +1,2 @@
-# 26.1.2.8
-### Changes
-- Added compatibility to `bonded`
+# 26.2.0.1
+- Update JEI recipe searching for Uncrafting Table to respect config values
