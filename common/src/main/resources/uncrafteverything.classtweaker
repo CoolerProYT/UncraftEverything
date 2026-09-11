@@ -4,7 +4,7 @@ accessible field net/minecraft/world/item/crafting/ShapelessRecipe result Lnet/m
 accessible field net/minecraft/world/item/crafting/ShapelessRecipe ingredients Ljava/util/List;
 accessible field net/minecraft/world/item/crafting/TransmuteRecipe input Lnet/minecraft/world/item/crafting/Ingredient;
 accessible field net/minecraft/world/item/crafting/TransmuteRecipe material Lnet/minecraft/world/item/crafting/Ingredient;
-accessible field net/minecraft/world/item/crafting/TransmuteRecipe result Lnet/minecraft/world/item/ItemStackTemplate;
+accessible field net/minecraft/world/item/crafting/TransmuteRecipe result Lnet/minecraft/world/item/crafting/TransmuteResult;
 accessible field net/minecraft/world/item/crafting/SmithingTransformRecipe result Lnet/minecraft/world/item/ItemStackTemplate;
 accessible field net/minecraft/world/item/crafting/SmithingTrimRecipe pattern Lnet/minecraft/core/Holder;
 accessible field net/minecraft/world/SimpleContainer items Lnet/minecraft/core/NonNullList;

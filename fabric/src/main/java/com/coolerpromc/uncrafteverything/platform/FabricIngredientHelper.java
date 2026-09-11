@@ -33,7 +33,7 @@ public class FabricIngredientHelper implements IIngredientHelper {
         if (ingredient.getCustomIngredient() != null && !ingredient.getCustomIngredient().items().toList().isEmpty()) {
             if (ingredient.getCustomIngredient() instanceof ComponentsIngredient dataComponentIngredient){
                 for (var holder : dataComponentIngredient.items().toList()) {
-                    items.add(Pair.of(holder.value(), dataComponentIngredient.display().resolveForFirstStack(new ContextMap.Builder().create(new ContextKeySet.Builder().build())).getComponentsPatch()));
+                    items.add(Pair.of(holder.value(), dataComponentIngredient.display().resolveForFirstStack(ContextMap.builder().buildAndValidate(new ContextKeySet.Builder().build())).getComponentsPatch()));
                 }
             }
             else{

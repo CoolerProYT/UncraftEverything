@@ -33,7 +33,7 @@
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",
-        "minecraft": "~26.2-alpha.5",
+        "minecraft": "${fabric_mc_version_range}",
         "java": ">=${java_version}",
         "coolerconfig": ">=26.1.2.16"
     },

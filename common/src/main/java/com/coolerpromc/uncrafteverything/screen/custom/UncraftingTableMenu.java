@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.screen.custom;
 import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.screen.UEMenuTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -47,7 +48,7 @@ public class UncraftingTableMenu extends AbstractUncraftingMenu<UncraftingTableB
         if (!player.level().isClientSide()){
             ItemStack stack = blockEntity.getSlots().getItem(blockEntity.getInputSlots()[0]);
             if (!stack.isEmpty()) {
-                player.getInventory().placeItemBackInInventory(stack);
+                player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
                 blockEntity.getSlots().setItem(blockEntity.getInputSlots()[0], ItemStack.EMPTY);
                 blockEntity.setChanged();
             }
@@ -55,7 +56,7 @@ public class UncraftingTableMenu extends AbstractUncraftingMenu<UncraftingTableB
             for (int i : blockEntity.getOutputSlots()) {
                 ItemStack outputStack = blockEntity.getSlots().getItem(i);
                 if (!outputStack.isEmpty()) {
-                    player.getInventory().placeItemBackInInventory(outputStack);
+                    player.getInventory().placeItemBackInInventory(outputStack, Prediction.SERVER_ONLY);
                     blockEntity.getSlots().setItem(i, ItemStack.EMPTY);
                     blockEntity.setChanged();
                 }

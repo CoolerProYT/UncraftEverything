@@ -103,7 +103,8 @@ processResources {
             'java_version'                 : java_version,
             'jei_version'                  : jei_version,
             'cooler_config_version'        : cooler_config_version,
-            'dependencies_mc_version'      : dependencies_mc_version
+            'dependencies_mc_version'      : dependencies_mc_version,
+            'fabric_mc_version_range'      : fabric_mc_version_range
     ]
 
     var jsonExpandProps = expandProps.collectEntries {

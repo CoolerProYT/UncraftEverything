@@ -4,7 +4,6 @@ import com.coolerpromc.uncrafteverything.blockentity.custom.UncraftingTableBlock
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingClientConfig;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundClientConfigSyncPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -22,11 +21,6 @@ import org.jetbrains.annotations.Nullable;
 public class UncraftingTableBlock extends BaseEntityBlock {
     public UncraftingTableBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return simpleCodec(UncraftingTableBlock::new);
     }
 
     @Override

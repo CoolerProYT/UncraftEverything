@@ -146,7 +146,7 @@ public class RecipeViewerHelpers {
                 ItemStack result = shapelessRecipe.result.create();
                 if (isItemBlacklisted(result) || isItemWhitelisted(result)) return;
 
-                if (result.getItem() instanceof BedItem) return;
+                if (Items.BED.asList().contains(result.getItem())) return;
 
                 if (UncraftEverythingClient.payloadFromServer.restrictAmbiguouslyCraftedItems()) {
                     for (Ingredient ing : shapelessRecipe.ingredients) {

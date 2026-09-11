@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -47,7 +48,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                     for (int outputSlot : outputSlots) {
                         ItemStack outputStack = this.getItem(outputSlot);
                         if (!outputStack.isEmpty()) {
-                            player.getInventory().placeItemBackInInventory(outputStack);
+                            player.getInventory().placeItemBackInInventory(outputStack, Prediction.SERVER_ONLY);
                             this.setItem(outputSlot, ItemStack.EMPTY);
                             setChanged();
                         }
@@ -238,7 +239,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                 }
 
                 if (UncraftEverything.AUTO_MOVE){
-                    player.getInventory().placeItemBackInInventory(slots.getItem(outputSlots[slot]));
+                    player.getInventory().placeItemBackInInventory(slots.getItem(outputSlots[slot]), Prediction.SERVER_ONLY);
                     slots.setItem(outputSlots[slot], ItemStack.EMPTY);
                 }
             }

@@ -4,7 +4,6 @@ import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AutoUncraftingTableBlockEntity;
 import com.coolerpromc.uncrafteverything.networking.ClientBoundUncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,11 +35,6 @@ public class AutoUncraftingTableBlock extends BaseEntityBlock {
 
     public AutoUncraftingTableBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return simpleCodec(AutoUncraftingTableBlock::new);
     }
 
     @Override

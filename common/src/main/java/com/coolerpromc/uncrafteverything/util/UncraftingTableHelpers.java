@@ -15,7 +15,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.BedItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -105,7 +104,7 @@ public class UncraftingTableHelpers {
             }
 
             if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
-                if (inputStack.getItem() instanceof BedItem) return false;
+                if (Items.BED.asList().contains(inputStack.getItem())) return false;
                 if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
                     for (Ingredient ing : shapelessRecipe.ingredients){
                         if (Services.INGREDIENT.getItemsFromIngredient(ing, inputStack).size() > 1){
@@ -121,7 +120,7 @@ public class UncraftingTableHelpers {
                 ItemStack stack = inputStack.copy();
                 if (stack.has(DataComponents.CONTAINER)) stack.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
                 if (stack.has(DataComponents.BUNDLE_CONTENTS)) stack.set(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
-                return ItemStack.isSameItemSameComponents(stack, new ItemStack(transmuteRecipe.result.item(), transmuteRecipe.result.count(), transmuteRecipe.result.components()));
+                return ItemStack.isSameItemSameComponents(stack, new ItemStack(transmuteRecipe.result.item().orElse(Items.BARRIER.builtInRegistryHolder()), transmuteRecipe.result.count(), transmuteRecipe.result.components()));
             }
 
             if (recipeHolder.value() instanceof SmithingTransformRecipe smithingTransformRecipe){
@@ -232,7 +231,7 @@ public class UncraftingTableHelpers {
                 List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getShapelessIngredientCombinations(ingredients, inputStack);
 
                 for (List<Pair<Item, DataComponentPatch>> ingredientCombination : allIngredientCombinations) {
-                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().value().builtInRegistryHolder(), 1, inputStack.getComponentsPatch()));
+                    UncraftingTableRecipe outputStack = new UncraftingTableRecipe(new ItemStack(transmuteRecipe.result.item().orElse(Items.BARRIER.builtInRegistryHolder()), 1, inputStack.getComponentsPatch()));
 
                     for (Pair<Item, DataComponentPatch> item : ingredientCombination) {
                         if (outputStack.contains(item)) {

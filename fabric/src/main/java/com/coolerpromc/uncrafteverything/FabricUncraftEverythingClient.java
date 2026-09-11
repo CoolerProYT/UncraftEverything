@@ -29,10 +29,9 @@ public class FabricUncraftEverythingClient implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, _) -> ModCommands.register(commandDispatcher));
 
         ClientRecipeSynchronizedEvent.EVENT.register((minecraft, synchronizedRecipes) -> {
-            RecipeMap recipes = RecipeMap.create(synchronizedRecipes.recipes().stream().toList());
             UncraftEverythingClient.recipesFromServer.clear();
-            UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.CRAFTING));
-            UncraftEverythingClient.recipesFromServer.addAll(recipes.byType(RecipeType.SMITHING));
+            UncraftEverythingClient.recipesFromServer.addAll(synchronizedRecipes.getAllOfType(RecipeType.CRAFTING));
+            UncraftEverythingClient.recipesFromServer.addAll(synchronizedRecipes.getAllOfType(RecipeType.SMITHING));
         });
     }
 }
