@@ -1,0 +1,5 @@
+node_modules/
+.vitepress/cache/
+.vitepress/dist/
+# Regenerated from the mod by `npm run sync`.
+.vitepress/data/

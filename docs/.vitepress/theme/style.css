@@ -1,0 +1,77 @@
+/* Oak brown from the table, with a diamond accent. */
+:root {
+  --vp-c-brand-1: #8a5a2b;
+  --vp-c-brand-2: #9c6833;
+  --vp-c-brand-3: #8a5a2b;
+  --vp-c-brand-soft: rgba(156, 104, 51, 0.14);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #9c6833 25%, #2bb5b0);
+  --vp-home-hero-image-background-image: radial-gradient(circle, rgba(43, 181, 176, 0.35) 0%, rgba(214, 150, 80, 0.25) 45%, rgba(214, 150, 80, 0) 70%);
+  --vp-home-hero-image-filter: blur(44px);
+
+  --ue-slot-bg: #8b8b8b;
+  --ue-slot-hover: #a0a0a0;
+  --ue-slot-dark: #373737;
+  --ue-slot-light: #ffffff;
+  --ue-gui-bg: #c6c6c6;
+  --ue-gui-light: #ffffff;
+  --ue-gui-dark: #555555;
+  --ue-gui-outline: #000000;
+  --ue-gui-text: #3f3f3f;
+  --ue-gui-arrow: #8b8b8b;
+}
+
+.dark {
+  --vp-c-brand-1: #e0a96d;
+  --vp-c-brand-2: #d39656;
+  --vp-c-brand-3: #9c6833;
+  --vp-c-brand-soft: rgba(224, 169, 109, 0.16);
+
+  --ue-slot-bg: #6f6f6f;
+  --ue-slot-hover: #808080;
+  --ue-slot-dark: #262626;
+  --ue-slot-light: #9a9a9a;
+  --ue-gui-bg: #3b3b3f;
+  --ue-gui-light: #5a5a60;
+  --ue-gui-dark: #202023;
+  --ue-gui-outline: #0b0b0c;
+  --ue-gui-text: #e4e4e4;
+  --ue-gui-arrow: #9a9a9a;
+}
+
+@media (min-width: 960px) {
+  :root {
+    --vp-home-hero-image-filter: blur(64px);
+  }
+}
+
+/* Pixel art stays crisp at any size. */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+.VPHero .image-src {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 28px;
+}
+
+/* Screenshots of the game read better framed. */
+.vp-doc .screenshot {
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid var(--vp-c-divider);
+  box-shadow: var(--vp-shadow-2);
+}
+
+.ue-muted {
+  color: var(--vp-c-text-2);
+  font-size: 0.875em;
+}
+
+/* Recipe cards shown side by side. */
+.ue-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}

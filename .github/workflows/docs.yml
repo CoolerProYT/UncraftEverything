@@ -1,0 +1,65 @@
+# Builds the VitePress wiki in docs/ and publishes it to GitHub Pages.
+# One-time setup: repository Settings > Pages > Source: "GitHub Actions".
+name: Docs
+
+# Pushes to the repository's default branch rebuild and redeploy the wiki. The branch is not
+# named here: the build job compares the pushed ref against the repository's own default branch,
+# so renaming it (or making a new version branch the default) needs no change to this file.
+# Only pushes that touch the wiki or the mod files it reads from trigger a build.
+# A manual run deploys whatever branch it is started from.
+on:
+  push:
+    paths:
+      - docs/**
+      - common/src/main/resources/assets/uncrafteverything/lang/en_us.json
+      - common/src/main/resources/data/uncrafteverything/recipe/**
+      - common/src/main/java/com/coolerpromc/uncrafteverything/config/UncraftEverythingClientConfig.java
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - run: npm ci
+
+      # Runs the data sync first. Served from the root of a custom (sub)domain, so no /UncraftEverything/ prefix.
+      # Remove DOCS_BASE to go back to https://<user>.github.io/UncraftEverything/.
+      - run: npm run build
+        env:
+          DOCS_BASE: /
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
