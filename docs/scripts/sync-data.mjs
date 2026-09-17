@@ -25,15 +25,17 @@ const lang = readJson(join(assets, 'lang/en_us.json'))
 // Item names for mod items; vanilla names are prettified on the page.
 const names = {}
 for (const [key, value] of Object.entries(lang)) {
-  const match = key.match(new RegExp(`^(item|block)\.${MOD_ID}\.([a-z0-9_]+)$`))
+  const match = key.match(new RegExp(`^(item|block)\\.${MOD_ID}\\.([a-z0-9_]+)$`))
   if (match) names[`${MOD_ID}:${match[2]}`] = value
 }
 
-// Block items have no flat texture, so their icons are rendered from the block model and committed in public/icons/.
+// Mod textures are hosted at 1024x1024 alongside the vanilla renders; upload new ones there before syncing.
+// The blocks have no flat item texture, so their icons are rendered from the block model (small copies kept in public/icons/).
+const HOSTED_TEXTURES = `https://storage.googleapis.com/coolerpromc/textures/${MOD_ID}`
 const textures = {}
 const renderedIcons = join(docs, 'public/icons')
 for (const file of existsSync(renderedIcons) ? readdirSync(renderedIcons).filter((f) => f.endsWith('.png')) : []) {
-  textures[`${MOD_ID}:${basename(file, '.png')}`] = `/icons/${file}`
+  textures[`${MOD_ID}:${basename(file, '.png')}`] = `${HOSTED_TEXTURES}/${file}`
 }
 
 const ingredient = (value) => {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { withBase } from 'vitepress'
 import { TAG_MEMBERS, itemIcon, itemName } from '../uncrafteverything'
 
 const props = withDefaults(
@@ -18,7 +17,7 @@ onMounted(() => {
   // Preloads every member so the icon doesn't blank out while the next one loads.
   for (const member of members.value) {
     const preload = itemIcon(member)
-    if (preload && !preload.local) new Image().src = preload.src
+    if (preload) new Image().src = preload
   }
   timer = setInterval(() => tick.value++, 1000)
 })
@@ -28,8 +27,7 @@ const shown = computed(() => (members.value ? members.value[tick.value % members
 
 const name = computed(() => (props.id ? itemName(props.id) : ''))
 const title = computed(() => (members.value && shown.value ? `${name.value} (${itemName(shown.value)})` : name.value))
-const icon = computed(() => (shown.value ? itemIcon(shown.value) : null))
-const src = computed(() => (icon.value ? (icon.value.local ? withBase(icon.value.src) : icon.value.src) : null))
+const src = computed(() => (shown.value ? itemIcon(shown.value) : null))
 
 // Falls back to initials when an item has no icon or the hosted icon fails to load.
 const failed = ref(false)

@@ -64,15 +64,15 @@ export function itemName(id: string): string {
 const VANILLA_ICONS = 'https://storage.googleapis.com/coolerpromc/textures'
 
 /**
- * Where to load an item's icon from. Mod blocks use the renders committed in public/icons (a site path);
+ * Where to load an item's icon from. Mod items use the hosted textures listed by the sync script;
  * vanilla items use the hosted renders.
  */
-export function itemIcon(id: string): { src: string; local: boolean } | null {
-  if (data.textures[id]) return { src: data.textures[id], local: true }
+export function itemIcon(id: string): string | null {
+  if (data.textures[id]) return data.textures[id]
   // @ts-ignore
   const [namespace, path] = id.includes(':') ? id.split(':') : ['minecraft', id]
   if (namespace !== 'minecraft') return null
-  return { src: `${VANILLA_ICONS}/${namespace}/${path}.png`, local: false }
+  return `${VANILLA_ICONS}/${namespace}/${path}.png`
 }
 
 export function findRecipe(id: string): Recipe | undefined {
