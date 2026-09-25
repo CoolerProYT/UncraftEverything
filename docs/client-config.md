@@ -1,6 +1,6 @@
 # Client config
 
-The client config holds settings that only affect your own screen, such as the status overlay colors. Each player sets them for themselves, and the server can't change them. Added in `v2.0.0`.
+The client config holds settings that only affect your own screen, such as the status overlay colors and whether JEI shows the Uncrafting category. Each player sets them for themselves, and the server can't change them. Added in `v2.0.0`.
 
 **File:** `config/uncrafteverything-client.toml`<br>
 **Command:** `/ueconfig client`
@@ -12,6 +12,7 @@ The client config holds settings that only affect your own screen, such as the s
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `autoMoveToInventory` | Boolean | `true` | Moves uncrafted items into your inventory when you click **UnCraft**. Items that don't fit are dropped. Does not apply to the Auto Uncrafting Table. |
+| `showJeiUncraftingCategory` | Boolean | `true` | Shows the Uncrafting category in JEI. Turn it off to hide the category and its recipes from JEI. Changes apply straight away, no restart needed. Only has an effect when JEI is installed. Added in `26.3.0.0`, `26.2.0.2`, `26.1.2.11` and `2.1.5` (1.21.1 NeoForge). |
 
 ### StatusColor
 
@@ -31,6 +32,8 @@ Colors are stored as a signed decimal of the ARGB hex value. For example, `#FFFF
 [Behaviour]
 	# Auto move uncrafted items to player inventory, drops to world if inventory is full.
 	autoMoveToInventory = true
+	# Show the Uncrafting category in JEI. Only affects you, other players are not affected.
+	showJeiUncraftingCategory = true
 
 [StatusColor]
 	# Overlay color for No Recipe Found

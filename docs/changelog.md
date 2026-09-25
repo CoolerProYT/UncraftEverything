@@ -2,6 +2,14 @@
 
 Changes since `v2.0.0`. From the 26.x ports onwards, version numbers start with the Minecraft version.
 
+## 26.3.0.0
+
+- Added [`showJeiUncraftingCategory`](./client-config#behaviour) to the client config. Turn it off to hide the Uncrafting category from JEI.
+
+## 26.2.0.2
+
+- Added [`showJeiUncraftingCategory`](./client-config#behaviour) to the client config. Turn it off to hide the Uncrafting category from JEI.
+
 ## 26.2.0.1
 
 - JEI's Uncrafting Table recipe lookup now respects the config.
@@ -11,6 +19,10 @@ Changes since `v2.0.0`. From the 26.x ports onwards, version numbers start with 
 - Ported to Minecraft 26.2.
 - The mod now builds for NeoForge and Fabric from one codebase, with a new versioning scheme.
 - Added [`restrictAmbiguouslyCraftedItems`](./common-config#restrictions) to the common config. Turn it on to block recipes that use an item tag as an ingredient.
+
+## 26.1.2.11
+
+- Added [`showJeiUncraftingCategory`](./client-config#behaviour) to the client config. Turn it off to hide the Uncrafting category from JEI.
 
 ## 26.1.2.8
 
@@ -37,6 +49,10 @@ The config system was rewritten with CoolerConfig. Most settings reset to their 
 - Added [`allowDamagedNonRepairable` and `minimumDurability`](./common-config#damaged) to the common config.
 - Updated the common config screen.
 - Re-implemented FTB Quests compatibility.
+
+## 2.1.5
+
+- Added [`showJeiUncraftingCategory`](./client-config#behaviour) to the client config. Turn it off to hide the Uncrafting category from JEI. Backported to Minecraft 1.21.1 (NeoForge).
 
 ## 2.1.0
 
