@@ -9,6 +9,7 @@ public class UncraftEverythingClientConfig {
     private final ConfigSpec CONFIG_SPEC;
 
     public final ConfigValue<Boolean> autoMoveToInventory;
+    public final ConfigValue<Boolean> showJeiUncraftingCategory;
     public final ConfigValue<Integer> noRecipeFoundColor;
     public final ConfigValue<Integer> noSuitableOutputSlotColor;
     public final ConfigValue<Integer> notEnoughExpColor;
@@ -27,6 +28,7 @@ public class UncraftEverythingClientConfig {
         ConfigBuilder builder = ConfigSpec.builder(Constants.MODID, ConfigFormat.TOML).side(ConfigSide.CLIENT).comment("UncraftEverything Client Configuration");
 
         autoMoveToInventory = builder.defineBoolean("Behaviour.autoMoveToInventory", true, "Auto move uncrafted items to player inventory, drops to world if inventory is full.");
+        showJeiUncraftingCategory = builder.defineBoolean("Behaviour.showJeiUncraftingCategory", true, "Show the Uncrafting category in JEI. Only affects you, other players are not affected.");
         noRecipeFoundColor = builder.defineInt("StatusColor.noRecipeFound", 0xFFff615c, Integer.MIN_VALUE, Integer.MAX_VALUE, "Overlay color for No Recipe Found");
         noSuitableOutputSlotColor = builder.defineInt("StatusColor.noSuitableOutputSlotColor", 0xFFfc8b49, Integer.MIN_VALUE, Integer.MAX_VALUE, "Overlay color for No Suitable Output Slot");
         notEnoughExpColor = builder.defineInt("StatusColor.notEnoughExpColor", 0xFFf2ff7a, Integer.MIN_VALUE, Integer.MAX_VALUE, "Overlay color for Not Enough Exp");
@@ -54,6 +56,7 @@ public class UncraftEverythingClientConfig {
     }
 
     public boolean autoMoveToInventory() { return autoMoveToInventory.get(); }
+    public boolean showJeiUncraftingCategory() { return showJeiUncraftingCategory.get(); }
     public int noRecipeFoundColor() { return noRecipeFoundColor.get(); }
     public int noSuitableOutputSlotColor() { return noSuitableOutputSlotColor.get(); }
     public int notEnoughExpColor() { return notEnoughExpColor.get(); }
@@ -64,6 +67,10 @@ public class UncraftEverythingClientConfig {
     public int enchantedItemColor() { return enchantedItemColor.get(); }
     public int lockedItemColor() { return lockedItemColor.get(); }
     public int progressionNotDefinedColor() { return progressionNotDefinedColor.get(); }
+
+    public void addReloadListener(Runnable listener){
+        CONFIG_SPEC.addReloadListener(listener);
+    }
 
     public void save(){
         CONFIG_SPEC.save();
