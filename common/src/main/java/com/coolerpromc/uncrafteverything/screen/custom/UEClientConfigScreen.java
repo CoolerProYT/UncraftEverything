@@ -21,6 +21,7 @@ import java.util.Optional;
 
 public class UEClientConfigScreen extends AbstractScrollableScreen {
     public boolean autoMoveToInventory = UncraftEverythingClientConfig.CONFIG.autoMoveToInventory();
+    public boolean showJeiUncraftingCategory = UncraftEverythingClientConfig.CONFIG.showJeiUncraftingCategory();
     public int noRecipeFoundColor = UncraftEverythingClientConfig.CONFIG.noRecipeFoundColor();
     public int noSuitableOutputSlotColor = UncraftEverythingClientConfig.CONFIG.noSuitableOutputSlotColor();
     public int notEnoughExpColor = UncraftEverythingClientConfig.CONFIG.notEnoughExpColor();
@@ -36,12 +37,13 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
     private final Map<ColorPickerWidget, Pair<Integer, Integer>> widgets = new HashMap<>();
 
     private Button moveToInventoryButton;
+    private Button showJeiCategoryButton;
     private Button cancelButton;
     private Button saveButton;
 
     public UEClientConfigScreen(Component title) {
-        super(title, 250);
-        int y = 25;
+        super(title, 275);
+        int y = 50;
 
         ColorPickerWidget noRecipeFoundButton = new ColorPickerWidget(0, 0, 0, noRecipeFoundColor, Component.translatable("screen.uncrafteverything.config.no_recipe_found"), this, this::setNoRecipeFoundColor);
         widgets.put(noRecipeFoundButton, new Pair<>(noRecipeFoundColor, y)); y += 25;
@@ -84,6 +86,12 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
             button.setMessage(Component.translatable("screen.uncrafteverything.config.move_to_inventory_" + autoMoveToInventory));
         }).bounds(x, (int) (baseY - scrollAmount), widgetWidth, 20).build();
         this.addRenderableWidget(moveToInventoryButton);
+
+        showJeiCategoryButton = Button.builder(Component.translatable("screen.uncrafteverything.config.show_jei_category_" + showJeiUncraftingCategory), button -> {
+            showJeiUncraftingCategory = !showJeiUncraftingCategory;
+            button.setMessage(Component.translatable("screen.uncrafteverything.config.show_jei_category_" + showJeiUncraftingCategory));
+        }).bounds(x, (int) (baseY + 25 - scrollAmount), widgetWidth, 20).build();
+        this.addRenderableWidget(showJeiCategoryButton);
 
         Pair<ColorPickerWidget, Pair<Integer, Integer>> visible = null;
 
@@ -131,6 +139,9 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
 
         Component moveToInventory = Component.translatable("screen.uncrafteverything.config.move_to_inventory");
         pGuiGraphics.textWithWordWrap(this.font, moveToInventory, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
+
+        Component showJeiCategory = Component.translatable("screen.uncrafteverything.config.show_jei_category");
+        pGuiGraphics.textWithWordWrap(this.font, showJeiCategory, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
 
         Component noRecipeFound = Component.translatable("screen.uncrafteverything.config.no_recipe_found");
         pGuiGraphics.textWithWordWrap(this.font, noRecipeFound, x, (int) (labelY + (this.font.lineHeight / 2d) + 2), textWidth, 0xFFFFFFFF); labelY += 25;
@@ -279,6 +290,7 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
 
     private void pressSaveButton(Button button){
         UncraftEverythingClientConfig.CONFIG.autoMoveToInventory.set(this.autoMoveToInventory);
+        UncraftEverythingClientConfig.CONFIG.showJeiUncraftingCategory.set(this.showJeiUncraftingCategory);
         UncraftEverythingClientConfig.CONFIG.noRecipeFoundColor.set(this.noRecipeFoundColor);
         UncraftEverythingClientConfig.CONFIG.noSuitableOutputSlotColor.set(this.noSuitableOutputSlotColor);
         UncraftEverythingClientConfig.CONFIG.notEnoughExpColor.set(this.notEnoughExpColor);
@@ -311,6 +323,16 @@ public class UEClientConfigScreen extends AbstractScrollableScreen {
                     valueInfo("tooltip.uncrafteverything.config.true", "tooltip.uncrafteverything.config.auto_move_true"),
                     Component.empty(),
                     valueInfo("tooltip.uncrafteverything.config.false", "tooltip.uncrafteverything.config.auto_move_false")
+            );
+            guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), mouseX, mouseY);
+        }
+
+        if (showJeiCategoryButton.isHovered()){
+            List<Component> tooltip = List.of(
+                    title("tooltip.uncrafteverything.config.show_jei_category"),
+                    valueInfo("tooltip.uncrafteverything.config.true", "tooltip.uncrafteverything.config.show_jei_category_true"),
+                    Component.empty(),
+                    valueInfo("tooltip.uncrafteverything.config.false", "tooltip.uncrafteverything.config.show_jei_category_false")
             );
             guiGraphics.setTooltipForNextFrame(this.font, tooltip, Optional.empty(), mouseX, mouseY);
         }
