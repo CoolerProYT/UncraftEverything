@@ -1,1 +1,1 @@
-- Make renamed item (Anvil rename) able to be uncrafted
+- Added `showJeiUncraftingCategory` client config field to disable/enable JEI Uncrafting Category

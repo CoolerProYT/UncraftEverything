@@ -4,11 +4,15 @@ import com.coolerpromc.uncrafteverything.util.Status;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class UncraftEverythingClientConfig {
     public static final UncraftEverythingClientConfig CONFIG;
     public static final ModConfigSpec CONFIG_SPEC;
 
     public final ModConfigSpec.BooleanValue autoMoveToInventory;
+    public final ModConfigSpec.BooleanValue showJeiUncraftingCategory;
     public final ModConfigSpec.IntValue noRecipeFoundColor;
     public final ModConfigSpec.IntValue noSuitableOutputSlotColor;
     public final ModConfigSpec.IntValue notEnoughExpColor;
@@ -20,6 +24,8 @@ public class UncraftEverythingClientConfig {
     public final ModConfigSpec.IntValue lockedItemColor;
     public final ModConfigSpec.IntValue progressionNotDefinedColor;
 
+    private final List<Runnable> reloadListeners = new CopyOnWriteArrayList<>();
+
     static {
         Pair<UncraftEverythingClientConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(UncraftEverythingClientConfig::new);
 
@@ -30,6 +36,10 @@ public class UncraftEverythingClientConfig {
     private UncraftEverythingClientConfig(ModConfigSpec.Builder builder){
         builder.push("AutoMove");
         autoMoveToInventory = builder.comment("Auto move uncrafted items to player inventory, drops to world if inventory is full.").define("autoMoveToInventory", true);
+        builder.pop();
+
+        builder.push("Behaviour");
+        showJeiUncraftingCategory = builder.comment("Show the Uncrafting category in JEI. Only affects you, other players are not affected.").define("showJeiUncraftingCategory", true);
         builder.pop();
 
         builder.push("StatusColor");
@@ -57,5 +67,10 @@ public class UncraftEverythingClientConfig {
         Status.ENCHANTED_ITEM.setOverlay(enchantedItemColor.getAsInt());
         Status.LOCKED_ITEM.setOverlay(lockedItemColor.getAsInt());
         Status.PROGRESSION_NOT_DEFINED.setOverlay(progressionNotDefinedColor.getAsInt());
+        reloadListeners.forEach(Runnable::run);
+    }
+
+    public void addReloadListener(Runnable listener){
+        reloadListeners.add(listener);
     }
 }
