@@ -27,6 +27,7 @@ public class UEJEIPlugin implements IModPlugin {
     public static final IRecipeType<JEIUncraftingTableRecipe> UNCRAFTING_TYPE = IRecipeType.create(Constants.MODID, "uncrafting_table", JEIUncraftingTableRecipe.class);
     private static final AtomicBoolean RELOAD_LISTENER_REGISTERED = new AtomicBoolean(false);
     private static IJeiRuntime runtime;
+    private static boolean recipesRegistered = false;
 
     @Override
     public @NotNull Identifier getPluginUid() {
@@ -40,6 +41,9 @@ public class UEJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        recipesRegistered = UncraftEverythingClientConfig.CONFIG.showJeiUncraftingCategory();
+        if (!recipesRegistered) return;
+
         List<JEIUncraftingTableRecipe> entries = RecipeViewerHelpers.getRecipes(Minecraft.getInstance().level.registryAccess(), false);
         registration.addRecipes(UNCRAFTING_TYPE, entries);
     }
@@ -72,6 +76,10 @@ public class UEJEIPlugin implements IModPlugin {
         if (runtime == null) return;
 
         if (UncraftEverythingClientConfig.CONFIG.showJeiUncraftingCategory()) {
+            if (!recipesRegistered && Minecraft.getInstance().level != null) {
+                recipesRegistered = true;
+                runtime.getRecipeManager().addRecipes(UNCRAFTING_TYPE, RecipeViewerHelpers.getRecipes(Minecraft.getInstance().level.registryAccess(), false));
+            }
             runtime.getRecipeManager().unhideRecipeCategory(UNCRAFTING_TYPE);
         }
         else {
