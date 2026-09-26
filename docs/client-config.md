@@ -12,7 +12,7 @@ The client config holds settings that only affect your own screen, such as the s
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `autoMoveToInventory` | Boolean | `true` | Moves uncrafted items into your inventory when you click **UnCraft**. Items that don't fit are dropped. Does not apply to the Auto Uncrafting Table. |
-| `showJeiUncraftingCategory` | Boolean | `true` | Shows the Uncrafting category in JEI. Turn it off to hide the category and its recipes from JEI. Changes apply straight away, no restart needed. Only has an effect when JEI is installed. Added in `26.3.0.0`, `26.2.0.2`, `26.1.2.11` and `2.1.5` (1.21.1 NeoForge). |
+| `showJeiUncraftingCategory` | Boolean | `true` | Shows the Uncrafting category in JEI. Turn it off to hide the category and its recipes from JEI. While it's off, the recipes aren't built at all, so JEI loads faster. Changes apply straight away, no restart needed. Only has an effect when JEI is installed. Added in `26.3.0.1`, `26.2.0.2`, `26.1.2.11` and `2.1.5` (1.21.1 NeoForge). |
 
 ### StatusColor
 

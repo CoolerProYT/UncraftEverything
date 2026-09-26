@@ -1,2 +1,2 @@
-# 26.3.0.1
-- Added `showJeiUncraftingCategory` client config field to disable/enable JEI Uncrafting Category
+# 26.3.0.2
+- Fixed `showJeiUncraftingCategory` only hiding the JEI Uncrafting Category while its recipes were still registered on load. Disabling it now skips recipe registration entirely, which removes the load time in large modpacks

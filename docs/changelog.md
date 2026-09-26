@@ -2,9 +2,17 @@
 
 Changes since `v2.0.0`. From the 26.x ports onwards, version numbers start with the Minecraft version.
 
-## 26.3.0.0
+## 26.3.0.2
+
+- Turning off [`showJeiUncraftingCategory`](./client-config#behaviour) now skips building the Uncrafting recipes for JEI, instead of only hiding the category. This removes the extra load time in large modpacks. Turning it back on in-game builds the recipes then.
+
+## 26.3.0.1
 
 - Added [`showJeiUncraftingCategory`](./client-config#behaviour) to the client config. Turn it off to hide the Uncrafting category from JEI.
+
+## 26.2.0.3
+
+- Turning off [`showJeiUncraftingCategory`](./client-config#behaviour) now skips building the Uncrafting recipes for JEI, instead of only hiding the category. This removes the extra load time in large modpacks. Turning it back on in-game builds the recipes then.
 
 ## 26.2.0.2
 
@@ -19,6 +27,10 @@ Changes since `v2.0.0`. From the 26.x ports onwards, version numbers start with 
 - Ported to Minecraft 26.2.
 - The mod now builds for NeoForge and Fabric from one codebase, with a new versioning scheme.
 - Added [`restrictAmbiguouslyCraftedItems`](./common-config#restrictions) to the common config. Turn it on to block recipes that use an item tag as an ingredient.
+
+## 26.1.2.12
+
+- Turning off [`showJeiUncraftingCategory`](./client-config#behaviour) now skips building the Uncrafting recipes for JEI, instead of only hiding the category. This removes the extra load time in large modpacks. Turning it back on in-game builds the recipes then.
 
 ## 26.1.2.11
 
@@ -49,6 +61,10 @@ The config system was rewritten with CoolerConfig. Most settings reset to their 
 - Added [`allowDamagedNonRepairable` and `minimumDurability`](./common-config#damaged) to the common config.
 - Updated the common config screen.
 - Re-implemented FTB Quests compatibility.
+
+## 2.1.6
+
+- Turning off [`showJeiUncraftingCategory`](./client-config#behaviour) now skips building the Uncrafting recipes for JEI, instead of only hiding the category. This removes the extra load time in large modpacks. Turning it back on in-game builds the recipes then. Backported to Minecraft 1.21.1 (NeoForge).
 
 ## 2.1.5
 
