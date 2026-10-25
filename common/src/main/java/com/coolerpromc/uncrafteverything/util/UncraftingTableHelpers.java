@@ -4,6 +4,7 @@ import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTa
 import com.coolerpromc.uncrafteverything.compat.mod.BondedCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.TravelersBackpackCompat;
+import com.coolerpromc.uncrafteverything.compat.mod.WeaponModCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.platform.Services;
 import net.minecraft.core.Holder;
@@ -91,6 +92,7 @@ public class UncraftingTableHelpers {
         if (Services.PLATFORM.isModLoaded("whatdurability") && inputStack.has(DataComponents.DAMAGE)) inputStack.set(DataComponents.DAMAGE, 0);
         if (Services.PLATFORM.isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
         if (Services.PLATFORM.isModLoaded("bonded")) BondedCompat.removeComponents(inputStack);
+        if (Services.PLATFORM.isModLoaded("weaponmod")) WeaponModCompat.removeComponents(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){

@@ -1,2 +1,2 @@
-# 26.2.0.3
-- Fixed `showJeiUncraftingCategory` only hiding the JEI Uncrafting Category while its recipes were still registered on load. Disabling it now skips recipe registration entirely, which removes the load time in large modpacks
+# 26.2.0.4
+- Added compatibility with Balkon's WeaponMod: Legacy.
