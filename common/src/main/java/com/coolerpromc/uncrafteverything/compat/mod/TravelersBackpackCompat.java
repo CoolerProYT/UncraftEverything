@@ -20,7 +20,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -43,7 +42,7 @@ public class TravelersBackpackCompat {
         }
 
         if (recipeHolder.value() instanceof BackpackUpgradeRecipe backpackUpgradeRecipe){
-            if (!UncraftEverythingConfig.CONFIG.allowUnSmithing() || (inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY && UncraftEverythingConfig.CONFIG.outputEnchantedBook())){
+            if (!UncraftEverythingConfig.CONFIG.allowUnSmithing() || (inputStack.isEnchanted() && UncraftEverythingConfig.CONFIG.outputEnchantedBook())){
                 return false;
             }
             return validateBackpackUpgradeRecipe(backpackUpgradeRecipe, inputStack);

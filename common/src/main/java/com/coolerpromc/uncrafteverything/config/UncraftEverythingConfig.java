@@ -7,7 +7,6 @@ import com.coolerpromc.uncrafteverything.platform.Services;
 import com.coolerpromc.uncrafteverything.platform.util.PayloadContext;
 import com.coolerpromc.uncrafteverything.util.Status;
 import com.mojang.serialization.Codec;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -144,7 +142,7 @@ public class UncraftEverythingConfig {
     }
 
     public boolean isEnchantedItemsAllowed(ItemStack itemStack) {
-        return allowEnchantedItems.get() || itemStack.get(DataComponents.ENCHANTMENTS) == ItemEnchantments.EMPTY;
+        return allowEnchantedItems.get() || !itemStack.isEnchanted();
     }
 
     public Pair<Boolean, Status> isItemLocked(@Nullable ServerPlayer player, ItemStack itemStack){
