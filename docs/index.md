@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Uncraft Everything
   text: Turn crafted items back into their ingredients
-  tagline: Made too many stairs? Found a diamond sword you don't need? Drop it in the Uncrafting Table and get the materials back. For Minecraft 26.1+ on NeoForge and Fabric.
+  tagline: Made too many stairs? Found a diamond sword you don't need? Drop it in the Uncrafting Table and get the materials back. For Minecraft 26.1+ on NeoForge and Fabric, and Minecraft 1.20.1 on Forge and Fabric.
   image:
     src: /logo.png
     alt: Uncraft Everything logo
@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: Configuration
       link: /common-config
+    - theme: alt
+      text: 1.20.1 · Fabric upgrade
+      link: /1.20.1/getting-started
 
 features:
   - icon: 🪵

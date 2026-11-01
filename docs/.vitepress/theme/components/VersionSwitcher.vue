@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useData, useRouter, withBase } from 'vitepress'
 
+const closeScreen = inject<() => void>('close-screen', () => {})
 const router = useRouter()
 const { page } = useData()
 
 /** Pages the older versions have; they predate the Auto Uncrafting Table and the client config. */
 const LEGACY_PAGES = ['getting-started', 'uncrafting-table', 'common-config', 'per-item-exp-config', 'ftb-quest-progression-config']
 
-/** Mod versions with their own folder of pages. The latest version lives at the site root and has every page. */
+const CURRENT_PAGES = [...LEGACY_PAGES, 'auto-uncrafting-table', 'client-config', 'changelog']
+
+/** Preserve the current page when it exists in the selected version. */
 const versions = [
-  { label: 'Latest (v2.0.0+)', short: 'Latest', dir: '', pages: null },
+  { label: 'Latest (Minecraft 26.x)', short: 'Latest', dir: '', pages: CURRENT_PAGES },
+  { label: '1.20.1 (20.1.0 · Forge / Fabric)', short: '1.20.1', dir: '1.20.1/', pages: [...CURRENT_PAGES, 'tacz-compatibility'] },
   { label: 'v1.8.2+', short: 'v1.8.2+', dir: 'v1.8.2/', pages: LEGACY_PAGES },
   { label: 'v1.x.x', short: 'v1.x.x', dir: 'v1.x.x/', pages: LEGACY_PAGES },
 ]
@@ -28,6 +32,7 @@ function onFocusOut(event: FocusEvent) {
 /** Opens the same page in the chosen version, or its getting started page when that version has no such page. */
 function select(version: (typeof versions)[number]) {
   open.value = false
+  closeScreen()
   if (version === current.value) return
   const pageName = page.value.relativePath.slice(current.value.dir.length).replace(/(index)?\.md$/, '')
   const exists = pageName !== '' && (version.pages === null || version.pages.includes(pageName))

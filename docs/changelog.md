@@ -2,6 +2,15 @@
 
 Changes since `v2.0.0`. From the 26.x ports onwards, version numbers start with the Minecraft version.
 
+## 20.1.0 · Minecraft 1.20.1
+
+- Unified Forge and Fabric under version **20.1.0**.
+- **Fabric: major upgrade from 1.9.2 to the Forge 2.2.1 feature and UI baseline.** Adds the automatic table, redstone and item automation, stored experience controls, recipe history, client settings/status colors, and current configuration screens and commands.
+- Updated Fabric NBT-sensitive recipe handling and recipe-viewer integration; existing configuration values and older manual-table inventories remain supported.
+- **Forge: optional TaCZ support** for dropped guns, standalone ammunition, scopes and other attachments with a matching Gun Smith Table recipe. Returns exact material counts and installed attachments; loaded and NPC dummy ammunition are excluded.
+
+Read the [1.20.1 upgrade guide](./1.20.1/getting-started), [TaCZ guide](./1.20.1/tacz-compatibility), and [full release notes](./1.20.1/changelog).
+
 ## 26.3.0.2
 
 - Turning off [`showJeiUncraftingCategory`](./client-config#behaviour) now skips building the Uncrafting recipes for JEI, instead of only hiding the category. This removes the extra load time in large modpacks. Turning it back on in-game builds the recipes then.

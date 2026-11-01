@@ -41,6 +41,27 @@ export default defineConfig({
       { component: 'VersionSwitcher' },
     ],
     sidebar: {
+      '/1.20.1/': [
+        {
+          text: 'Minecraft 1.20.1 · 20.1.0',
+          items: [
+            { text: 'Getting started & Fabric upgrade', link: '/1.20.1/getting-started' },
+            { text: 'Uncrafting Table', link: '/1.20.1/uncrafting-table' },
+            { text: 'Auto Uncrafting Table', link: '/1.20.1/auto-uncrafting-table' },
+            { text: 'TaCZ compatibility (Forge)', link: '/1.20.1/tacz-compatibility' },
+            { text: 'Changelog', link: '/1.20.1/changelog' },
+          ],
+        },
+        {
+          text: 'Configuration',
+          items: [
+            { text: 'Client config', link: '/1.20.1/client-config' },
+            { text: 'Common config', link: '/1.20.1/common-config' },
+            { text: 'Per item exp config', link: '/1.20.1/per-item-exp-config' },
+            { text: 'FTB Quests progression', link: '/1.20.1/ftb-quest-progression-config' },
+          ],
+        },
+      ],
       '/v1.8.2/': legacySidebar('/v1.8.2/'),
       '/v1.x.x/': legacySidebar('/v1.x.x/'),
       '/': [

@@ -33,9 +33,9 @@ Hover the `?` icon in the table's screen to see the [config commands](./uncrafti
 
 ## Supported versions
 
-Pages for v2.0.0 and later. Pick an older mod version from the version menu in the top bar.
+These pages describe the newer releases. For **Minecraft 1.20.1**, choose **1.20.1** in the version menu or open the [20.1.0 guide and Fabric upgrade notes](./1.20.1/getting-started). Older guides remain available in the same menu.
 
-| Mod loader | Minecraft version | Maintained |
+| Mod loader | Minecraft version | Status |
 | --- | :---: | :---: |
 | NeoForge, Fabric | 26.3 | :white_check_mark: |
 | NeoForge, Fabric | 26.2 | :white_check_mark: |
@@ -43,11 +43,11 @@ Pages for v2.0.0 and later. Pick an older mod version from the version menu in t
 | NeoForge, Fabric, Forge | 1.21.11 | :x: |
 | NeoForge, Fabric, Forge | 1.21.10 | :x: |
 | NeoForge | 1.21.1 | :x: |
-| Forge | 1.20.1 | :x: |
+| Forge, Fabric | [1.20.1 · 20.1.0](./1.20.1/getting-started) | Feature update in 20.1.0 |
 
-::: warning Older versions are no longer updated
-Versions before Minecraft 26.1 only receive fixes for critical bugs, because the code differs too much between `1.20.1`, `1.21.1` and `26.1`.
+::: info Minecraft 1.20.1 update
+20.1.0 brings Fabric from its 1.9.2 feature set to parity with Forge 2.2.1, including the automatic table and updated UI. Forge also gains optional TaCZ support. See the [1.20.1 changelog](./1.20.1/changelog).
 :::
 
-From the 26.x ports onwards, mod versions start with the Minecraft version they are for, for example `26.3.0.0`. See the [changelog](./changelog) for what changed in each release.
+The multiloader releases use Minecraft-specific version numbers, such as `26.3.0.0` for Minecraft 26.3 and `20.1.0` for Minecraft 1.20.1. See the [changelog](./changelog) for what changed in each release.
 
