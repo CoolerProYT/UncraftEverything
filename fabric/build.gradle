@@ -1,0 +1,109 @@
+plugins {
+    id 'fabric-loom'
+    id 'multiloader-loader'
+    id 'me.modmuss50.mod-publish-plugin'
+}
+
+// Preserve the existing Fabric compiler while keeping the Java 17 runtime target.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+tasks.withType(JavaCompile).configureEach { options.release = 17 }
+
+repositories {
+    maven { url 'https://maven.shedaniel.me' }
+    maven { url 'https://maven.blamejared.com' }
+    maven { url 'https://cursemaven.com' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    modImplementation include('com.electronwill.night-config:core:3.8.1')
+    modImplementation include('com.electronwill.night-config:toml:3.8.1')
+
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}"
+    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+
+    modImplementation 'curse.maven:architectury-api-419699:5137936'
+    modImplementation 'curse.maven:ftb-quests-fabric-438496:6829211'
+    modImplementation 'curse.maven:ftb-teams-fabric-438497:6130783'
+    modImplementation 'curse.maven:ftb-library-fabric-438495:6807422'
+    modImplementation 'teamreborn:energy:3.0.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+// This source set is an opt-in test mod and is never included in the release JAR.
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/uncrafteverything.accesswidener')
+    mods {
+        uncrafteverything { sourceSet sourceSets.main }
+        if (providers.gradleProperty('fabricGameTest').isPresent()) {
+            uncrafteverything_tests { sourceSet sourceSets.gametest }
+        }
+    }
+    runs {
+        client {
+            ideConfigGenerated true
+            configName = 'Fabric Client'
+            runDir 'run/client'
+        }
+        server {
+            ideConfigGenerated true
+            configName = 'Fabric Server'
+            runDir 'run/server'
+        }
+        if (providers.gradleProperty('fabricGameTest').isPresent()) {
+            gameTestServer {
+                server()
+                source sourceSets.gametest
+                configName = 'Fabric GameTest Server'
+                vmArg '-Dfabric-api.gametest'
+                vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.file('gametest-results.xml').get().asFile.absolutePath}"
+                runDir 'build/gametest-run'
+            }
+        }
+    }
+}
+
+fabricApi {
+    configureDataGeneration { client = true }
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    workingDir layout.buildDirectory.dir('test-run')
+    doFirst { workingDir.mkdirs() }
+}
+
+publishMods {
+    file.set(tasks.named('remapJar').flatMap { it.archiveFile })
+    type = BETA
+    modLoaders.add('fabric')
+    changelog = rootProject.file('changelog.md').text
+    displayName = mod_id + '-' + project.version + '+' + minecraft_version + '-fabric'
+    curseforge {
+        projectId = '1244428'
+        accessToken = findProperty('CF_TOKEN')
+        minecraftVersions.add(minecraft_version)
+
+        server=true
+        client=true
+    }
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty('MODRINTH_TOKEN')
+        minecraftVersions.add(minecraft_version)
+    }
+}

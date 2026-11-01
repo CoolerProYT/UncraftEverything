@@ -1,0 +1,176 @@
+buildscript {
+    repositories {
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'multiloader-loader'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id "me.modmuss50.mod-publish-plugin"
+}
+
+apply plugin: 'org.spongepowered.mixin'
+
+minecraft.runs.configureEach { ideaModule = "${rootProject.name}.${project.name}.main" }
+
+// TaCZ is a development runtime dependency; this property selects a release for GameTests.
+def taczTestVersion = providers.gradleProperty('taczTestVersion').orNull
+def taczTestArtifacts = ['1.1.4': 'gTrva99s', '1.1.8-hotfix2': 'AzCBJlex']
+if (taczTestVersion != null && !taczTestArtifacts.containsKey(taczTestVersion)) {
+    throw new GradleException("Supported taczTestVersion values: ${taczTestArtifacts.keySet()}")
+}
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+
+    accessTransformer = project(':common').file("src/main/resources/META-INF/accesstransformer.cfg")
+
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+            property 'forge.enabledGameTestNamespaces', mod_id
+
+            property 'mixin.env.remapRefMap', 'true'
+        }
+
+        server {
+            property 'forge.enabledGameTestNamespaces', mod_id
+            args '--nogui'
+        }
+
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
+            if (taczTestVersion != null) {
+                workingDirectory project.file("build/tacz-gametest-${taczTestVersion}")
+                mods {
+                    "${mod_id}" { source sourceSets.test }
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run-data')
+
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing', project(':common').file('src/main/resources/')
+        }
+    }
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+}
+
+repositories {
+    maven { url 'https://api.modrinth.com/maven' }
+    mavenCentral()
+    maven {
+        name = "Curse Maven"
+        url = "https://cursemaven.com"
+    }
+    maven {
+        url 'https://maven.blamejared.com'
+    }
+    maven { url 'https://modmaven.dev/' }
+    maven { url "https://maven.architectury.dev/" }
+    maven {
+        url "https://cursemaven.com"
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    // Development only: available to IDE runClient, never bundled or required by the published mod.
+    // Exact version IDs disambiguate releases across Minecraft versions.
+    runtimeOnly fg.deobf("maven.modrinth:timeless-and-classics-zero:${taczTestArtifacts[taczTestVersion ?: '1.1.8-hotfix2']}")
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    compileOnly fg.deobf("curse.maven:gamestages-268655:5790361")
+    compileOnly fg.deobf("curse.maven:bookshelf-228525:5423987")
+    compileOnly fg.deobf("curse.maven:crafttweaker-239197:6132440")
+    compileOnly fg.deobf("curse.maven:create-328085:6323270")
+    compileOnly fg.deobf("curse.maven:recipe-stages-280554:5173574")
+    implementation fg.deobf("curse.maven:stackable-items-1245736:6559769")
+    compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
+    implementation(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
+
+    implementation fg.deobf("dev.architectury:architectury-forge:$architectury_version")
+    implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:$cloth_config_version")
+
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:$rei_version")
+//    runtimeOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:$rei_version")
+//    implementation fg.deobf("curse.maven:goety-586095:6778940")
+//    implementation fg.deobf("curse.maven:curios-309927:6418456")
+//    implementation fg.deobf("curse.maven:l2-complements-758349:6774087")
+//    implementation fg.deobf("curse.maven:l2library-620203:6806000")
+
+    compileOnly fg.deobf("curse.maven:ftb-quests-forge-289412:6829212")
+    compileOnly fg.deobf("curse.maven:ftb-library-forge-404465:6807424")
+    compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
+    implementation fg.deobf("curse.maven:jade-324717:6855440")
+    implementation fg.deobf("curse.maven:travelers-backpack-321117:7236164")
+    implementation fg.deobf("curse.maven:peaceful-recipes-446709:4575292")
+
+    // This development viewer loads client classes on a dedicated GameTest server.
+    if (taczTestVersion == null) {
+        implementation fg.deobf("curse.maven:item-nbt-viewer-514135:4578522")
+    }
+}
+
+// Unit tests also verify loading without TaCZ; development runs still include it.
+configurations.testRuntimeClasspath.exclude group: 'maven.modrinth', module: 'timeless-and-classics-zero'
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    workingDir layout.buildDirectory.dir('test-run')
+    doFirst { workingDir.mkdirs() }
+}
+
+tasks.named('jar', Jar) { finalizedBy 'reobfJar' }
+
+publishMods {
+    file.set(jar.archiveFile)
+    type = BETA
+    modLoaders.add("forge")
+    changelog = rootProject.file("changelog.md").text
+    displayName = mod_id + "-" + project.version + "+" + minecraft_version + "-forge"
+
+    curseforge {
+        projectId = "1244428"
+        accessToken = findProperty("CF_TOKEN")
+        minecraftVersions.add(minecraft_version)
+
+        server=true
+        client=true
+    }
+
+    modrinth {
+        projectId = '9cz66Qto'
+        accessToken = findProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraft_version)
+    }
+}

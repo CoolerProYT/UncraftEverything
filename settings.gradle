@@ -1,5 +1,8 @@
 pluginManagement {
     repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.neoforged.net/releases' }
+        mavenCentral()
         gradlePluginPortal()
         maven {
             name = 'MinecraftForge'
@@ -10,5 +13,7 @@ pluginManagement {
 }
 
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
+rootProject.name = 'UncraftEverything-Multiloader'
+include('common', 'forge', 'fabric')

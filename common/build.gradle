@@ -1,0 +1,53 @@
+plugins {
+    id 'multiloader-common'
+    id 'net.neoforged.moddev.legacyforge'
+}
+
+legacyForge {
+    mcpVersion = minecraft_version
+    accessTransformers = [file('src/main/resources/META-INF/accesstransformer.cfg')]
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'com.electronwill.night-config:core:3.6.5'
+    testImplementation 'com.electronwill.night-config:toml:3.6.5'
+    compileOnly 'com.electronwill.night-config:core:3.6.5'
+    compileOnly 'com.electronwill.night-config:toml:3.6.5'
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-common:${jei_version}"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}"
+    compileOnly 'curse.maven:ftb-quests-forge-289412:6829212'
+    compileOnly 'curse.maven:ftb-library-forge-404465:6807424'
+    compileOnly 'curse.maven:ftb-teams-forge-404468:6130786'
+}
+
+
+// Shared gameplay and UI compile against vanilla Minecraft. Loader APIs are accessed through Services.
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    workingDir layout.buildDirectory.dir('test-run')
+    doFirst { workingDir.mkdirs() }
+}
+
+sourceSets.test {
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.compileClasspath
+    // Vanilla bootstrap loads the built-in English translations from the client resources.
+    runtimeClasspath += files(layout.buildDirectory.file("moddev/artifacts/vanilla-${minecraft_version}-client-extra-aka-minecraft-resources.jar"))
+}

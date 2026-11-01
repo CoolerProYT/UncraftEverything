@@ -1,0 +1,80 @@
+package com.coolerpromc.uncrafteverything.networking;
+
+import com.coolerpromc.uncrafteverything.UncraftEverything;
+import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+
+import com.coolerpromc.uncrafteverything.platform.NetworkChannel;
+
+import java.util.List;
+
+public record UEConfigPayload(
+    UncraftEverythingConfig.RestrictionType restrictionType,
+    List<String> restrictedItems, 
+    boolean allowEnchantedItem, 
+    UncraftEverythingConfig.ExperienceType experienceType, 
+    int experience, 
+    boolean allowUnsmithing, 
+    boolean allowDamaged, 
+    boolean preventModdedIngredientsFromVanillaItems,
+    List<String> restrictedModIngredients,
+    boolean enableProgression,
+    boolean onlyAllowDefinedProgression,
+    boolean outputEnchantedBook,
+    boolean prioritizeVanillaIngredientRecipe
+){
+    public static final ResourceLocation TYPE = new ResourceLocation(UncraftEverything.MODID, "ue_config");
+    private static final String PROTOCOL_VERSION = "1";
+
+    public static final NetworkChannel INSTANCE = new NetworkChannel(TYPE);
+
+    private static int packetId = 0;
+    private static int nextId() {
+        return packetId++;
+    }
+
+    public static void encode(UEConfigPayload payload, FriendlyByteBuf byteBuf){
+        byteBuf.writeEnum(payload.restrictionType);
+        byteBuf.writeCollection(payload.restrictedItems, FriendlyByteBuf::writeUtf);
+        byteBuf.writeBoolean(payload.allowEnchantedItem);
+        byteBuf.writeEnum(payload.experienceType);
+        byteBuf.writeInt(payload.experience);
+        byteBuf.writeBoolean(payload.allowUnsmithing);
+        byteBuf.writeBoolean(payload.allowDamaged);
+        byteBuf.writeBoolean(payload.preventModdedIngredientsFromVanillaItems);
+        byteBuf.writeCollection(payload.restrictedModIngredients, FriendlyByteBuf::writeUtf);
+        byteBuf.writeBoolean(payload.enableProgression);
+        byteBuf.writeBoolean(payload.onlyAllowDefinedProgression);
+        byteBuf.writeBoolean(payload.outputEnchantedBook);
+        byteBuf.writeBoolean(payload.prioritizeVanillaIngredientRecipe);
+    }
+
+    public static UEConfigPayload decode(FriendlyByteBuf byteBuf){
+        UncraftEverythingConfig.RestrictionType restrictionType = byteBuf.readEnum(UncraftEverythingConfig.RestrictionType.class);
+        List<String> restrictedItems = byteBuf.readList(FriendlyByteBuf::readUtf);
+        boolean allowEnchantedItem = byteBuf.readBoolean();
+        UncraftEverythingConfig.ExperienceType experienceType = byteBuf.readEnum(UncraftEverythingConfig.ExperienceType.class);
+        int experience = byteBuf.readInt();
+        boolean allowUnsmithing = byteBuf.readBoolean();
+        boolean allowDamaged = byteBuf.readBoolean();
+        boolean preventModdedIngredientsFromVanillaItems = byteBuf.readBoolean();
+        List<String> restrictedModIngredients = byteBuf.readList(FriendlyByteBuf::readUtf);
+        boolean enableProgression = byteBuf.readBoolean();
+        boolean onlyAllowDefinedProgression = byteBuf.readBoolean();
+        boolean outputEnchantedBook = byteBuf.readBoolean();
+        boolean prioritizeVanillaIngredientRecipe = byteBuf.readBoolean();
+
+        return new UEConfigPayload(restrictionType, restrictedItems, allowEnchantedItem, experienceType, experience, allowUnsmithing, allowDamaged, preventModdedIngredientsFromVanillaItems, restrictedModIngredients, enableProgression, onlyAllowDefinedProgression, outputEnchantedBook, prioritizeVanillaIngredientRecipe);
+    }
+
+    public static void register(){
+        INSTANCE.registerMessage(
+                nextId(),
+                UEConfigPayload.class,
+                UEConfigPayload::encode,
+                UEConfigPayload::decode,
+                ServerPayloadHandler::handleConfig
+        );
+    }
+}

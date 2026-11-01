@@ -1,200 +1,32 @@
-buildscript {
-    repositories {
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        maven { url = 'https://maven.minecraftforge.net/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-
 plugins {
-    id 'eclipse'
-    id 'idea'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
+    id 'base'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.77' apply false
+    id 'fabric-loom' version '1.10.5' apply false
+    id 'me.modmuss50.mod-publish-plugin' version '2.2.0' apply false
 }
 
-apply plugin: 'org.spongepowered.mixin'
-
-version = mod_version
-group = mod_group_id
-
-base {
-    archivesName = mod_id
+// The root remains a convenient entry point for existing IDE and command-line workflows.
+tasks.register('runClient') {
+    group = 'forgegradle runs'
+    description = 'Run the Forge development client, including optional TaCZ for local testing.'
+    dependsOn ':forge:runClient'
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
-
-    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
-
-    copyIdeResources = true
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-
-            property 'mixin.env.remapRefMap', 'true'
-        }
-
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-
-        gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        data {
-            workingDirectory project.file('run-data')
-
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-        }
-    }
+tasks.register('runServer') {
+    group = 'forgegradle runs'
+    dependsOn ':forge:runServer'
 }
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
-repositories {
-    mavenCentral()
-    maven {
-        name = "Curse Maven"
-        url = "https://cursemaven.com"
-    }
-    maven {
-        url 'https://maven.blamejared.com'
-    }
-    maven { url 'https://modmaven.dev/' }
-    maven { url "https://maven.architectury.dev/" }
-    maven {
-        url "https://cursemaven.com"
-    }
+tasks.register('runGameTestServer') {
+    group = 'verification'
+    dependsOn ':forge:runGameTestServer'
 }
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    compileOnly fg.deobf("curse.maven:gamestages-268655:5790361")
-    compileOnly fg.deobf("curse.maven:bookshelf-228525:5423987")
-    compileOnly fg.deobf("curse.maven:crafttweaker-239197:6132440")
-    compileOnly fg.deobf("curse.maven:create-328085:6323270")
-    compileOnly fg.deobf("curse.maven:recipe-stages-280554:5173574")
-    implementation fg.deobf("curse.maven:stackable-items-1245736:6559769")
-    compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
-    implementation(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
-
-    implementation fg.deobf("dev.architectury:architectury-forge:$architectury_version")
-    implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:$cloth_config_version")
-
-    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:$rei_version")
-//    runtimeOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:$rei_version")
-//    implementation fg.deobf("curse.maven:goety-586095:6778940")
-//    implementation fg.deobf("curse.maven:curios-309927:6418456")
-//    implementation fg.deobf("curse.maven:l2-complements-758349:6774087")
-//    implementation fg.deobf("curse.maven:l2library-620203:6806000")
-
-    compileOnly fg.deobf("curse.maven:ftb-quests-forge-289412:6829212")
-    compileOnly fg.deobf("curse.maven:ftb-library-forge-404465:6807424")
-    compileOnly fg.deobf("curse.maven:ftb-teams-forge-404468:6130786")
-    implementation fg.deobf("curse.maven:jade-324717:6855440")
-    implementation fg.deobf("curse.maven:travelers-backpack-321117:7236164")
-    implementation fg.deobf("curse.maven:peaceful-recipes-446709:4575292")
-
-    implementation fg.deobf("curse.maven:item-nbt-viewer-514135:4578522")
+tasks.register('test') {
+    group = 'verification'
+    dependsOn ':common:test', ':forge:test', ':fabric:test'
 }
+tasks.named('build') { dependsOn ':common:build', ':forge:build', ':fabric:build' }
+tasks.named('check') { dependsOn ':common:check', ':forge:check', ':fabric:check' }
+tasks.named('clean') { dependsOn ':forge:clean', ':fabric:clean', ':common:clean' }
 
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
-            forge_version: forge_version, forge_version_range: forge_version_range,
-            loader_version_range: loader_version_range,
-            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
-            mod_authors: mod_authors, mod_description: mod_description,
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
-}
-
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : mod_authors,
-                'Specification-Version'   : '1', // We are version 1 of ourselves
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-
-    finalizedBy 'reobfJar'
-}
-
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            artifactId = mod_id
-            artifact jar
-        }
-    }
-    repositories {
-        mavenLocal()
-        maven {
-            url = findProperty("maven_url")
-            credentials {
-                username = findProperty("maven_username")
-                password = findProperty("maven_password")
-            }
-        }
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
-
-publishMods {
-    file.set(jar.archiveFile)
-    type = STABLE
-    modLoaders.add("forge")
-    changelog = file("changelog.md").text
-    displayName = mod_id + "-" + mod_version
-
-    curseforge {
-        projectId = "1244428"
-        accessToken = findProperty("CF_TOKEN")
-        minecraftVersions.add(minecraft_version)
-    }
-
-    modrinth {
-        projectId = '9cz66Qto'
-        accessToken = findProperty("MODRINTH_TOKEN")
-        minecraftVersions.add(minecraft_version)
-    }
+tasks.register('publishMods') {
+    dependsOn ':forge:publishMods', ':fabric:publishMods'
 }

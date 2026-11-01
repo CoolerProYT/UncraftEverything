@@ -1,27 +1,33 @@
+# Uncraft Everything — Minecraft 1.20.1
 
-Installation information
-=======
+Forge and Fabric share release version **20.1.0**. Both include the current manual
+and automatic uncrafting tables, UI, experience controls and configuration.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions at [github](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+The build follows [Jared’s MultiLoader Template](https://github.com/jaredlll08/MultiLoader-Template/tree/1.20.1),
+using the `multiloader-common` and `multiloader-loader` convention plugins in
+`buildSrc`. The `common` project contains the gameplay, inventories, configuration, networking
+records/handlers, screens, recipes, integrations and assets. It compiles against
+vanilla Minecraft. Loader differences use `Services` interfaces, following the
+26.1+ branches; Forge and Fabric provide native adapters and lifecycle entrypoints. Common sources/resources are included in each
+loader’s JAR; players install only the JAR for their loader.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Development
 
-> **Note**: For Eclipse, use tasks in `Launch Group` instead of ones founds in `Java Application`. A preparation task must run before launching the game. NeoGradle uses launch groups to do these subsequently.
+Open the repository root and reload Gradle. Minecraft compilation targets Java 17.
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+- `gradlew build`: build both loaders, including source and Javadoc JARs.
+- `gradlew test`: run the shared unit-test suite.
+- `gradlew :forge:runClient` or `gradlew runClient`: run Forge with TaCZ available as a development-only runtime dependency.
+- `gradlew :fabric:runClient`: run Fabric.
+- `gradlew :forge:genIntellijRuns`: regenerate Forge IDE runs. Fabric runs are generated during Gradle import.
+- `gradlew runGameTestServer -PtaczTestVersion=1.1.8-hotfix2`: run real-TaCZ Forge gameplay tests; `1.1.4` is also supported.
+- `gradlew :fabric:runGameTestServer -PfabricGameTest`: run Fabric gameplay tests.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+Release JARs are in `forge/build/libs` and `fabric/build/libs`. TaCZ remains optional
+for players and is never bundled. Gun, ammunition and attachment uncrafting uses
+existing TaCZ recipes and exact material quantities; loaded ammunition inside guns
+is not refunded.
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+Publishing tasks are available separately as `:forge:publishMods` and
+`:fabric:publishMods`, or together as `publishMods`. They require the configured
+publishing credentials. Build and verification tasks do not upload releases.

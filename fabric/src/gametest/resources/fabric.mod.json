@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "uncrafteverything_tests",
+  "version": "1.0.0",
+  "name": "Uncraft Everything integration tests",
+  "environment": "*",
+  "entrypoints": { "fabric-gametest": ["com.coolerpromc.uncrafteverything.test.FabricParityGameTests"] },
+  "depends": { "uncrafteverything": "*", "fabric-gametest-api-v1": "*" }
+}
