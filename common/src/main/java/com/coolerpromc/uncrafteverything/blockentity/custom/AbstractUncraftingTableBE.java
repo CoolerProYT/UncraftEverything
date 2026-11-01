@@ -11,7 +11,6 @@ import com.coolerpromc.uncrafteverything.util.UncraftingTableHelpers;
 import com.coolerpromc.uncrafteverything.util.UncraftingTableRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -26,7 +25,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -85,7 +83,7 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements W
 
         List<RecipeHolder<?>> recipes = UncraftingTableHelpers.findRecipe(serverLevel, inputStack, this);
 
-        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems() && inputStack.get(DataComponents.ENCHANTMENTS) != ItemEnchantments.EMPTY)) {
+        if (!recipes.isEmpty() || inputStack.is(Items.TIPPED_ARROW) || (UncraftEverythingConfig.CONFIG.allowEnchantedItems() && inputStack.isEnchanted())) {
             this.status = Status.BLANK;
             this.experience = getExperience(inputHandler);
             this.experienceType = UncraftEverythingConfig.CONFIG.experienceType() == UncraftEverythingConfig.ExperienceType.LEVEL ? 1 : 0;
