@@ -46,6 +46,16 @@ Each reason has its own overlay color, which you can change in the [client confi
 - **Enchanted items** can be uncrafted while [`allowEnchantedItems`](./common-config#enchanted) is on. With `outputEnchantedBook` on, you also get an Enchanted Book with the item's enchantments.
 - **Smithing upgrades** such as netherite gear and trimmed armor can be uncrafted while [`allowUnSmithing`](./common-config#unsmithing) is on.
 
+## Sophisticated Backpacks
+
+Backpacks and standalone upgrades support their crafting and tier-upgrade recipes, including netherite smithing upgrades. The same compatibility adapter is included in the Fabric and NeoForge builds; a compatible Sophisticated Backpacks release is required for your Minecraft version and loader.
+
+Reversing a backpack tier upgrade returns the lower-tier backpack with the same storage identity, contents, installed upgrades, name and colors, plus the upgrade materials. The lower tier uses its own inventory and upgrade capacity. Move items out of inventory slots and upgrade slots that the lower tier cannot hold before uncrafting; the table does not move or delete those contents automatically.
+
+Fully dismantling a basic backpack requires an empty inventory and no installed upgrades. Unlink linked storage first. Backpacks with unopened loot are also protected. Configured standalone upgrades pass their data to the predecessor upgrade; dismantling an upgrade with stored state into an inert upgrade base is blocked. The **Contents cannot be preserved** tooltip indicates these protections.
+
+These checks apply to both manual and automatic tables, including a final check if stored contents changed after the recipe preview was created.
+
 ## Automation
 
 Hoppers and pipes can feed the table and empty it.

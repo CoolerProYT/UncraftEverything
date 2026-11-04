@@ -13,6 +13,7 @@
   "screen.uncrafteverything.not_enough_exp": "Not Enough Experience!",
   "screen.uncrafteverything.not_enough_input": "Not Enough Input Item!",
   "screen.uncrafteverything.not_empty_shulker": "Shulker Box is Not Empty!",
+  "screen.uncrafteverything.contents_cannot_be_preserved": "Contents cannot be preserved. Empty the backpack or upgrade, free slots that the lower tier cannot hold, and unlink linked storage first.",
   "screen.uncrafteverything.restricted_by_config": "Item Restricted by Config!",
   "screen.uncrafteverything.damaged_item": "Item is Damaged!",
   "screen.uncrafteverything.enchanted_item": "Enchanted Item Not Allowed!",

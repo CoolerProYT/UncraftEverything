@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.util;
 import com.coolerpromc.uncrafteverything.blockentity.custom.AbstractUncraftingTableBE;
 import com.coolerpromc.uncrafteverything.compat.mod.BondedCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.RandomMisfitsCompat;
+import com.coolerpromc.uncrafteverything.compat.mod.SophisticatedBackpacksCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.TravelersBackpackCompat;
 import com.coolerpromc.uncrafteverything.compat.mod.WeaponModCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
@@ -92,7 +93,11 @@ public class UncraftingTableHelpers {
         if (Services.PLATFORM.isModLoaded("randomisfits")) RandomMisfitsCompat.removeComponent(inputStack);
         if (Services.PLATFORM.isModLoaded("bonded")) BondedCompat.removeComponents(inputStack);
         if (Services.PLATFORM.isModLoaded("weaponmod")) WeaponModCompat.removeComponents(inputStack);
+        boolean sophisticated = SophisticatedBackpacksCompat.isSupportedItem(inputStack);
         return serverLevel.recipeAccess().getRecipes().stream().filter(recipeHolder -> {
+            if (sophisticated) {
+                return SophisticatedBackpacksCompat.hasRecipe(recipeHolder.value(), inputStack, blockEntity);
+            }
             if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
                 if (UncraftEverythingConfig.CONFIG.restrictAmbiguouslyCraftedItems()){
                     for (Optional<Ingredient> ing : shapedRecipe.getIngredients()){
@@ -188,6 +193,7 @@ public class UncraftingTableHelpers {
 
     public static <T extends AbstractUncraftingTableBE> Pair<List<UncraftingTableRecipe>, Boolean> getOutputs(ItemStack inputStack, List<RecipeHolder<?>> recipes, T blockEntity){
         List<UncraftingTableRecipe> outputs = new ArrayList<>();
+        boolean sophisticated = SophisticatedBackpacksCompat.isSupportedItem(inputStack);
 
         if (inputStack.is(Items.TIPPED_ARROW)){
             PotionContents potionContents = inputStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
@@ -205,7 +211,11 @@ public class UncraftingTableHelpers {
             ItemEnchantments enchantments = inputStack.get(DataComponents.ENCHANTMENTS);
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             book.set(DataComponents.STORED_ENCHANTMENTS, enchantments);
-            ItemStack output = new ItemStack(inputStack.getItem(), 1);
+            ItemStack output = sophisticated
+                    ? inputStack.copyWithCount(1) : new ItemStack(inputStack.getItem(), 1);
+            if (sophisticated){
+                output.set(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+            }
             output.setDamageValue(inputStack.getDamageValue());
 
             outputStack.addOutput(output);
@@ -217,6 +227,10 @@ public class UncraftingTableHelpers {
         // Ingredient combinations filter out disallowed alternatives. A mixed tag can
         // still provide valid vanilla ingredients even when it also contains modded items.
         for (RecipeHolder<?> r : recipes) {
+            if (sophisticated) {
+                outputs.addAll(SophisticatedBackpacksCompat.getOutputs(r.value(), inputStack, blockEntity));
+                continue;
+            }
             if (r.value() instanceof TransmuteRecipe transmuteRecipe){
                 List<Ingredient> ingredients = List.of(transmuteRecipe.input, transmuteRecipe.material);
                 List<List<Pair<Item, DataComponentPatch>>> allIngredientCombinations = getShapelessIngredientCombinations(ingredients, inputStack);
@@ -440,6 +454,9 @@ public class UncraftingTableHelpers {
             }
         }
 
+        if (!outputs.isEmpty() && blockEntity != null && blockEntity.status == Status.CONTENTS_CANNOT_BE_PRESERVED) {
+            blockEntity.status = Status.BLANK;
+        }
         return Pair.of(outputs, true);
     }
 

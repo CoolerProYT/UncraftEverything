@@ -1,6 +1,2 @@
-# 26.3.0.4
-- Fixed vanilla weapons, tools and leather armor failing to uncraft when ingredient tags include modded alternatives. Vanilla-only ingredient protection now keeps the valid vanilla choices.
-- Fixed unenchanted items with separately created empty enchantment data being treated as enchanted, blocking uncrafting or offering an empty enchanted book.
-
-# 26.3.0.3
-- Added compatibility with Balkon's WeaponMod: Legacy.
+# 26.3.0.5
+- Added Sophisticated Backpacks compatibility for backpack crafting, tier and smithing upgrades, and standalone upgrades. Backpack contents and installed upgrades are retained on safe tier downgrades; operations that would discard contents or overflow the lower tier are blocked.
