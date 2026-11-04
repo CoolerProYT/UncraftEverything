@@ -2,7 +2,6 @@ package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ClientPayloadHandler;
-import com.coolerpromc.uncrafteverything.networking.RequestConfigPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -26,7 +25,7 @@ import java.util.*;
 
 public class RecipeViewerHelpers {
     public static List<JEIUncraftingTableRecipe> getRecipes(RegistryAccess registryAccess, boolean isREI){
-        RequestConfigPayload.INSTANCE.sendToServer(new RequestConfigPayload());
+        // Config is synchronized on login. Registration must not initiate network work.
         List<JEIUncraftingTableRecipe> entries = new ArrayList<>();
 
         // Add Shulker Boxes (Prevent duplication, only normal shulker box will be outputted)
@@ -133,22 +132,7 @@ public class RecipeViewerHelpers {
             }
 
             if (recipe instanceof SmithingTrimRecipe smithingTrimRecipe && ClientPayloadHandler.payloadFromServer.allowUnsmithing()){
-                List<Ingredient> output = new ArrayList<>();
-                output.add(0, smithingTrimRecipe.base);
-                output.add(1, smithingTrimRecipe.addition);
-                output.add(smithingTrimRecipe.template);
-                Arrays.stream(smithingTrimRecipe.base.getItems()).forEach(itemStack -> {
-                    output.set(0, Ingredient.of(itemStack.getItem()));
-                    Arrays.stream(smithingTrimRecipe.addition.getItems()).forEach(itemStack1 -> {
-                        output.set(1, Ingredient.of(itemStack1));
-                        Optional<Holder.Reference<TrimMaterial>> trimMaterialReference = TrimMaterials.getFromIngredient(registryAccess, smithingTrimRecipe.addition.getItems()[0]);
-                        Optional<Holder.Reference<TrimPattern>> trimPatternReference = TrimPatterns.getFromTemplate(registryAccess, smithingTrimRecipe.template.getItems()[0]);
-                        if (trimPatternReference.isPresent() && trimMaterialReference.isPresent()){
-                            ArmorTrim.setTrim(registryAccess, itemStack, new ArmorTrim(trimMaterialReference.get(), trimPatternReference.get()));
-                            entries.add(new JEIUncraftingTableRecipe(itemStack, output));
-                        }
-                    });
-                });
+                entries.addAll(TrimRecipeViewerRecipes.getRecipes(registryAccess, smithingTrimRecipe));
             }
         });
 

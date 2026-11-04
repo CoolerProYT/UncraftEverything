@@ -1,3 +1,13 @@
+# 20.1.1
+
+## Recipe viewer fixes
+
+- Reduced smithing trim preview generation work by matching registered trim materials and patterns before expanding armor inputs, avoiding repeated registry scans for each ingredient combination.
+- Fixed trim previews modifying shared recipe ingredient stacks and using the wrong material or template.
+- Skip empty or unsupported trim combinations rather than creating invalid previews.
+- Removed the redundant server config request during recipe viewer registration; configuration is already synchronized on login.
+- Added JEI registration timing logs to help diagnose slow recipe generation or indexing in modpacks.
+
 # 20.1.0
 
 ## Multiloader release

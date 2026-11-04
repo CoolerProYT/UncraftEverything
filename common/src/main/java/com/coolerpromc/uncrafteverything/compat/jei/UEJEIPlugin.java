@@ -4,13 +4,12 @@ import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.block.UEBlocks;
 import com.coolerpromc.uncrafteverything.screen.custom.AbstractUncraftingScreen;
 import com.coolerpromc.uncrafteverything.util.JEIUncraftingTableRecipe;
-import com.coolerpromc.uncrafteverything.util.UETags;
+import com.mojang.logging.LogUtils;
 import com.coolerpromc.uncrafteverything.util.RecipeViewerHelpers;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -40,8 +39,17 @@ public class UEJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        List<JEIUncraftingTableRecipe> entries = RecipeViewerHelpers.getRecipes(Minecraft.getInstance().level.registryAccess(), false);
+        var level = Minecraft.getInstance().level;
+        if (level == null) return;
+
+        long started = System.nanoTime();
+        LogUtils.getLogger().info("Building UncraftEverything JEI recipes");
+        List<JEIUncraftingTableRecipe> entries = RecipeViewerHelpers.getRecipes(level.registryAccess(), false);
+        LogUtils.getLogger().info("Built {} UncraftEverything JEI recipes in {} ms; registering with JEI",
+                entries.size(), (System.nanoTime() - started) / 1_000_000);
         registration.addRecipes(UNCRAFTING_TYPE, entries);
+        LogUtils.getLogger().info("UncraftEverything JEI registration completed in {} ms",
+                (System.nanoTime() - started) / 1_000_000);
     }
 
     @Override
