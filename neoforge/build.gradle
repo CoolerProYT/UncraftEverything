@@ -4,6 +4,16 @@ plugins {
     id "me.modmuss50.mod-publish-plugin"
 }
 
+repositories {
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
+}
+
 neoForge {
     version = neoforge_version
     // Automatically enable neoforge AccessTransformers if the file exists
@@ -51,6 +61,9 @@ dependencies {
     jarJar implementation("com.coolerpromc.coolerconfig:coolerconfig-neoforge-${minecraft_version}:${cooler_config_version}")
 
     compileOnly "curse.maven:travelers-backpack-321117:8063214"
+
+    runtimeOnly "maven.modrinth:sophisticated-backpacks:V6roku6Y"
+    runtimeOnly "maven.modrinth:sophisticated-core:UfhEXuoT"
 }
 
 sourceSets.main.resources { srcDir rootProject.project(':common').file('src/generated/resources/').getAbsolutePath() }

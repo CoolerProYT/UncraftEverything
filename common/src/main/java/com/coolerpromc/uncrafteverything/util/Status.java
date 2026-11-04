@@ -11,6 +11,7 @@ public enum Status {
     ENCHANTED_ITEM(7, "screen.uncrafteverything.enchanted_item", 0xFFff615c),
     LOCKED_ITEM(8, "screen.uncrafteverything.locked_item", 0xFFff615c),
     PROGRESSION_NOT_DEFINED(9, "screen.uncrafteverything.progression_not_defined", 0xFFff615c),
+    CONTENTS_CANNOT_BE_PRESERVED(10, "screen.uncrafteverything.contents_cannot_be_preserved", 0xFFe48aff),
     BLANK(-1, "screen.uncrafteverything.blank", -1);
 
     private final int index;

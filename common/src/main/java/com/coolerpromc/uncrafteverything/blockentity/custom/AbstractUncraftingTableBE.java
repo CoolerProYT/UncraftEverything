@@ -106,7 +106,9 @@ public abstract class AbstractUncraftingTableBE extends BlockEntity implements W
                 setCurrentRecipe(currentRecipes);
             }
             if(!hasRecipe()){
-                this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
+                if (this.status != Status.CONTENTS_CANNOT_BE_PRESERVED){
+                    this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
+                }
             }
             else{
                 if (!hasEnoughExperience()) {
