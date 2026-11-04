@@ -3,6 +3,7 @@ package com.coolerpromc.uncrafteverything.blockentity.custom;
 import com.coolerpromc.uncrafteverything.UncraftEverything;
 import com.coolerpromc.uncrafteverything.blockentity.UEBlockEntities;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
+import com.coolerpromc.uncrafteverything.compat.mod.SophisticatedBackpacksCompat;
 import com.coolerpromc.uncrafteverything.networking.ClientBoundUncraftingTableDataPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
 import com.coolerpromc.uncrafteverything.screen.custom.UncraftingTableMenu;
@@ -187,7 +188,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
                 if (UncraftEverythingConfig.CONFIG.isItemLocked(player, slots.getItem(inputSlots[0])).getLeft()){
                     this.status = Status.LOCKED_ITEM;
                 }
-                else{
+                else if (this.status != Status.CONTENTS_CANNOT_BE_PRESERVED){
                     this.status = Status.NO_SUITABLE_OUTPUT_SLOT;
                 }
             }
@@ -252,6 +253,7 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
         }
 
         slots.removeItem(0, this.currentRecipe.getInput().getCount());
+        SophisticatedBackpacksCompat.onUncrafted(outputs);
         setChanged();
 
         getOutputStacks(this.slots, false);
@@ -274,11 +276,18 @@ public class UncraftingTableBlockEntity extends AbstractUncraftingTableBE implem
         }
 
         ItemStack inputStack = slots.getItem(inputSlots[0]);
+        if (!SophisticatedBackpacksCompat.canStillUncraft(inputStack, currentRecipe, this)){
+            return false;
+        }
         if (inputStack.getCount() < currentRecipe.getInput().getCount()) {
             return false;
         }
 
         List<ItemStack> results = currentRecipe.getOutputs();
+        if (SophisticatedBackpacksCompat.isSupportedItem(inputStack)
+                && !SophisticatedBackpacksCompat.canFitOutputs(Arrays.stream(outputSlots).mapToObj(slots::getItem).toList(), results)){
+            return false;
+        }
 
         for (ItemStack result : results) {
             if (cannotInsertAmountIntoOutputSlot(result) || cannotInsertItemIntoOutputSlot(result)) {

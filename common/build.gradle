@@ -45,6 +45,26 @@ artifacts {
 }
 
 // Implement mcgradleconventions loader attribute
+// Isolated API fixtures exercise optional compatibility without installing either loader.
+sourceSets {
+    compatibilityTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    }
+}
+
+tasks.register('compatibilityTest', JavaExec) {
+    group = 'verification'
+    description = 'Checks Sophisticated Backpacks recipe and contents-preservation regressions.'
+    dependsOn tasks.named('compatibilityTestClasses')
+    classpath = sourceSets.compatibilityTest.runtimeClasspath
+    mainClass = 'com.coolerpromc.uncrafteverything.compat.SophisticatedBackpacksRegression'
+    workingDir = layout.buildDirectory.dir('compatibilityTest').get().asFile
+    doFirst { workingDir.mkdirs() }
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+}
+tasks.named('check') { dependsOn tasks.named('compatibilityTest') }
+
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
     configurations.named("$variant") {

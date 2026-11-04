@@ -1,0 +1,18 @@
+gradle.beforeProject { project ->
+    if (project.path == ':neoforge') project.afterEvaluate {
+        def integration = project.sourceSets.create('sophisticatedIntegration') {
+            java.srcDir project.rootProject.file('tests/sophisticated-backpacks/src')
+            resources.srcDir project.rootProject.file('tests/sophisticated-backpacks/resources')
+            compileClasspath += project.sourceSets.main.output + project.sourceSets.main.compileClasspath
+            runtimeClasspath += project.sourceSets.main.output + project.sourceSets.main.runtimeClasspath
+        }
+        project.dependencies.add('sophisticatedIntegrationCompileOnly', "maven.modrinth:sophisticated-backpacks:hvnchUHS")
+        project.dependencies.add('sophisticatedIntegrationCompileOnly', "maven.modrinth:sophisticated-core:m3zcNcqP")
+        project.neoForge.mods.create('ue_sophisticated_test') { sourceSet integration }
+        project.neoForge.runs.create('sophisticatedCompatibility') {
+            type = 'gameTestServer'
+            sourceSet = integration
+            gameDirectory = project.rootProject.file('.gradle/sophisticated-compat/server-26.2')
+        }
+    }
+}

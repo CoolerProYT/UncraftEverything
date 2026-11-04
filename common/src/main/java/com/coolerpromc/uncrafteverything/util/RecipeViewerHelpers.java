@@ -1,6 +1,7 @@
 package com.coolerpromc.uncrafteverything.util;
 
 import com.coolerpromc.uncrafteverything.UncraftEverythingClient;
+import com.coolerpromc.uncrafteverything.compat.mod.SophisticatedBackpacksCompat;
 import com.coolerpromc.uncrafteverything.config.UncraftEverythingConfig;
 import com.coolerpromc.uncrafteverything.networking.ServerBoundRequestConfigPayload;
 import com.coolerpromc.uncrafteverything.platform.Services;
@@ -114,7 +115,8 @@ public class RecipeViewerHelpers {
 
         // Add all items that can be uncrafted
         UncraftEverythingClient.recipesFromServer.forEach(recipeHolder -> {
-            if (recipeHolder.value() instanceof ShapedRecipe shapedRecipe){
+            Recipe<?> recipe = SophisticatedBackpacksCompat.unwrapRecipe(recipeHolder.value());
+            if (recipe instanceof ShapedRecipe shapedRecipe){
                 ItemStack result = shapedRecipe.result.create();
                 if (isItemBlacklisted(result) || isItemWhitelisted(result)) return;
 
@@ -142,7 +144,7 @@ public class RecipeViewerHelpers {
                 entries.add(new JEIUncraftingTableRecipe(result, outputIngredients));
             }
 
-            if (recipeHolder.value() instanceof ShapelessRecipe shapelessRecipe){
+            if (recipe instanceof ShapelessRecipe shapelessRecipe){
                 ItemStack result = shapelessRecipe.result.create();
                 if (isItemBlacklisted(result) || isItemWhitelisted(result)) return;
 
@@ -190,6 +192,16 @@ public class RecipeViewerHelpers {
                 }
 
                 entries.add(new JEIUncraftingTableRecipe(resultStack, ingredients));
+            }
+
+            if (recipe.getClass().getName().equals("net.p3pp3rf1y.sophisticatedbackpacks.crafting.SmithingBackpackUpgradeRecipe")
+                    && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
+                SophisticatedBackpacksCompat.getRecipeInfo(recipe).ifPresent(recipeInfo -> {
+                    if (!isItemBlacklisted(recipeInfo.result()) && !isItemWhitelisted(recipeInfo.result())){
+                        entries.add(new JEIUncraftingTableRecipe(recipeInfo.result(),
+                                recipeInfo.ingredients().stream().flatMap(Optional::stream).toList()));
+                    }
+                });
             }
 
             if (recipeHolder.value() instanceof SmithingTrimRecipe smithingTrimRecipe && UncraftEverythingClient.payloadFromServer.allowUnsmithing()){
