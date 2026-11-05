@@ -62,7 +62,7 @@ class TrimRecipeViewerRecipesTest {
         // Non-materials/templates must not multiply the number of entries.
         Ingredient broad = Ingredient.of(BuiltInRegistries.ITEM.stream().map(ItemStack::new));
         var originals = java.util.Arrays.stream(base.getItems()).map(ItemStack::copy).toList();
-        var entries = TrimRecipeViewerRecipes.getRecipes(access, recipe(base, broad, broad));
+        var entries = TrimRecipeViewerRecipes.getRecipes(access, recipe(base, broad, broad), TrimRecipeViewerRecipes.MAX_TOTAL);
         assertEquals(8, entries.size()); // 2 armor items x 2 materials x 2 patterns
         for (int i = 0; i < originals.size(); i++) {
             assertTrue(ItemStack.matches(originals.get(i), base.getItems()[i]));
@@ -82,9 +82,30 @@ class TrimRecipeViewerRecipesTest {
         Ingredient armor = Ingredient.of(Items.DIAMOND_CHESTPLATE);
         Ingredient material = Ingredient.of(Items.IRON_INGOT);
         Ingredient template = Ingredient.of(Items.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE);
-        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, Ingredient.EMPTY, template)).isEmpty());
-        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, material, Ingredient.EMPTY)).isEmpty());
-        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(Ingredient.EMPTY, material, template)).isEmpty());
-        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, Ingredient.of(Items.STICK), template)).isEmpty());
+        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, Ingredient.EMPTY, template), 256).isEmpty());
+        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, material, Ingredient.EMPTY), 256).isEmpty());
+        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(Ingredient.EMPTY, material, template), 256).isEmpty());
+        assertTrue(TrimRecipeViewerRecipes.getRecipes(access, recipe(armor, Ingredient.of(Items.STICK), template), 256).isEmpty());
+    }
+    @Test
+    void capsBroadTrimRecipesAndRespectsTheRemainingGlobalBudget() {
+        var items = BuiltInRegistries.ITEM.stream().filter(item -> item != Items.AIR).toList();
+        var materials = new MappedRegistry<TrimMaterial>(Registries.TRIM_MATERIAL, Lifecycle.stable());
+        for (Item item : items) {
+            var id = BuiltInRegistries.ITEM.getKey(item);
+            Registry.register(materials, id,
+                    TrimMaterial.create("test", item, 0.1F, Component.literal(id.toString()), Map.of()));
+        }
+        var expanded = new RegistryAccess.ImmutableRegistryAccess(List.of(materials.freeze(),
+                access.registryOrThrow(Registries.TRIM_PATTERN), BuiltInRegistries.ITEM));
+        var broad = Ingredient.of(items.stream().map(ItemStack::new));
+        var recipe = recipe(Ingredient.of(Items.DIAMOND_CHESTPLATE, Items.IRON_CHESTPLATE), broad, broad);
+
+        assertEquals(TrimRecipeViewerRecipes.MAX_PER_RECIPE,
+                TrimRecipeViewerRecipes.getRecipes(expanded, recipe, TrimRecipeViewerRecipes.MAX_TOTAL).size());
+        var lastPreviews = TrimRecipeViewerRecipes.getRecipes(expanded, recipe, 2);
+        assertEquals(2, lastPreviews.size());
+        assertNotEquals(lastPreviews.get(0).getInput().getItem(), lastPreviews.get(1).getInput().getItem());
+        assertTrue(TrimRecipeViewerRecipes.getRecipes(RegistryAccess.EMPTY, recipe, 0).isEmpty());
     }
 }

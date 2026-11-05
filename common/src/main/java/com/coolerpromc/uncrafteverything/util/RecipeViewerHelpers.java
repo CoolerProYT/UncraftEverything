@@ -109,7 +109,8 @@ public class RecipeViewerHelpers {
         }
 
         // Add all items that can be uncrafted
-        Minecraft.getInstance().level.getRecipeManager().getRecipes().forEach(recipe -> {
+        int trimPreviewsRemaining = TrimRecipeViewerRecipes.MAX_TOTAL;
+        for (Recipe<?> recipe : Minecraft.getInstance().level.getRecipeManager().getRecipes()) {
             if (recipe instanceof ShapedRecipe shapedRecipe){
                 if (!(isItemBlacklisted(shapedRecipe.result) || isItemWhitelisted(shapedRecipe.result))){
                     entries.add(new JEIUncraftingTableRecipe(shapedRecipe.result, shapedRecipe.getIngredients()));
@@ -132,9 +133,11 @@ public class RecipeViewerHelpers {
             }
 
             if (recipe instanceof SmithingTrimRecipe smithingTrimRecipe && ClientPayloadHandler.payloadFromServer.allowUnsmithing()){
-                entries.addAll(TrimRecipeViewerRecipes.getRecipes(registryAccess, smithingTrimRecipe));
+                var previews = TrimRecipeViewerRecipes.getRecipes(registryAccess, smithingTrimRecipe, trimPreviewsRemaining);
+                entries.addAll(previews);
+                trimPreviewsRemaining -= previews.size();
             }
-        });
+        }
 
         return entries;
     }
